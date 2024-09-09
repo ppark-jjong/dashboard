@@ -1,0 +1,29 @@
+# 데이터 수집을 위한 라이브러리
+google-api-python-client==2.93.0
+oauth2client==4.1.3  # Google API 인증을 위한 라이브러리
+
+# Kafka와의 통신을 위한 라이브러리
+kafka-python==2.0.2  # Kafka Producer와 Consumer 구현을 위한 라이브러리
+
+# 데이터 처리와 분석을 위한 라이브러리
+pyspark==3.5.0  # Apache Spark 사용을 위한 라이브러리
+flink==1.17.1   # Apache Flink 사용을 위한 라이브러리 (로컬 설정 시 필요)
+
+# 데이터 저장 및 캐싱을 위한 라이브러리
+redis==5.0.0  # Redis 클라이언트 라이브러리
+
+# 데이터 시각화 및 대시보드 구현을 위한 라이브러리
+dash==2.13.0  # Dash 프레임워크
+plotly==5.17.0  # Plotly 그래프 생성 라이브러리
+
+# Airflow 설치 및 데이터 파이프라인 관리
+apache-airflow==2.7.2  # Airflow의 최신 안정화 버전
+
+# 기타 유틸리티 라이브러리
+requests==2.31.0  # HTTP 요청을 위한 라이브러리
+protobuf==4.24.4  # Protobuf 메시지 직렬화 라이브러리
+pyyaml==6.0  # 설정 파일을 YAML로 작성할 경우 사용
+pandas==2.0.3  # 데이터 처리 및 변환을 위한 라이브러리
+
+# 테스트 및 디버깅 도구
+pytest==7.5.3  # 테스트를 위한 Pytest 프레임워크
