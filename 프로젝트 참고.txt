@@ -40,3 +40,24 @@ my_kafka_project/           # 프로젝트 루트 디렉토리
 ├── Dockerfile              # Docker 환경 설정 파일 (필요 시)
 │
 └── README.md               # 프로젝트 설명 파일
+
+
+
+
+
+
+====================================================================
+Zookeeper 실행
+# Kafka 디렉토리로 이동
+cd C:\downpark\kafka_2.13-3.8.0\bin\windows
+
+# Zookeeper 실행
+zookeeper-server-start.bat ..\..\config\zookeeper.properties
+
+
+Kafka 실행
+# Kafka 디렉토리로 이동 후 실행
+cd C:\downpark\kafka_2.13-3.8.0
+.\bin\windows\kafka-server-start.bat .\config\server.properties
+
+confluent_kafka 를 import 하여 실행시켜야함
