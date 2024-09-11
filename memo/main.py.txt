@@ -1,0 +1,38 @@
+from datetime import datetime
+import pandas as pd
+import delivery_analysis as da
+
+
+def main(file_path):
+    # 데이터 로드 및 전처리
+    data = da.load_data(file_path)
+    data = da.preprocess_data(data)
+
+    # 분석 기준 날짜 설정
+    today = datetime.now().date()
+    this_week = pd.Timestamp(today).to_period('W')
+
+    # 1. 실시간 일별 분석
+    daily_stats = da.daily_analysis(data, today)
+    print("\n1. 실시간 일별 분석 결과:")
+    print(f"상태별 건수:\n{daily_stats[0]}")
+    print(f"완료율: {daily_stats[1]:.2f}%")
+    print(f"평균 배송 거리: {daily_stats[2]:.2f}")
+    print(f"이슈 건수: {daily_stats[3]}")
+
+    # 2. 주별 분석
+    weekly_stats = da.weekly_analysis(data, this_week)
+    print("\n2. 주별 분석 결과:")
+    print(f"완료율: {weekly_stats[0]:.2f}%")
+    print(f"평균 배송 거리: {weekly_stats[1]:.2f}")
+    print(f"이슈 건수: {weekly_stats[2]}")
+
+    # 3. 이슈 발생 패턴 분석
+    issue_pattern = da.analyze_issue_pattern(data)
+    print("\n3. 이슈 발생 패턴:")
+    print(issue_pattern)
+
+
+if __name__ == "__main__":
+    path = r"C:\MyMain\dashboard-dataEng\etc\Dell CS_Delivery Report.xlsx"
+    main(path)

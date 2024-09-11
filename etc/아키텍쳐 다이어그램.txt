@@ -1,19 +1,33 @@
-
-
-
-+-------------------+         +--------+        +-------------------------+
-|    Data Sources   |-------> | Kafka  |------->|    Spark / Flink        |
-| (GPS, APIs, etc.) |         |(Broker)|        |(Real-time Processing)   |
-+-------------------+         +--------+        +-------------------------+
-                                       |                      |
-                                       v                      v
-                                 +-----------+        +-------------------+
-                                 |   Topics  |        |    Database       |
-                                 |           |        |(MySQL, PostgreSQL,|
-                                 +-----------+        |   Redis, etc.)    |
-                                       |                      |
-                                       v                      v
-                                  +----------+          +-------------------+
-                                  |  Airflow |--------->|   Dashboard       |
-                                  |(Orchestration)      | (Visualization)   |
-                                  +----------+          +-------------------+
++------------------------+          +--------+           +--------------------------+
+|   Data Sources         |--------> | Kafka  | --------> |   Spark / Flink           |
+| (GPS, APIs, Sensors,   |          | (Broker)|           | (Real-time Processing)    |
+| Google Sheets, etc.)   |          |        |           |                          |
++------------------------+          +--------+           +--------------------------+
+                                     |        \             |             |
+                                     |         \            v             v
+                                     |       +-----------+  +-------------------+
+                                     |       |   Topics  |->|   In-Memory Cache |
+                                     |       | (Partition)| | (Redis, Memcached)|
+                                     |       +-----------+  +-------------------+
+                                     |                                  |
+                                     v                                  |
+                             +----------------+                        |
+                             |  Data Storage  |                        |
+                             | (MySQL,        |                        |
+                             |  PostgreSQL,   |                        |
+                             |  MongoDB, etc.)|<-----------------------|
+                             +----------------+                         
+                                       |                                
+                                       v                               
+                                  +----------+          +-----------------------------+
+                                  |  Airflow |--------->|       Dashboard              |
+                                  |(Orchestration)      | (Plotly Dash, Grafana, etc.) |
+                                  +----------+          +-----------------------------+
+                                       |
+                                       v
+                              +----------------+
+                              | Error Handling |
+                              | (Alerting,     |
+                              |  Retries,      |
+                              |  Monitoring)   |
+                              +----------------+

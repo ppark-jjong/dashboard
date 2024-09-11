@@ -1,31 +1,30 @@
-version: '2'
+# Google Sheets API 관련 라이브러리
+google-api-python-client==2.94.0
+google-auth-httplib2==0.1.0
+google-auth-oauthlib==1.0.0
 
-services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:latest
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_SERVER_ID: 1
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-      ZOOKEEPER_INIT_LIMIT: 5
-      ZOOKEEPER_SYNC_LIMIT: 2
-    ports:
-      - "22181:2181"
+# Kafka 관련 라이브러리
+kafka-python==2.0.2
 
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    container_name: kafka
-    depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
-      - "29092:29092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+# Redis 관련 라이브러리
+redis==5.0.0
+
+# Plotly와 Dash 관련 라이브러리
+plotly==5.16.0
+dash==2.14.1
+dash-bootstrap-components==1.7.0
+
+# Apache Airflow 관련 라이브러리
+apache-airflow==2.7.0
+
+# Spark 및 Flink 연동을 위한 PySpark (Spark의 경우)
+pyspark==3.5.0
+pyflink==1.18.0  # Flink를 사용할 경우 추가
+
+# 데이터 처리와 분석을 위한 기타 라이브러리
+pandas==2.1.1
+numpy==1.25.3
+
+# 로깅 및 모니터링 관련
+prometheus-client==0.17.0
+grafana-api==1.1.1
