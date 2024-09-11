@@ -1,30 +1,14 @@
-# Google Sheets API 관련 라이브러리
-google-api-python-client==2.94.0
+google-api-python-client==2.98.0
 google-auth-httplib2==0.1.0
-google-auth-oauthlib==1.0.0
-
-# Kafka 관련 라이브러리
+google-auth-oauthlib==1.1.0
 kafka-python==2.0.2
-
-# Redis 관련 라이브러리
 redis==5.0.0
-
-# Plotly와 Dash 관련 라이브러리
 plotly==5.16.0
 dash==2.14.1
-dash-bootstrap-components==1.7.0
-
-# Apache Airflow 관련 라이브러리
+dash-bootstrap-components==1.5.0
 apache-airflow==2.7.0
-
-# Spark 및 Flink 연동을 위한 PySpark (Spark의 경우)
 pyspark==3.5.0
-pyflink==1.18.0  # Flink를 사용할 경우 추가
-
-# 데이터 처리와 분석을 위한 기타 라이브러리
+apache-flink
 pandas==2.1.1
-numpy==1.25.3
-
-# 로깅 및 모니터링 관련
+numpy==1.26.4  # 안정적인 버전으로 수정
 prometheus-client==0.17.0
-grafana-api==1.1.1
