@@ -1,0 +1,52 @@
+pip install -r requirement.txt
+python -m pip install --upgrade pip
+python -m venv venv
+venv\Scripts\activate
+deactivate
+
+
+protoc -I . --python_out=. proto/book_data.proto
+
+
+
+my_kafka_project/           # 프로젝트 루트 디렉토리
+│
+├── data/                   # 데이터 관련 파일들 (예: 샘플 데이터, CSV 파일 등)
+│
+├── proto/                  # Protobuf 관련 파일
+│   ├── book_data.proto     # Protobuf 정의 파일
+│   └── book_data_pb2.py    # Protobuf 컴파일된 Python 파일 (protoc로 생성)
+│
+├── src/                    # 소스 코드 디렉토리
+│   ├── __init__.py         # 패키지 초기화 파일
+│   ├── main.py             # 메인 실행 파일
+│   ├── producer.py         # Kafka Producer 관련 코드
+│   ├── consumer.py         # Kafka Consumer 관련 코드 (필요 시)
+│   ├── data_fetcher.py     # 데이터 수집 코드 (예: Kakao API 호출)
+│   ├── serializers.py      # 데이터 직렬화 및 역직렬화 코드
+│   └── config.py           # 설정 파일 (Kafka 설정, API 키 등)
+│
+├── dags/                   # Airflow DAG 파일 (필요 시)
+│   └── example_dag.py      # Airflow DAG 정의 파일
+│
+├── tests/                  # 테스트 코드 디렉토리
+│   ├── __init__.py         # 테스트 패키지 초기화 파일
+│   ├── test_producer.py    # Producer 관련 테스트
+│   ├── test_consumer.py    # Consumer 관련 테스트
+│   └── test_serializers.py # 직렬화 관련 테스트
+│
+├── requirements.txt        # 프로젝트에서 사용하는 Python 라이브러리 목록
+│
+├── Dockerfile              # Docker 환경 설정 파일 (필요 시)
+│
+└── README.md               # 프로젝트 설명 파일
+
+
+"파이썬을 사용하여 Kafka, Spark, Flink를 통합하여 개발하려면 어떤 JAR 파일이 필요한지, 각 JAR 파일의 역할과 설치 방법을 명확히 설명해줘. 필요한 JAR 파일들이 Kafka와 Spark, Flink 간의 통신과 데이터 처리에 어떤 영향을 미치는지, 그리고 Python 환경에서 Java 기반의 Kafka 브로커와 Spark/Flink를 연동하는 최적의 방법을 제시해줘. JAR 파일을 다운로드하고 import하는 정확한 방법도 함께 알려줘."
+
+
+
+
+SERVICE_ACCOUNT_FILE = 'C:\MyMain\oauth\google\credentials.json'
+SPREADSHEET_ID = '1x4P2VO-ZArT7ibSYywFIBXUTapBhUnE4_ouVMKrKBwc'  # 스프레드시트 ID
+RANGE_NAME = 'Sheet1!A1:D10'            # 읽을 범위
