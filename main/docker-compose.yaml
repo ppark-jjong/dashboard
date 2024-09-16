@@ -12,20 +12,20 @@ services:
       ZOOKEEPER_INIT_LIMIT: 5
       ZOOKEEPER_SYNC_LIMIT: 2
     ports:
-      - "22181:2181" # Zookeeper의 클라이언트 접속 포트
+      - "22181:2181"  # Zookeeper의 클라이언트 접속 포트
 
   kafka:
     # Kafka 서비스 설정 (데이터 스트리밍 및 메시지 브로커 역할)
     image: confluentinc/cp-kafka:latest
     container_name: kafka
     depends_on:
-      - zookeeper # Zookeeper가 먼저 실행되어야 Kafka가 실행됨
+      - zookeeper  # Zookeeper가 먼저 실행되어야 Kafka가 실행됨
     ports:
-      - "9092:9092" # 내부 서비스 간 통신용 Kafka 포트
-      - "29092:29092" # 외부 접근용 Kafka 포트
+      - "9092:9092"  # 내부 서비스 간 통신용 Kafka 포트
+      - "29092:29092"  # 외부 접근용 Kafka 포트
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181' # Zookeeper와의 연결 설정
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'  # Zookeeper와의 연결 설정
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
@@ -37,11 +37,11 @@ services:
     image: bitnami/spark:latest
     container_name: spark-master
     environment:
-      - SPARK_MODE=master # Spark를 마스터 모드로 실행
-      - SPARK_MASTER_PORT=7077 # Spark Master 통신 포트
+      - SPARK_MODE=master  # Spark를 마스터 모드로 실행
+      - SPARK_MASTER_PORT=7077  # Spark Master 통신 포트
     ports:
-      - "7077:7077" # Spark Master의 클러스터 통신 포트
-      - "8080:8080" # Spark Master 웹 UI 포트 (클러스터 모니터링)
+      - "7077:7077"  # Spark Master의 클러스터 통신 포트
+      - "8080:8080"  # Spark Master 웹 UI 포트 (클러스터 모니터링)
     networks:
       - spark-network
 
@@ -50,23 +50,24 @@ services:
     image: bitnami/spark:latest
     container_name: spark-worker
     environment:
-      - SPARK_MODE=worker # Spark를 워커 모드로 실행
-      - SPARK_MASTER_URL=spark://spark-master:7077 # Spark Master와 연결 설정
-      - SPARK_WORKER_MEMORY=1G # Worker의 메모리 설정
-      - SPARK_WORKER_CORES=1 # Worker의 CPU 코어 수 설정
+      - SPARK_MODE=worker  # Spark를 워커 모드로 실행
+      - SPARK_MASTER_URL=spark://spark-master:7077  # Spark Master와 연결 설정
+      - SPARK_WORKER_MEMORY=1G  # Worker의 메모리 설정
+      - SPARK_WORKER_CORES=1  # Worker의 CPU 코어 수 설정
     depends_on:
-      - spark-master # Spark Master가 먼저 실행되어야 Worker가 연결됨
+      - spark-master  # Spark Master가 먼저 실행되어야 Worker가 연결됨
     ports:
-      - "8081:8081" # Spark Worker 웹 UI 포트 (개별 워커 모니터링)
+      - "8081:8081"  # Spark Worker 웹 UI 포트 (개별 워커 모니터링)
     networks:
       - spark-network
+    command: bash -c "spark-submit /path/to/consumer.py"  # consumer.py를 실행하여 Kafka에서 데이터를 읽고 처리
 
   redis:
     # Redis 설정 (실시간 데이터 저장 및 조회를 위한 In-memory 데이터베이스)
     image: redis:latest
     container_name: redis
     ports:
-      - "6379:6379" # Redis 기본 포트 (클라이언트 통신용)
+      - "6379:6379"  # Redis 기본 포트 (클라이언트 통신용)
     networks:
       - spark-network
 
@@ -75,15 +76,15 @@ services:
     image: apache/airflow:latest
     container_name: airflow
     environment:
-      - AIRFLOW__CORE__LOAD_EXAMPLES=False # 기본 예제 로드 비활성화
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor # 로컬 환경에서 작업 실행
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=sqlite:////usr/local/airflow/airflow.db # SQLite 데이터베이스 사용
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False  # 기본 예제 로드 비활성화
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor  # 로컬 환경에서 작업 실행
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=sqlite:////usr/local/airflow/airflow.db  # SQLite 데이터베이스 사용
     ports:
-      - "8082:8080" # Airflow 웹 UI 포트 (파이프라인 모니터링 및 관리)
+      - "8082:8080"  # Airflow 웹 UI 포트 (파이프라인 모니터링 및 관리)
     volumes:
-      - ./dags:/opt/airflow/dags # DAG 파일을 로컬에서 Airflow로 마운트
+      - ./dags:/opt/airflow/dags  # DAG 파일을 로컬에서 Airflow로 마운트
     depends_on:
-      - redis # Airflow가 Redis와 통신할 수 있도록 종속성 설정
+      - redis  # Airflow가 Redis와 통신할 수 있도록 종속성 설정
       - spark-master
       - kafka
     networks:
@@ -91,4 +92,4 @@ services:
 
 networks:
   spark-network:
-    driver: bridge # 각 서비스 간 통신을 위한 브릿지 네트워크 설정
+    driver: bridge  # 각 서비스 간 통신을 위한 브릿지 네트워크 설정

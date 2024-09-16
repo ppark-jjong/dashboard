@@ -9,10 +9,14 @@ pip install -r requirements.txt
 
 
 protoc -I . --python_out=. proto/book_data.proto
-
+==================================================================
 
 docker-compose up -d
 
+- 토픽 확인법
+	컨테이너 내부 진입 만약 잘 안된다면 kafka 설치 경로를 찾아야함
+	토픽 검색
+	/usr/bin/kafka-topics --bootstrap-server localhost:9092 --delete --topic delivery-data
 
 ==================================================================
 
@@ -76,7 +80,4 @@ Spark Master	7077	8080	클러스터 관리 및 작업 스케줄링
 Spark Worker	N/A	8081	Spark 작업을 실제로 수행하는 워커 노드
 Redis	6379	6379	실시간 데이터 저장 및 빠른 조회
 Airflow	8080	8082	데이터 파이프라인 관리 및 스케줄링 UI 접근
-
-
-
 

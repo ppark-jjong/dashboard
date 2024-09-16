@@ -8,33 +8,30 @@ import pandas as pd
 from datetime import datetime
 
 # Google Sheets API 설정
-SERVICE_ACCOUNT_FILE = 'C:\MyMain\oauth\google\credentials.json'
+SERVICE_ACCOUNT_FILE = ('C:\park\oauth\credentials.json')
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 SPREADSHEET_ID = '1x4P2VO-ZArT7ibSYywFIBXUTapBhUnE4_ouVMKrKBwc'
 RANGE_NAME = 'Sheet1!A:Z'  # 모든 열을 읽도록 설정
-
 
 class DeliveryProducer:
     def __init__(self, broker='localhost:29092', topic='delivery-data'):
         self.broker = broker
         self.topic = topic
         self.create_topic()
+        self.setup_google_sheets()  # Google Sheets API 설정 호출
         self.producer = KafkaProducer(
             bootstrap_servers=[self.broker],
             value_serializer=lambda x: json.dumps(x).encode('utf-8')
         )
-        self.setup_google_sheets()
-
     # Kafka 토픽 생성
     def create_topic(self):
         admin_client = KafkaAdminClient(bootstrap_servers=[self.broker])
-        topic_list = []
-        topic_list.append(NewTopic(name=self.topic, num_partitions=1, replication_factor=1))
+        topic_list = [NewTopic(name=self.topic, num_partitions=1, replication_factor=1)]
         try:
             admin_client.create_topics(new_topics=topic_list, validate_only=False)
-            print(f"토픽 '{self.topic}'이 생성되었습니다.")
+            print(f"[Producer] 토픽 '{self.topic}'이 생성되었습니다.")
         except TopicAlreadyExistsError:
-            print(f"토픽 '{self.topic}'이 이미 존재합니다.")
+            print(f"[Producer] 토픽 '{self.topic}'이 이미 존재합니다.")
         finally:
             admin_client.close()
 
@@ -45,9 +42,11 @@ class DeliveryProducer:
 
     # Google Sheets 데이터 가져오기
     def fetch_sheet_data(self):
+        print("[Producer] Google Sheets 데이터 수집을 시작합니다...")
         sheet = self.service.spreadsheets()
         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
         values = result.get('values', [])
+        print(f"[Producer] 수집된 데이터:\n{values[:5]}")  # 수집된 데이터 중 일부를 출력
         return values
 
     # 데이터 전처리
@@ -65,52 +64,58 @@ class DeliveryProducer:
         # 숫자 데이터 처리
         numeric_columns = ['Billed Distance (Put into system)', 'DPS#']
         for col in numeric_columns:
-            if col in df.columns:
+            if (col in df.columns) and (df[col].dtype == 'object'):
                 df[col] = pd.to_numeric(df[col], errors='coerce')
 
         # 'issue' 열 처리
         if 'issue' in df.columns:
             df['issue'] = df['issue'].fillna('')  # NaN 값을 빈 문자열로 대체
 
+        print("[Producer] 데이터 전처리가 완료되었습니다.")
+        print(f"[Producer] 전처리된 데이터:\n{df.head()}")  # 전처리된 데이터 일부를 출력
+
         return df
 
     # 일별 분석
     def daily_analysis(self, data, date):
+        print(f"[Producer] 일별 분석 진행 중... 날짜: {date}")
         daily_data = data[data['Date(접수일)'].dt.date == date]
         status_counts = daily_data['Status'].value_counts().to_dict()
         completion_rate = daily_data['Completed'].mean() * 100 if not daily_data.empty else 0
-        avg_distance = daily_data[
-            'Billed Distance (Put into system)'].mean() if 'Billed Distance (Put into system)' in daily_data.columns else 0
+        avg_distance = daily_data['Billed Distance (Put into system)'].mean() if 'Billed Distance (Put into system)' in daily_data.columns else 0
         issue_count = daily_data['issue'].eq('O').sum() if 'issue' in daily_data.columns else 0
+        print(f"[Producer] 일별 분석 결과: status_counts={status_counts}, completion_rate={completion_rate}, avg_distance={avg_distance}, issue_count={issue_count}")
         return status_counts, completion_rate, avg_distance, issue_count
 
     # 주별 분석
     def weekly_analysis(self, data, week):
+        print(f"[Producer] 주별 분석 진행 중... 주: {week}")
         weekly_data = data[data['Week'] == week]
         completion_rate = weekly_data['Completed'].mean() * 100 if not weekly_data.empty else 0
-        avg_distance = weekly_data[
-            'Billed Distance (Put into system)'].mean() if 'Billed Distance (Put into system)' in weekly_data.columns else 0
+        avg_distance = weekly_data['Billed Distance (Put into system)'].mean() if 'Billed Distance (Put into system)' in weekly_data.columns else 0
         issue_count = weekly_data['issue'].eq('O').sum() if 'issue' in weekly_data.columns else 0
+        print(f"[Producer] 주별 분석 결과: completion_rate={completion_rate}, avg_distance={avg_distance}, issue_count={issue_count}")
         return completion_rate, avg_distance, issue_count
 
     # 이슈 발생 패턴 분석
     def analyze_issue_pattern(self, data):
+        print("[Producer] 이슈 패턴 분석 진행 중...")
         if 'issue' in data.columns and 'Weekday' in data.columns:
             issue_pattern = data[data['issue'] == 'O'].groupby('Weekday')['DPS#'].count().to_dict()
         else:
             issue_pattern = {}
+        print(f"[Producer] 이슈 패턴 분석 결과: {issue_pattern}")
         return issue_pattern
 
     # 데이터를 Kafka로 전송
     def send_data(self, data):
         self.producer.send(self.topic, value=data)
-        print(f"Kafka로 데이터를 전송했습니다: {data}")
+        print(f"[Producer] Kafka로 데이터를 전송했습니다: {data}")
 
     # Google Sheets 데이터 처리 및 Kafka로 전송
     def process_and_send_data(self):
         sheet_data = self.fetch_sheet_data()
         if sheet_data:
-            print('Google Sheets에서 데이터를 가져왔습니다.')
             df = self.preprocess_data(sheet_data)
 
             today = datetime.now().date()
@@ -147,7 +152,7 @@ class DeliveryProducer:
             }
             self.send_data(issue_data)
         else:
-            print('Google Sheets에서 데이터를 찾을 수 없습니다.')
+            print('[Producer] Google Sheets에서 데이터를 찾을 수 없습니다.')
 
     # 프로듀서 연결 종료
     def close(self):
