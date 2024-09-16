@@ -1,179 +1,84 @@
+
+import os
+import logging
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col
-from pyspark.sql.types import StructType, StringType, FloatType, IntegerType
-from kafka import KafkaProducer, KafkaAdminClient
-from kafka.admin import NewTopic
-from kafka.errors import TopicAlreadyExistsError
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
-import json
-import pandas as pd
-from datetime import datetime
+from pyspark.sql.functions import col, from_json, to_date
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType
 
-# Google Sheets API 설정
-SERVICE_ACCOUNT_FILE = 'C:/MyMain/oauth/google/credentials.json'
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-SPREADSHEET_ID = '1x4P2VO-ZArT7ibSYywFIBXUTapBhUnE4_ouVMKrKBwc'
-RANGE_NAME = 'Sheet1!A:Z'  # 모든 열을 읽도록 설정
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-# Kafka 설정
-BROKER = 'localhost:29092'
-TOPIC = 'delivery-data'
+# 환경 변수에서 설정 가져오기
+KAFKA_BROKER = os.getenv('KAFKA_BROKER', 'localhost:9092')
+KAFKA_TOPIC = 'delivery-data'
+SPARK_MASTER = os.getenv('SPARK_MASTER', 'local[*]')
 
-# Kafka Producer 및 토픽 생성 설정
-class DeliveryProducer:
-    def __init__(self, broker=BROKER, topic=TOPIC):
-        self.broker = broker
-        self.topic = topic
-        self.create_topic()
-        self.producer = KafkaProducer(
-            bootstrap_servers=[self.broker],
-            value_serializer=lambda x: json.dumps(x).encode('utf-8')
-        )
-        self.setup_google_sheets()
-
-    def create_topic(self):
-        admin_client = KafkaAdminClient(bootstrap_servers=[self.broker])
-        topic_list = [NewTopic(name=self.topic, num_partitions=1, replication_factor=1)]
-        try:
-            admin_client.create_topics(new_topics=topic_list, validate_only=False)
-            print(f"토픽 '{self.topic}'이 생성되었습니다.")
-        except TopicAlreadyExistsError:
-            print(f"토픽 '{self.topic}'이 이미 존재합니다.")
-        finally:
-            admin_client.close()
-
-    def setup_google_sheets(self):
-        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-        self.service = build('sheets', 'v4', credentials=creds)
-
-    def fetch_sheet_data(self):
-        sheet = self.service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
-        values = result.get('values', [])
-        return values
-
-    def preprocess_data(self, data):
-        df = pd.DataFrame(data[1:], columns=data[0])
-        df['Date(접수일)'] = pd.to_datetime(df['Date(접수일)'], errors='coerce')
-        df['Week'] = df['Date(접수일)'].dt.to_period('W')
-        df['Weekday'] = df['Date(접수일)'].dt.day_name()
-        df['Completed'] = df['Status'] == 'Completed'
-        numeric_columns = ['Billed Distance (Put into system)', 'DPS#']
-        for col in numeric_columns:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce')
-        if 'issue' in df.columns:
-            df['issue'] = df['issue'].fillna('')
-        return df
-
-    def daily_analysis(self, data, date):
-        daily_data = data[data['Date(접수일)'].dt.date == date]
-        status_counts = daily_data['Status'].value_counts().to_dict()
-        completion_rate = daily_data['Completed'].mean() * 100 if not daily_data.empty else 0
-        avg_distance = daily_data['Billed Distance (Put into system)'].mean() if 'Billed Distance (Put into system)' in daily_data.columns else 0
-        issue_count = daily_data['issue'].eq('O').sum() if 'issue' in daily_data.columns else 0
-        return status_counts, completion_rate, avg_distance, issue_count
-
-    def weekly_analysis(self, data, week):
-        weekly_data = data[data['Week'] == week]
-        completion_rate = weekly_data['Completed'].mean() * 100 if not weekly_data.empty else 0
-        avg_distance = weekly_data['Billed Distance (Put into system)'].mean() if 'Billed Distance (Put into system)' in weekly_data.columns else 0
-        issue_count = weekly_data['issue'].eq('O').sum() if 'issue' in weekly_data.columns else 0
-        return completion_rate, avg_distance, issue_count
-
-    def analyze_issue_pattern(self, data):
-        if 'issue' in data.columns and 'Weekday' in data.columns:
-            issue_pattern = data[data['issue'] == 'O'].groupby('Weekday')['DPS#'].count().to_dict()
-        else:
-            issue_pattern = {}
-        return issue_pattern
-
-    def send_data(self, data):
-        self.producer.send(self.topic, value=data)
-        print(f"Kafka로 데이터를 전송했습니다: {data}")
-
-    def process_and_send_data(self):
-        sheet_data = self.fetch_sheet_data()
-        if sheet_data:
-            print('Google Sheets에서 데이터를 가져왔습니다.')
-            df = self.preprocess_data(sheet_data)
-            today = datetime.now().date()
-            this_week = pd.Timestamp(today).to_period('W')
-
-            daily_stats = self.daily_analysis(df, today)
-            daily_data = {
-                "type": "daily",
-                "date": str(today),
-                "status_counts": daily_stats[0],
-                "completion_rate": float(daily_stats[1]),
-                "avg_distance": float(daily_stats[2]),
-                "issue_count": int(daily_stats[3])
-            }
-            self.send_data(daily_data)
-
-            weekly_stats = self.weekly_analysis(df, this_week)
-            weekly_data = {
-                "type": "weekly",
-                "week": str(this_week),
-                "completion_rate": float(weekly_stats[0]),
-                "avg_distance": float(weekly_stats[1]),
-                "issue_count": int(weekly_stats[2])
-            }
-            self.send_data(weekly_data)
-
-            issue_pattern = self.analyze_issue_pattern(df)
-            issue_data = {
-                "type": "issue_pattern",
-                "issue_pattern": issue_pattern
-            }
-            self.send_data(issue_data)
-        else:
-            print('Google Sheets에서 데이터를 찾을 수 없습니다.')
-
-    def close(self):
-        self.producer.flush()
-        self.producer.close()
-
-# Spark Streaming Consumer
-def start_spark_consumer():
-    spark = SparkSession.builder \
-        .appName("DeliveryDataConsumer") \
+def create_spark_session():
+    logger.info("Consumer: Spark 세션 생성 중...")
+    return SparkSession.builder \
+        .appName("DeliveryStatusConsumer") \
+        .master(SPARK_MASTER) \
         .getOrCreate()
 
-    kafka_stream = spark.readStream \
+def create_streaming_df(spark):
+    logger.info("Consumer: Kafka 스트리밍 데이터프레임 생성 중...")
+    return spark.readStream \
         .format("kafka") \
-        .option("kafka.bootstrap.servers", "localhost:9092") \
-        .option("subscribe", "delivery-data") \
+        .option("kafka.bootstrap.servers", KAFKA_BROKER) \
+        .option("subscribe", KAFKA_TOPIC) \
+        .option("startingOffsets", "earliest") \
         .load()
 
-    schema = StructType() \
-        .add("type", StringType()) \
-        .add("date", StringType()) \
-        .add("week", StringType()) \
-        .add("status_counts", StringType()) \
-        .add("completion_rate", FloatType()) \
-        .add("avg_distance", FloatType()) \
-        .add("issue_count", IntegerType()) \
-        .add("issue_pattern", StringType())
+def process_row(batch_df, batch_id):
+    logger.info(f"Consumer: Batch ID {batch_id} 처리 중...")
+    logger.info("Consumer: 현재 배치에서 수신된 데이터:")
+    batch_df.show(truncate=False)
 
-    delivery_data = kafka_stream.selectExpr("CAST(value AS STRING) as json") \
-        .select(from_json(col("json"), schema).alias("data")) \
-        .select("data.*")
+def start_consumer():
+    spark = create_spark_session()
+    df = create_streaming_df(spark)
 
-    query = delivery_data.writeStream \
-        .outputMode("append") \
-        .format("console") \
-        .start()
+    # Kafka에서 들어오는 데이터의 스키마 정의
+    schema = StructType([
+        StructField("type", StringType(), True),
+        StructField("date", StringType(), True),
+        StructField("status_counts", StringType(), True),
+        StructField("completion_rate", FloatType(), True),
+        StructField("avg_distance", FloatType(), True),
+        StructField("issue_count", IntegerType(), True),
+        StructField("week", StringType(), True),
+        StructField("issue_pattern", StringType(), True)
+    ])
 
-    query.awaitTermination()
+    logger.info("Consumer: 데이터 스키마 정의 완료")
 
-# 실행: Producer와 Consumer
+    # 데이터 변환 및 전처리
+    try:
+        value_df = df.selectExpr("CAST(value AS STRING)") \
+            .select(from_json(col("value"), schema).alias("data")) \
+            .select("data.*") \
+            .withColumn("date", to_date(col("date"), "yyyy-MM-dd"))
+
+        logger.info("Consumer: 데이터 전처리 완료")
+    except Exception as e:
+        logger.error(f"Consumer: 데이터 전처리 중 오류 발생 - {e}")
+        return
+
+    # 스트리밍 쿼리 정의 및 실행
+    try:
+        query = value_df.writeStream \
+            .foreachBatch(process_row) \
+            .outputMode("append") \
+            .start()
+
+        logger.info("Consumer: Spark 스트리밍 쿼리 시작")
+        query.awaitTermination()
+    except Exception as e:
+        logger.error(f"Consumer: 스트리밍 쿼리 실행 중 오류 발생 - {e}")
+    finally:
+        logger.info("Consumer: Spark 세션 종료")
+        spark.stop()
+
 if __name__ == "__main__":
-    print("Google Sheets 배송 데이터 분석 및 전송을 시작합니다...")
-    producer = DeliveryProducer()
-    producer.process_and_send_data()
-    producer.close()
-
-    print("Spark Consumer를 시작합니다...")
-    start_spark_consumer()
+    logger.info("Consumer: 독립 실행 모드로 시작")
+    start_consumer()
