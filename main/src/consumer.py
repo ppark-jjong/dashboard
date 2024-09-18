@@ -1,10 +1,10 @@
-
 import os
 import logging
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, from_json, to_date
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType
 
+# 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -13,15 +13,17 @@ KAFKA_BROKER = os.getenv('KAFKA_BROKER', 'localhost:9092')
 KAFKA_TOPIC = 'delivery-data'
 SPARK_MASTER = os.getenv('SPARK_MASTER', 'local[*]')
 
+# Spark 세션 생성 함수
 def create_spark_session():
-    logger.info("Consumer: Spark 세션 생성 중...")
+    logger.info("🛠Spark 세션을 생성 중입니다...")
     return SparkSession.builder \
         .appName("DeliveryStatusConsumer") \
         .master(SPARK_MASTER) \
         .getOrCreate()
 
+# Kafka 스트리밍 데이터프레임 생성 함수
 def create_streaming_df(spark):
-    logger.info("Consumer: Kafka 스트리밍 데이터프레임 생성 중...")
+    logger.info("Kafka 스트리밍 데이터프레임을 생성 중입니다...")
     return spark.readStream \
         .format("kafka") \
         .option("kafka.bootstrap.servers", KAFKA_BROKER) \
@@ -29,11 +31,12 @@ def create_streaming_df(spark):
         .option("startingOffsets", "earliest") \
         .load()
 
+# 각 배치 데이터 처리 함수
 def process_row(batch_df, batch_id):
-    logger.info(f"Consumer: Batch ID {batch_id} 처리 중...")
-    logger.info("Consumer: 현재 배치에서 수신된 데이터:")
+    logger.info(f"Batch ID {batch_id} 처리 중...")
     batch_df.show(truncate=False)
 
+# Consumer 실행 함수
 def start_consumer():
     spark = create_spark_session()
     df = create_streaming_df(spark)
@@ -50,7 +53,7 @@ def start_consumer():
         StructField("issue_pattern", StringType(), True)
     ])
 
-    logger.info("Consumer: 데이터 스키마 정의 완료")
+    logger.info("데이터 스키마 정의 완료.")
 
     # 데이터 변환 및 전처리
     try:
@@ -58,10 +61,9 @@ def start_consumer():
             .select(from_json(col("value"), schema).alias("data")) \
             .select("data.*") \
             .withColumn("date", to_date(col("date"), "yyyy-MM-dd"))
-
-        logger.info("Consumer: 데이터 전처리 완료")
+        logger.info("데이터 전처리 완료.")
     except Exception as e:
-        logger.error(f"Consumer: 데이터 전처리 중 오류 발생 - {e}")
+        logger.error(f"데이터 전처리 중 오류 발생: {e}")
         return
 
     # 스트리밍 쿼리 정의 및 실행
@@ -70,15 +72,15 @@ def start_consumer():
             .foreachBatch(process_row) \
             .outputMode("append") \
             .start()
-
-        logger.info("Consumer: Spark 스트리밍 쿼리 시작")
+        logger.info(" Spark 스트리밍 쿼리를 시작합니다.")
         query.awaitTermination()
     except Exception as e:
-        logger.error(f"Consumer: 스트리밍 쿼리 실행 중 오류 발생 - {e}")
+        logger.error(f"스트리밍 쿼리 실행 중 오류 발생: {e}")
     finally:
-        logger.info("Consumer: Spark 세션 종료")
+        logger.info("Spark 세션을 종료합니다.")
         spark.stop()
 
+# 독립 실행 시 호출되는 메인 함수
 if __name__ == "__main__":
-    logger.info("Consumer: 독립 실행 모드로 시작")
+    logger.info("Consumer: 독립 실행 모드로 시작합니다.")
     start_consumer()

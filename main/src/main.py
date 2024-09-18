@@ -1,41 +1,43 @@
-
 import time
 import threading
 from producer import DeliveryProducer
 from consumer import start_consumer
 import logging
 
+# 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-
+# Producer 실행 함수
 def start_producer(interval=300):
     producer = DeliveryProducer()
     try:
         while True:
-            logger.info("Producer: 데이터 수집 및 Kafka 전송 작업을 시작합니다...")
+            logger.info("데이터 수집 및 Kafka 전송 작업을 시작합니다...")
             producer.process_and_send_data()
-            logger.info("Producer: 데이터 수집 및 전송 작업이 완료되었습니다.")
+            logger.info("데이터 수집 및 전송 작업이 완료되었습니다.")
             next_run = time.time() + interval
-            logger.info(f"Producer: 다음 실행 시간: {time.ctime(next_run)}")
+            logger.info(f"다음 실행 시간: {time.ctime(next_run)}")
             time.sleep(interval)
     except KeyboardInterrupt:
         logger.info("Producer: 사용자에 의해 중단되었습니다.")
+    except Exception as e:
+        logger.error(f"Producer 오류: {e}")
     finally:
         logger.info("Producer: 종료합니다.")
         producer.close()
 
-
+# Consumer 실행 함수
 def run_consumer():
     logger.info("Consumer: 시작합니다.")
     try:
         start_consumer()
     except Exception as e:
-        logger.error(f"Consumer: 오류 발생 - {e}")
+        logger.error(f"Consumer 오류: {e}")
     finally:
         logger.info("Consumer: 종료합니다.")
 
-
+# 메인 실행 부분
 if __name__ == "__main__":
     logger.info("Google Sheets 배송 데이터 분석 및 전송 시스템을 시작합니다...")
 
