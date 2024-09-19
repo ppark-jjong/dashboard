@@ -1,41 +1,38 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+from pyspark.sql.functions import col
 
-# Spark 세션 생성 (Hadoop 관련 설정 비활성화)
-spark = SparkSession.builder \
-    .appName("KafkaSparkConsumerTest") \
-    .master("spark://localhost:7077") \
-    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0") \
-    .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true") \
-    .config("spark.hadoop.fs.file.impl.disable.cache", "true") \
-    .getOrCreate()
+try:
+    # SparkSession 생성
+    spark = SparkSession.builder \
+        .appName("Kafka-Spark Consumer Test") \
+        .config("spark.sql.streaming.checkpointLocation", "/tmp/spark-checkpoints") \
+        .getOrCreate()
 
-# Kafka에서 스트리밍 데이터 읽기
-df = spark.readStream \
-    .format("kafka") \
-    .option("kafka.bootstrap.servers", "localhost:9092") \
-    .option("subscribe", "test_topic") \
-    .option("startingOffsets", "earliest") \
-    .load()
+    # 로그 레벨 설정
+    spark.sparkContext.setLogLevel("INFO")
 
-# 데이터 스키마 정의
-schema = StructType([
-    StructField("id", IntegerType(), True),
-    StructField("name", StringType(), True),
-    StructField("age", IntegerType(), True)
-])
+    # Kafka에서 데이터를 읽어옴
+    df = spark.readStream \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", "localhost:29092") \
+        .option("subscribe", "test_topic") \
+        .option("startingOffsets", "earliest") \
+        .load()
 
-# Kafka 메시지를 JSON으로 파싱
-json_df = df.selectExpr("CAST(value AS STRING)") \
-    .select(from_json(col("value"), schema).alias("data")) \
-    .select("data.*")
+    # Kafka 메시지 값 추출 및 콘솔 출력
+    messages = df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING) as message")
 
-# 콘솔에 출력
-query = json_df.writeStream \
-    .outputMode("append") \
-    .format("console") \
-    .option("truncate", "false") \
-    .start()
+    # 콘솔에 메시지 출력
+    query = messages.writeStream \
+        .outputMode("append") \
+        .format("console") \
+        .start()
 
-query.awaitTermination()
+    # 스트리밍 작업 대기
+    query.awaitTermination()
+
+except Exception as e:
+    print(f"An error occurred: {e}")
+
+finally:
+    spark.stop()
