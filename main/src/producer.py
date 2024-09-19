@@ -9,13 +9,14 @@ from datetime import datetime
 
 # Google Sheets API 설정 및 초기화
 SERVICE_ACCOUNT_FILE = ('C:\\MyMain\\oauth\\google\\credentials.json')
+# SERVICE_ACCOUNT_FILE = ('C:\\MyMain\\oauth\\google\\credentials.json')
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 SPREADSHEET_ID = '1x4P2VO-ZArT7ibSYywFIBXUTapBhUnE4_ouVMKrKBwc'
 RANGE_NAME = 'Sheet1!A:Z'
 
 
 class DeliveryProducer:
-    def __init__(self, broker='localhost:29092', topic='delivery-data'):
+    def __init__(self, broker='localhost:9092', topic='delivery-data'):
         self.broker = broker
         self.topic = topic
         self.create_topic()
