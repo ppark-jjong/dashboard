@@ -1,7 +1,7 @@
 import time
 import threading
-from producer import DeliveryProducer
-from consumer import start_consumer
+from producer.producer import DeliveryProducer
+from consumer.consumer import start_consumer
 import logging
 
 # 로깅 설정

@@ -1,4 +1,10 @@
+certifi==2023.7.22
+charset-normalizer==3.2.0
+confluent-kafka==2.2.0
+idna==3.4
+protobuf==4.24.2
+py4j==0.10.9.7
 pyspark==3.4.1
-kafka-python==2.0.2
-pandas==1.5.3
-google-api-python-client==2.31.0
+requests==2.31.0
+soupsieve==2.4.1
+urllib3==2.0.4

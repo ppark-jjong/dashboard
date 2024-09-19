@@ -5,12 +5,18 @@ venv\Scripts\activate
 deactivate
 
 
+import sys
+sys.executable
+
 pip install -r requirements.txt
 set SPARK_HOME=C:\MyMain\config\venv1\Lib\site-packages\pyspark
 
 set PYSPARK_PYTHON=C:\MyMain\config\venv1\Scripts\python.exe
 set PYSPARK_DRIVER_PYTHON=C:\MyMain\config\venv1\Scripts\python.exe
 
+
+netstat -a -o
+taskkill /f /pid PID번호
 
 protoc -I . --python_out=. proto/book_data.proto
 ==================================================================

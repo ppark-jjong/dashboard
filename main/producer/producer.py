@@ -8,7 +8,7 @@ import pandas as pd
 from datetime import datetime
 
 # Google Sheets API 설정 및 초기화
-SERVICE_ACCOUNT_FILE = ('C:\\MyMain\\oauth\\google\\credentials.json')
+SERVICE_ACCOUNT_FILE = ('C:\\park\\oauth\\credentials.json')
 # SERVICE_ACCOUNT_FILE = ('C:\\MyMain\\oauth\\google\\credentials.json')
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 SPREADSHEET_ID = '1x4P2VO-ZArT7ibSYywFIBXUTapBhUnE4_ouVMKrKBwc'
