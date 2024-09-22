@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+message DeliveryData {
+  string date = 1;
+  string status = 2;
+  double billed_distance = 3;
+  string issue = 4;
+}
