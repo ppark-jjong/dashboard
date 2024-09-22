@@ -1,38 +1,30 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
+import os
 
-try:
-    # SparkSession 생성
-    spark = SparkSession.builder \
-        .appName("Kafka-Spark Consumer Test") \
-        .config("spark.sql.streaming.checkpointLocation", "/tmp/spark-checkpoints") \
-        .getOrCreate()
+os.environ[
+    'PYSPARK_SUBMIT_ARGS'] = '--packages org.apache.spark:spark-streaming-kafka-0-10_2.12:3.2.0,org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0 pyspark-shell'
 
-    # 로그 레벨 설정
-    spark.sparkContext.setLogLevel("INFO")
+# SparkSession 생성
+spark = SparkSession.builder \
+    .appName("KafkaPySparkTest") \
+    .master("local[*]") \
+    .getOrCreate()
 
-    # Kafka에서 데이터를 읽어옴
-    df = spark.readStream \
-        .format("kafka") \
-        .option("kafka.bootstrap.servers", "localhost:29092") \
-        .option("subscribe", "test_topic") \
-        .option("startingOffsets", "earliest") \
-        .load()
+kafka_df = spark.readStream \
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", "localhost:29092") \
+    .option("subscribe", "test_topic") \
+    .load()
 
-    # Kafka 메시지 값 추출 및 콘솔 출력
-    messages = df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING) as message")
+# Kafka 메시지를 문자열로 변환
+messages_df = kafka_df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
 
-    # 콘솔에 메시지 출력
-    query = messages.writeStream \
-        .outputMode("append") \
-        .format("console") \
-        .start()
+# 메시지 출력
+query = messages_df.writeStream \
+    .outputMode("append") \
+    .format("console") \
+    .start()
 
-    # 스트리밍 작업 대기
-    query.awaitTermination()
-
-except Exception as e:
-    print(f"An error occurred: {e}")
-
-finally:
-    spark.stop()
+# 스트리밍 종료를 대기
+query.awaitTermination()
