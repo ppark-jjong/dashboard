@@ -24,3 +24,7 @@ protoc -o proto/book_data.desc proto/book_data.proto
 # functions/venv/lib/python3.11/site-packages/pyspark/jars/ 아래에 직접 jar 파일들을 넣어주었습니다.
 spark-submit consumer/spark_streaming.py --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.1,org.apache.kafka:kafka-clients:3.4.0,org.apache.spark:spark-
 streaming_2.12-3.4.1,org.apache.spark:spark-token-provider-kafka-0-10_2.12-3.4.1,org.apache.commons:commons-pool2:2.11.1,org.apache.spark:spark-protobuf_2.12:3.4.1
+
+
+protoc --python_out=./proto ./proto/book_data.proto
+

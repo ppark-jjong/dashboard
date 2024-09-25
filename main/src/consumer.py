@@ -1,48 +1,47 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import udf, col
-from pyspark.sql.types import StringType
-import delivery_status_pb2
+from confluent_kafka import Consumer, KafkaException
+from protos import delivery_status_pb2
+import os
 
-def start_spark_streaming():
-    """PySpark를 사용하여 Kafka에서 데이터를 소비하고 처리하는 함수"""
-    # Spark 세션 생성
-    spark = SparkSession.builder \
-        .appName("DeliveryStatusConsumer") \
-        .getOrCreate()
 
-    # Kafka 설정
-    KAFKA_TOPIC = "delivery_status"
-    KAFKA_BOOTSTRAP_SERVERS = "localhost:9092"
+# Kafka에서 데이터를 소비하고 처리하는 함수
+def start_consumer():
+    KAFKA_TOPIC = os.environ.get('KAFKA_TOPIC', 'delivery_status')
+    KAFKA_BOOTSTRAP_SERVERS = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092')
+    KAFKA_GROUP_ID = os.environ.get('KAFKA_GROUP_ID', 'delivery_consumer_group')
 
-    # Proto 역직렬화 함수 정의
-    def deserialize_proto(data):
-        """Proto 메시지를 역직렬화하는 함수"""
-        try:
-            delivery_status = delivery_status_pb2.DeliveryStatus()
-            delivery_status.ParseFromString(data)
-            # 결과를 문자열로 반환
-            return f"주문ID: {delivery_status.order_id}, 고객명: {delivery_status.customer_name}, 주소: {delivery_status.delivery_address}, 상태: {delivery_status.status}, 시간: {delivery_status.timestamp}"
-        except Exception as e:
-            return f"역직렬화 중 오류 발생: {e}"
+    # Kafka Consumer 설정
+    conf = {
+        'bootstrap.servers': KAFKA_BOOTSTRAP_SERVERS,
+        'group.id': KAFKA_GROUP_ID,
+        'auto.offset.reset': 'earliest'
+    }
 
-    # UDF로 등록
-    deserialize_udf = udf(lambda x: deserialize_proto(x), StringType())
+    # Kafka Consumer 초기화
+    consumer = Consumer(conf)
+    consumer.subscribe([KAFKA_TOPIC])
 
-    # Kafka에서 메시지를 소비하는 데이터 프레임 생성
-    df = spark.readStream \
-        .format("kafka") \
-        .option("kafka.bootstrap.servers", KAFKA_BOOTSTRAP_SERVERS) \
-        .option("subscribe", KAFKA_TOPIC) \
-        .load()
+    try:
+        while True:
+            # 메시지를 소비
+            msg = consumer.poll(1.0)  # 1초 대기
+            if msg is None:
+                continue
+            if msg.error():
+                print(f"Consumer 오류: {msg.error()}")
+                continue
 
-    # 메시지를 역직렬화
-    df_parsed = df.select(deserialize_udf(col("value")).alias("message"))
+            # 메시지 처리
+            try:
+                # Proto 메시지 역직렬화
+                delivery_status = delivery_status_pb2.DeliveryStatus()
+                delivery_status.ParseFromString(msg.value())
 
-    # 처리된 데이터를 콘솔에 출력
-    query = df_parsed.writeStream \
-        .outputMode("append") \
-        .format("console") \
-        .start()
-
-    # 오류 및 상태 로그 모니터링
-    query.awaitTermination()
+                # 결과 출력
+                print(f"주문ID: {delivery_status.order_id}, 고객명: {delivery_status.customer_name}, 주소: {delivery_status.delivery_address}, 상태: {delivery_status.status}, 시간: {delivery_status.timestamp}")
+            except Exception as e:
+                print(f"메시지 처리 중 오류 발생: {e}")
+    except KeyboardInterrupt:
+        pass
+    finally:
+        # 종료 시 컨슈머 닫기
+        consumer.close()

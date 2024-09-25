@@ -1,13 +1,12 @@
 import time
-from producer import Producer
-from google
+from googleApi import get_sheet_data
+from producer import KafkaProducer
 import threading
-from consumer import start_spark_streaming
+from consumer import start_consumer
 
-
+# Producer 작업을 수행하는 함수
 def producer_task():
-    """Producer 작업을 수행하는 함수"""
-    producer = Producer()
+    producer = KafkaProducer()
     while True:
         # Google Sheets에서 데이터를 가져옴
         data_list = get_sheet_data()
@@ -24,10 +23,12 @@ def producer_task():
         # 10초마다 데이터를 가져옴
         time.sleep(10)
 
+    # 프로듀서 버퍼 비우기
+    producer.flush()
 
 if __name__ == "__main__":
     # 컨슈머를 별도의 스레드로 실행
-    consumer_thread = threading.Thread(target=start_spark_streaming)
+    consumer_thread = threading.Thread(target=start_consumer)
     consumer_thread.start()
 
     # 프로듀서 작업 실행

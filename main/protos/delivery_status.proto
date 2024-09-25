@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+message DeliveryStatus {
+    int32 order_id = 1;               // A 열: 주문 번호
+    string order_date = 2;            // B 열: 주문 날짜
+    string ship_to = 3;               // C 열: 배송지
+    string eta = 4;                   // D 열: 예상 도착 날짜
+    string sla = 5;                   // E 열: SLA 유형
+    string carrier = 6;               // F 열: 운송사
+    string tracking_number = 7;       // G 열: 트래킹 번호
+    string status = 8;                // H 열: 배송 상태 (예: picked, shipped, pod)
+    string dps = 9;                   // I 열: 일련번호
+    string ship_date = 10;            // J 열: 배송 날짜
+    string delivery_date = 11;        // K 열: 배송 완료 날짜
+    string recipient = 12;            // L 열: 수령인
+    string customer_reference = 13;   // M 열: 고객 참조
+    string address = 14;              // N 열: 주소
+    string comments = 15;             // O 열: 추가 정보
+}
