@@ -19,25 +19,25 @@ class KafkaProducer:
         else:
             print(f"메시지 전송 성공: {msg.key()}")
 
+
     def send_to_kafka(self, data):
         try:
             # Proto 메시지 생성
             delivery_status = delivery_status_pb2.DeliveryStatus()
-            delivery_status.order_id = data[0]
-            delivery_status.order_date = data[1]
-            delivery_status.ship_to = data[2]
-            delivery_status.eta = data[3]
-            delivery_status.sla = data[4]
-            delivery_status.carrier = data[5]
-            delivery_status.tracking_number = data[6]
-            delivery_status.status = data[7]
-            delivery_status.dps = data[8]
-            delivery_status.ship_date = data[9]
-            delivery_status.delivery_date = data[10]
-            delivery_status.recipient = data[11]
-            delivery_status.customer_reference = data[12]
-            delivery_status.address = data[13]
-            delivery_status.comments = data[14]
+            delivery_status.delivery_agent = data[0]  # 배송 기사
+            delivery_status.order_date = data[1]  # Date(접수일)
+            delivery_status.dps = data[2]  # DPS#
+            delivery_status.eta = data[3]  # ETA
+            delivery_status.sla = data[4]  # SLA
+            delivery_status.address = data[5]  # Ship to
+            delivery_status.status_detail = data[6]  # Status
+            delivery_status.picked = data[7].strip().upper() == "O"  # 1. Picked
+            delivery_status.shipped = data[8].strip().upper() == "O"  # 2. Shipped
+            delivery_status.pod = data[9].strip().upper() == "O"  # 3. POD
+            delivery_status.zip_code = int(data[10])  # Zip Code
+            delivery_status.distance = int(data[11])  # Billed Distance (Put into system)
+            delivery_status.recipient = data[12]  # 인수자
+            delivery_status.issue = data[13].strip().upper() == "O"  # issue
 
             # Proto 메시지를 직렬화
             proto_message = delivery_status.SerializeToString()

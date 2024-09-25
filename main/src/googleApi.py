@@ -7,7 +7,6 @@ from googleapiclient.errors import HttpError
 SHEET_ID = os.environ.get('SHEET_ID', '1x4P2VO-ZArT7ibSYywFIBXUTapBhUnE4_ouVMKrKBwc')
 RANGE_NAME = os.environ.get('RANGE_NAME', 'Sheet1!A1:o1000')
 SERVICE_ACCOUNT_FILE = os.environ.get('SERVICE_ACCOUNT_FILE', 'C:/MyMain/oauth/google/credentials.json')
-
 def get_sheet_data():
     try:
         # 설정된 값들을 출력하여 확인
@@ -29,12 +28,20 @@ def get_sheet_data():
         sheet = service.spreadsheets()
         result = sheet.values().get(spreadsheetId=SHEET_ID, range=RANGE_NAME).execute()
         rows = result.get('values', [])
-        print(f"Fetched rows: {rows}")  # 데이터 가져온 후 출력
-        return rows
+
+        if not rows:
+            print("데이터가 없습니다.")
+            return None
+
+        # 첫 번째 행은 헤더이므로 제외하고 나머지 데이터만 가져옴
+        data = rows[1:]
+
+        # print(f"Fetched data: {data}")  # 데이터 가져온 후 출력
+        return data
+
     except HttpError as err:
         print(f"Google Sheets 데이터를 불러오는 중 오류 발생: {err}")
         return None
     except Exception as e:
         print(f"예기치 않은 오류 발생: {e}")
         return None
-

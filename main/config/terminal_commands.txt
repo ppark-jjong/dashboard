@@ -14,7 +14,7 @@ docker-compose exec kafka kafka-topics --delete --topic book --bootstrap-server 
 # proto buffer 컴파일
 
 # proto buffer descriptor 파일 생성 (pyspark from_protobuf() 에 사용)
-protoc -o proto/book_data.desc proto/book_data.proto
+protoc -I=protos --python_out=protos protos/delivery_status.proto
 
 # spark-submit 명령어
 # 명령어 입력 전에, https://mvnrepository.com/ 에서 해당 라이브러리들의 jar 파일을 다운로드한 후,
@@ -26,5 +26,4 @@ spark-submit consumer/spark_streaming.py --packages org.apache.spark:spark-sql-k
 streaming_2.12-3.4.1,org.apache.spark:spark-token-provider-kafka-0-10_2.12-3.4.1,org.apache.commons:commons-pool2:2.11.1,org.apache.spark:spark-protobuf_2.12:3.4.1
 
 
-protoc --python_out=./proto ./proto/book_data.proto
 

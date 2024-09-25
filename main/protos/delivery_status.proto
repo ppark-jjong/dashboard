@@ -1,19 +1,18 @@
 syntax = "proto3";
 
 message DeliveryStatus {
-    int32 order_id = 1;               // A 열: 주문 번호
-    string order_date = 2;            // B 열: 주문 날짜
-    string ship_to = 3;               // C 열: 배송지
-    string eta = 4;                   // D 열: 예상 도착 날짜
-    string sla = 5;                   // E 열: SLA 유형
-    string carrier = 6;               // F 열: 운송사
-    string tracking_number = 7;       // G 열: 트래킹 번호
-    string status = 8;                // H 열: 배송 상태 (예: picked, shipped, pod)
-    string dps = 9;                   // I 열: 일련번호
-    string ship_date = 10;            // J 열: 배송 날짜
-    string delivery_date = 11;        // K 열: 배송 완료 날짜
-    string recipient = 12;            // L 열: 수령인
-    string customer_reference = 13;   // M 열: 고객 참조
-    string address = 14;              // N 열: 주소
-    string comments = 15;             // O 열: 추가 정보
+    string delivery_agent = 1;         // 배송 기사: 문자열 (예: "HES")
+    string order_date = 2;             // Date(접수일): 문자열로 날짜 표현 (예: "2024-09-29")
+    string dps = 3;                    // DPS#: 문자열 (예: "95453055234")
+    string eta = 4;                    // ETA: 문자열로 시간 포함 날짜 표현 (예: "2024-09-01 0:30")
+    string sla = 5;                    // SLA: 문자열 (예: "4HR(24X7)")
+    string address = 6;                // Ship to: 문자열 (예: "서울 종로구 대학로 65 KT 혜화타워")
+    string status_detail = 7;          // Status: 문자열 (예: "Completed")
+    bool picked = 8;                   // 1. Picked: Boolean 값으로 변경 (예: True/False, "O" → True)
+    bool shipped = 9;                  // 2. Shipped: Boolean 값으로 변경 (예: True/False, "O" → True)
+    bool pod = 10;                     // 3. POD: Boolean 값으로 변경 (예: True/False, "O" → True)
+    int32 zip_code = 11;               // Zip Code: 정수형 (예: 3082)
+    int32 distance = 12;               // Billed Distance (Put into system): 정수형 (예: 30)
+    string recipient = 13;             // 인수자: 문자열 (예: "유상훈")
+    bool issue = 14;                   // Issue 여부: Boolean 값으로 변경 (예: True/False, "O" → True)
 }

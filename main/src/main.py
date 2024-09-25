@@ -12,8 +12,7 @@ def producer_task():
         data_list = get_sheet_data()
         if data_list:
             for data in data_list:
-                if len(data) == 5:
-                    # 데이터 전송
+                if len(data) == 14:
                     producer.send_to_kafka(data)
                 else:
                     print("데이터 형식이 올바르지 않습니다.")
