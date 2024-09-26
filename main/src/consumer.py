@@ -6,16 +6,15 @@ import os
 # Kafka에서 데이터를 소비하고 처리하는 함수
 def start_consumer():
     KAFKA_TOPIC = os.environ.get('KAFKA_TOPIC', 'delivery_status')
-    KAFKA_BOOTSTRAP_SERVERS = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092')
+    KAFKA_BOOTSTRAP_SERVERS = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
     KAFKA_GROUP_ID = os.environ.get('KAFKA_GROUP_ID', 'delivery_consumer_group')
 
     # Kafka Consumer 설정
     conf = {
-        'bootstrap.servers': KAFKA_BOOTSTRAP_SERVERS,
-        'group.id': KAFKA_GROUP_ID,
+        'bootstrap.servers': 'localhost:9092',
+        'group.id': 'delivery_consumer_group',
         'auto.offset.reset': 'earliest'
     }
-
     # Kafka Consumer 초기화
     consumer = Consumer(conf)
     consumer.subscribe([KAFKA_TOPIC])
