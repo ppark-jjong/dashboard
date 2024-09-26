@@ -3,6 +3,8 @@ from googleApi import get_sheet_data
 from producer import KafkaProducer
 import threading
 from consumer import start_consumer
+import os
+os.environ['KAFKA_BOOTSTRAP_SERVERS'] = 'localhost:9092'
 
 # Producer 작업을 수행하는 함수
 def producer_task():
