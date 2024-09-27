@@ -1,46 +1,67 @@
-from confluent_kafka import Consumer, KafkaException
-from protos import delivery_status_pb2
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import from_json
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, MapType
 import os
 
+# Kafka에서 데이터를 읽어오는 스키마 정의
+dashboard_schema = StructType([
+    StructField("picked_count", IntegerType(), True),
+    StructField("shipped_count", IntegerType(), True),
+    StructField("pod_count", IntegerType(), True),
+    StructField("sla_counts_today", MapType(StringType(), IntegerType()), True),
+    StructField("issues_today", StringType(), True)
+])
 
-# Kafka에서 데이터를 소비하고 처리하는 함수
-def start_consumer():
-    KAFKA_TOPIC = os.environ.get('KAFKA_TOPIC', 'delivery_status')
-    KAFKA_BOOTSTRAP_SERVERS = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
-    KAFKA_GROUP_ID = os.environ.get('KAFKA_GROUP_ID', 'delivery_consumer_group')
-
-    # Kafka Consumer 설정
-    conf = {
-        'bootstrap.servers': 'localhost:9092',
-        'group.id': 'delivery_consumer_group',
-        'auto.offset.reset': 'earliest'
-    }
-    # Kafka Consumer 초기화
-    consumer = Consumer(conf)
-    consumer.subscribe([KAFKA_TOPIC])
-
+monthly_volume_schema = StructType([
+    StructField("sla_counts_month", MapType(StringType(), IntegerType()), True),
+    StructField("weekday_counts", MapType(StringType(), IntegerType()), True),
+    StructField("distance_counts", MapType(IntegerType(), IntegerType()), True)
+])
+#    PySpark를 이용해 Kafka 토픽에서 메시지 소비 및 처리
+def start_spark_consumer():
     try:
-        while True:
-            # 메시지를 소비
-            msg = consumer.poll(1.0)  # 1초 대기
-            if msg is None:
-                continue
-            if msg.error():
-                print(f"Consumer 오류: {msg.error()}")
-                continue
+        # SparkSession 초기화
+        spark = SparkSession.builder.appName("KafkaProtoBufConsumer").getOrCreate()
 
-            # 메시지 처리
-            try:
-                # Proto 메시지 역직렬화
-                delivery_status = delivery_status_pb2.DeliveryStatus()
-                delivery_status.ParseFromString(msg.value())
+        print("[정보] PySpark가 Kafka 토픽에서 데이터를 소비 중...")
 
-                # 결과 출력
-                print(f"주문ID: {delivery_status.order_id}, 고객명: {delivery_status.customer_name}, 주소: {delivery_status.delivery_address}, 상태: {delivery_status.status}, 시간: {delivery_status.timestamp}")
-            except Exception as e:
-                print(f"메시지 처리 중 오류 발생: {e}")
-    except KeyboardInterrupt:
-        pass
-    finally:
-        # 종료 시 컨슈머 닫기
-        consumer.close()
+        # dashboard_status 토픽 데이터 스트림 읽기
+        df_dashboard = spark.readStream.format("kafka")\
+            .option("kafka.bootstrap.servers", os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092'))\
+            .option("subscribe", "dashboard_status")\
+            .option("startingOffsets", "earliest")\
+            .load()
+
+        # JSON으로 변환 및 콘솔 출력
+        df_dashboard = df_dashboard.withColumn("value", from_json(df_dashboard["value"].cast("string"), dashboard_schema))
+        query_dashboard = df_dashboard.selectExpr("value.*")\
+            .writeStream\
+            .outputMode("append")\
+            .format("console")\
+            .start()
+
+        # monthly_volume_status 토픽 데이터 스트림 읽기
+        df_monthly_volume = spark.readStream.format("kafka")\
+            .option("kafka.bootstrap.servers", os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092'))\
+            .option("subscribe", "monthly_volume_status")\
+            .option("startingOffsets", "earliest")\
+            .load()
+
+        # JSON으로 변환 및 콘솔 출력
+        df_monthly_volume = df_monthly_volume.withColumn("value", from_json(df_monthly_volume["value"].cast("string"), monthly_volume_schema))
+        query_monthly_volume = df_monthly_volume.selectExpr("value.*")\
+            .writeStream\
+            .outputMode("append")\
+            .format("console")\
+            .start()
+
+        print("[성공] PySpark가 Kafka로부터 데이터를 소비하고 있습니다.")
+
+        # 스트림 종료 대기
+        query_dashboard.awaitTermination()
+        query_monthly_volume.awaitTermination()
+    except Exception as e:
+        print(f"[오류] PySpark Consumer 실행 중 오류 발생: {e}")
+
+if __name__ == "__main__":
+    start_spark_consumer()

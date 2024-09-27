@@ -1,91 +1,82 @@
+import time
 from confluent_kafka import Producer
+from confluent_kafka.admin import AdminClient, NewTopic
 import os
 
-<<<<<<< HEAD
-=======
-# Kafka 프로듀서를 초기화하는 클래스
->>>>>>> origin/main
 class KafkaProducer:
     def __init__(self):
-        conf = {
-            'bootstrap.servers': os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+        # Kafka 브로커 설정
+        self.bootstrap_servers = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+        self.topics = {
+            'dashboard_status': 'dashboard_status',
+            'monthly_volume_status': 'monthly_volume_status'
         }
+        conf = {'bootstrap.servers': self.bootstrap_servers}
         self.producer = Producer(conf)
+        self.create_or_update_topics()
+
+    def create_or_update_topics(self):
+        """Kafka 토픽을 생성하거나 업데이트 (이미 존재하는 경우 삭제 후 생성)"""
+        try:
+            admin_client = AdminClient({'bootstrap.servers': self.bootstrap_servers})
+            existing_topics = admin_client.list_topics().topics.keys()
+
+            topics_to_create = []
+            topics_to_delete = []
+
+            for topic in self.topics.values():
+                if topic in existing_topics:
+                    # 기존 토픽 삭제 요청
+                    print(f"[정보] 기존 토픽 '{topic}' 삭제 요청 중...")
+                    topics_to_delete.append(topic)
+
+            if topics_to_delete:
+                # 토픽 삭제 요청
+                fs = admin_client.delete_topics(topics_to_delete, operation_timeout=30)
+                for topic, f in fs.items():
+                    try:
+                        f.result()  # The result itself is None
+                        print(f"[정보] 기존 토픽 '{topic}' 삭제 성공")
+                    except Exception as e:
+                        print(f"[오류] 기존 토픽 '{topic}' 삭제 실패: {e}")
+
+                # 토픽이 완전히 삭제되었는지 확인하기 위해 대기
+                time.sleep(10)  # 10초 대기 (필요에 따라 조정 가능)
+
+            # 새로운 토픽 생성
+            for topic in self.topics.values():
+                topics_to_create.append(NewTopic(topic=topic, num_partitions=1, replication_factor=1))
+
+            if topics_to_create:
+                fs = admin_client.create_topics(topics_to_create)
+                for topic, f in fs.items():
+                    try:
+                        f.result()  # The result itself is None
+                        print(f"[정보] 새로운 토픽 '{topic}' 생성 성공")
+                    except Exception as e:
+                        print(f"[오류] 새로운 토픽 '{topic}' 생성 실패: {e}")
+
+        except Exception as e:
+            print(f"[오류] 토픽 생성 또는 업데이트 절차 중 오류 발생: {e}")
 
     def delivery_report(self, err, msg):
+        """메시지 전송 후 콜백 함수"""
         if err is not None:
             print(f"[오류] 메시지 전송 실패: {err}")
         else:
-<<<<<<< HEAD
-            print(f"메시지 전송 성공: {msg.topic()} [{msg.partition()}]")
+            print(f"[성공] 메시지 전송 성공: {msg.topic()}")
 
-    def send_to_kafka(self, data):
+    def send_to_kafka(self, topic, message):
         try:
-            delivery_status = delivery_status_pb2.DeliveryStatus()
-            delivery_status.delivery_agent = data[0]
-            delivery_status.order_date = data[1]
-            delivery_status.dps = data[2]
-            delivery_status.eta = data[3]
-            delivery_status.sla = data[4]
-            delivery_status.address = data[5]
-            delivery_status.status_detail = data[6]
-            delivery_status.picked = data[7].strip().upper() == "O"
-            delivery_status.shipped = data[8].strip().upper() == "O"
-            delivery_status.pod = data[9].strip().upper() == "O"
-            delivery_status.zip_code = int(data[10])
-            delivery_status.distance = int(data[11])
-            delivery_status.recipient = data[12]
-            delivery_status.issue = data[13].strip().upper() == "O"
-
-            proto_message = delivery_status.SerializeToString()
-            self.producer.produce(
-                os.environ.get('KAFKA_TOPIC', 'delivery_status'),
-                key=str(delivery_status.dps),
-                value=proto_message,
-                callback=self.delivery_report
-            )
+            self.producer.produce(topic, value=message.SerializeToString(), callback=self.delivery_report)
             self.producer.poll(1)
+            print(f"[성공] {topic} 토픽으로 데이터 전송 성공")
         except Exception as e:
-            print(f"Kafka로 데이터 전송 중 오류 발생: {e}")
+            print(f"[오류] Kafka로 {topic} 데이터 전송 중 오류 발생: {e}")
 
     def flush(self):
-        self.producer.flush()
-=======
-            print(f"[성공] 메시지 전송 성공: {msg.key()}")
-
-    def send_dashboard_data_to_kafka(self, data):
+        """프로듀서 버퍼 비우기"""
         try:
-            dashboard_status = dashboard_status_pb2.DashboardStatus()
-            dashboard_status.picked_count = data['picked_count']
-            dashboard_status.shipped_count = data['shipped_count']
-            dashboard_status.pod_count = data['pod_count']
-            dashboard_status.sla_counts.update(data['sla_counts_today'])
-            dashboard_status.issues.extend(data['issues_today'])
-
-            proto_message = dashboard_status.SerializeToString()
-            self.producer.produce(
-                os.environ.get('KAFKA_TOPIC', 'dashboard_status'),
-                value=proto_message,
-                callback=self.delivery_report
-            )
-            self.producer.poll(0)
+            self.producer.flush()
         except Exception as e:
-            print(f"[오류] Kafka로 대시보드 데이터 전송 중 오류 발생: {e}")
-
-    def send_monthly_volume_data_to_kafka(self, data):
-        try:
-            monthly_volume_status = monthly_volume_status_pb2.MonthlyVolumeStatus()
-            monthly_volume_status.sla_counts.update(data['sla_counts_month'])
-            monthly_volume_status.weekday_counts.update(data['weekday_counts'])
-            monthly_volume_status.distance_counts.update(data['distance_counts'])
-
-            proto_message = monthly_volume_status.SerializeToString()
-            self.producer.produce(
-                os.environ.get('KAFKA_TOPIC', 'monthly_volume_status'),
-                value=proto_message,
-                callback=self.delivery_report
-            )
-            self.producer.poll(0)
-        except Exception as e:
-            print(f"[오류] Kafka로 월간 데이터 전송 중 오류 발생: {e}")
->>>>>>> origin/main
+            print(f"[오류] 프로듀서 플러시 중 오류 발생: {e}")

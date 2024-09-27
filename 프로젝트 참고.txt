@@ -47,6 +47,10 @@ main/
 ├── proto/
 │   ├── delivery_status.proto
 │   ├── delivery_status_pb2.py
+│   ├── dashboard_status.proto
+│   ├── dashboard_status_pb2.py
+│   ├── monthly_volume_status.proto
+│   ├── monthly_volume_status_pb2.py
 ├── docker/
 │   ├── Dockerfile
 │   ├── docker-compose.yaml

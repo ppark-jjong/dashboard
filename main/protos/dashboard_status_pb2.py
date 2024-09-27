@@ -24,17 +24,17 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x16\x64\x61shboard_status.proto\"\xc8\x01\n\x0f\x44\x61shboardStatus\x12\x14\n\x0cpicked_count\x18\x01 \x01(\x05\x12\x15\n\rshipped_count\x18\x02 \x01(\x05\x12\x11\n\tpod_count\x18\x03 \x01(\x05\x12\x33\n\nsla_counts\x18\x04 \x03(\x0b\x32\x1f.DashboardStatus.SlaCountsEntry\x12\x0e\n\x06issues\x18\x05 \x03(\t\x1a\x30\n\x0eSlaCountsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x16\x64\x61shboard_status.proto\"\xde\x01\n\x0f\x44\x61shboardStatus\x12\x14\n\x0cpicked_count\x18\x01 \x01(\x05\x12\x15\n\rshipped_count\x18\x02 \x01(\x05\x12\x11\n\tpod_count\x18\x03 \x01(\x05\x12>\n\x10sla_counts_today\x18\x04 \x03(\x0b\x32$.DashboardStatus.SlaCountsTodayEntry\x12\x14\n\x0cissues_today\x18\x05 \x03(\t\x1a\x35\n\x13SlaCountsTodayEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'dashboard_status_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_DASHBOARDSTATUS_SLACOUNTSENTRY']._loaded_options = None
-  _globals['_DASHBOARDSTATUS_SLACOUNTSENTRY']._serialized_options = b'8\001'
+  _globals['_DASHBOARDSTATUS_SLACOUNTSTODAYENTRY']._loaded_options = None
+  _globals['_DASHBOARDSTATUS_SLACOUNTSTODAYENTRY']._serialized_options = b'8\001'
   _globals['_DASHBOARDSTATUS']._serialized_start=27
-  _globals['_DASHBOARDSTATUS']._serialized_end=227
-  _globals['_DASHBOARDSTATUS_SLACOUNTSENTRY']._serialized_start=179
-  _globals['_DASHBOARDSTATUS_SLACOUNTSENTRY']._serialized_end=227
+  _globals['_DASHBOARDSTATUS']._serialized_end=249
+  _globals['_DASHBOARDSTATUS_SLACOUNTSTODAYENTRY']._serialized_start=196
+  _globals['_DASHBOARDSTATUS_SLACOUNTSTODAYENTRY']._serialized_end=249
 # @@protoc_insertion_point(module_scope)

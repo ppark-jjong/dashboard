@@ -2,7 +2,7 @@ from confluent_kafka import Producer
 
 # Kafka 브로커 설정
 conf = {
-    'bootstrap.servers': 'localhost:29092'  # Docker Compose에서 설정한 포트
+    'bootstrap.servers': 'localhost:9092'  # Docker Compose에서 설정한 포트
 }
 
 # 프로듀서 생성
