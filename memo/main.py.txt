@@ -1,0 +1,32 @@
+import time
+from googleApi import get_sheet_data, preprocess_data
+from producer import KafkaProducer
+import threading
+from consumer import start_consumer
+
+def producer_task():
+    producer = KafkaProducer()
+    invalid_data_flag = False
+
+    while True:
+        data_list = get_sheet_data()
+        if data_list:
+            processed_data = preprocess_data(data_list)
+
+            # 실시간 대시보드 데이터 전송
+            producer.send_dashboard_data_to_kafka(processed_data)
+
+            # 월간 데이터 전송
+            producer.send_monthly_volume_data_to_kafka(processed_data)
+        else:
+            print("[오류] Google Sheets에서 데이터를 가져오지 못했습니다.")
+
+        time.sleep(10)
+
+    producer.flush()
+
+if __name__ == "__main__":
+    consumer_thread = threading.Thread(target=start_consumer)
+    consumer_thread.start()
+
+    producer_task()
