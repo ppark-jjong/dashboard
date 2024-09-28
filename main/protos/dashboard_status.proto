@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-message DashboardStatus {
-    int32 picked_count = 1;         // 금일 'picked' 상태 갯수
-    int32 shipped_count = 2;        // 금일 'shipped' 상태 갯수
-    int32 pod_count = 3;            // 금일 'pod' 상태 갯수
-    map<string, int32> sla_counts = 4; // SLA 타입별 배송 갯수
-    repeated string issues = 5;     // 금일 이슈 사항 (DPS)
-}

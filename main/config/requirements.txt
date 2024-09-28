@@ -1,4 +1,0 @@
-google-api-python-client
-confluent-kafka
-pyspark
-protobuf
