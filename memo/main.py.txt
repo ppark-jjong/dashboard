@@ -1,32 +1,30 @@
-import time
-from googleApi import get_sheet_data, preprocess_data
-from producer import KafkaProducer
 import threading
-from consumer import start_consumer
+from producer import KafkaProducer
+from googleApi import get_sheet_data, preprocess_data
+from src.consumer import start_spark_consumer
+
 
 def producer_task():
-    producer = KafkaProducer()
-    invalid_data_flag = False
-
-    while True:
+    try:
+        producer = KafkaProducer()
         data_list = get_sheet_data()
         if data_list:
-            processed_data = preprocess_data(data_list)
-
-            # 실시간 대시보드 데이터 전송
-            producer.send_dashboard_data_to_kafka(processed_data)
-
-            # 월간 데이터 전송
-            producer.send_monthly_volume_data_to_kafka(processed_data)
-        else:
-            print("[오류] Google Sheets에서 데이터를 가져오지 못했습니다.")
-
-        time.sleep(10)
-
-    producer.flush()
+            dashboard_data, monthly_volume_data = preprocess_data(data_list)
+            producer.send_to_kafka('dashboard_status', dashboard_data)
+            producer.send_to_kafka('monthly_volume_status', monthly_volume_data)
+        producer.flush()
+    except Exception as e:
+        print(f"[오류] Producer 작업 중 오류 발생: {e}")
 
 if __name__ == "__main__":
-    consumer_thread = threading.Thread(target=start_consumer)
-    consumer_thread.start()
+    try:
+        # Producer 작업 실행
+        producer_task()
 
-    producer_task()
+        # PySpark Consumer 실행
+        consumer_thread = threading.Thread(target=start_spark_consumer)
+        consumer_thread.daemon = True
+        consumer_thread.start()
+
+    except Exception as e:
+        print(f"[오류] 메인 실행 중 오류 발생: {e}")
