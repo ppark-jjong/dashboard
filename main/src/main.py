@@ -5,7 +5,6 @@ from src.consumer import start_spark_consumer
 
 
 def producer_task():
-    """Producer 작업을 수행하는 함수"""
     try:
         producer = KafkaProducer()
         data_list = get_sheet_data()

@@ -1,4 +1,1 @@
-google-api-python-client
-confluent-kafka
-pyspark
-protobuf
+google-api-python-client confluent-kafka pyspark protobuf
