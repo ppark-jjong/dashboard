@@ -16,7 +16,6 @@ class KafkaProducer:
         self.create_or_update_topics()
 
     def create_or_update_topics(self):
-        """Kafka 토픽을 생성하거나 업데이트 (이미 존재하는 경우 삭제 후 생성)"""
         try:
             admin_client = AdminClient({'bootstrap.servers': self.bootstrap_servers})
             existing_topics = admin_client.list_topics().topics.keys()

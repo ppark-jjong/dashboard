@@ -45,10 +45,16 @@ main/
 │   ├── consumer.py
 │   ├── main.py
 ├── proto/
+<<<<<<< HEAD
+│   ├── dashboard_status.proto
+│   ├── dashboard_status_pb2.py
+│   ├── monthly_volume_status.proto
+│   ├── monthly_volume_status_pb2.py
+=======
 │   ├── delivery_status.proto
 │   ├── delivery_status_pb2.py
+>>>>>>> origin/main
 ├── docker/
-│   ├── Dockerfile
 │   ├── docker-compose.yaml
 ├── config/
 │   ├── requirements.txt
