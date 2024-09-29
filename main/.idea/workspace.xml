@@ -4,30 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-<<<<<<< HEAD
-    <list default="true" id="67567525-69da-4532-8e3b-d14f97c57e3e" name="Changes" comment="" />
-=======
-    <list default="true" id="122080bc-63cb-4052-8a3d-76355a8d5a8c" name="변경" comment="">
-      <change beforePath="$PROJECT_DIR$/docker/docker-compose.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker/docker-compose.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jars/kafka-clients-3.4.0.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jars/spark-protobuf_2.12-3.4.1.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jars/spark-token-provider-kafka-0-10_2.12-3.4.1.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jars/v2/commons-pool2-2.11.1.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jars/v2/kafka-clients-3.5.0.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jars/v2/spark-protobuf_2.12-3.5.2.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jars/v2/spark-sql-kafka-0-10_2.13-3.5.2.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jars/v2/spark-token-provider-kafka-0-10_2.13-3.5.2.jar" beforeDir="false" />
+    <list default="true" id="67567525-69da-4532-8e3b-d14f97c57e3e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/consumer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/consumer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/producer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/producer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../memo/consumer.py.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../memo/consumer.py.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../memo/docker-compose.yaml.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../memo/docker-compose.yaml.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../memo/googleApi.py.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../memo/googleApi.py.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../memo/main.py.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../memo/main.py.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../memo/producer.py.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../memo/producer.py.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../프로젝트 참고.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../프로젝트 참고.txt" afterDir="false" />
     </list>
->>>>>>> origin/main
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -36,25 +17,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
-<<<<<<< HEAD
   <component name="ProjectColorInfo"><![CDATA[{
   "customColor": "",
   "associatedIndex": 5
 }]]></component>
   <component name="ProjectId" id="2miON6Lq9JFys275E8IjHL8pFH8" />
-=======
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 8
-}</component>
-  <component name="ProjectId" id="2mgbHJd2DItUi3u15TXDufj3LEG" />
->>>>>>> origin/main
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-<<<<<<< HEAD
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Python.main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main"
   }
@@ -74,34 +48,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1727555887926</updated>
-=======
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.googleApi.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/MyMain/interpreter/venv1&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;
-  }
-}</component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="bundled-python-sdk-0e3be3396995-c546a90a8094-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.23339.19" />
-      </set>
-    </attachedChunks>
-  </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="애플리케이션 수준" UseSingleDictionary="true" transferred="true" />
-  <component name="TaskManager">
-    <task active="true" id="Default" summary="디폴트 작업">
-      <changelist id="122080bc-63cb-4052-8a3d-76355a8d5a8c" name="변경" comment="" />
-      <created>1727501078179</created>
-      <option name="number" value="Default" />
-      <option name="presentableId" value="Default" />
-      <updated>1727501078179</updated>
->>>>>>> origin/main
     </task>
     <servers />
   </component>

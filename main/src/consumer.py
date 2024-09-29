@@ -58,7 +58,7 @@ def start_spark_consumer():
         # SparkSession 초기화 (JAR 파일 경로 추가)
         spark = SparkSession.builder \
             .appName("KafkaProtoBufConsumer") \
-            .config("spark.jars", jars_path) \
+            .config("spark.jars", jars_path) \bgb
             .getOrCreate()
 
         print("[정보] PySpark가 Kafka 토픽에서 데이터를 소비 중...")
