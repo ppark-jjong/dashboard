@@ -1,22 +1,35 @@
 # Base image for Python and Spark
-FROM openjdk:8-jdk-alpine
+FROM openjdk:8-jdk-slim
 
-# Install python, pip, and other dependencies
-RUN apk add --no-cache python3 py3-pip bash && \
-    ln -sf python3 /usr/bin/python
+# 기본적으로 필요한 패키지 설치
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    bash && \
+    pip3 install --upgrade pip
 
 # Install PySpark
-ENV PYSPARK_VERSION=3.5.2
-RUN pip3 install pyspark==$PYSPARK_VERSION
+RUN pip3 install pyspark==3.4.0
 
-# Install Kafka Python client and protobuf
-RUN pip3 install confluent-kafka protobuf google-api-python-client google-auth-httplib2 google-auth-oauthlib pandas
+# Install Kafka Python client, Protobuf, and Google API libraries
+RUN pip3 install \
+    confluent-kafka \
+    protobuf \
+    google-api-python-client \
+    google-auth-httplib2 \
+    google-auth-oauthlib \
+    pandas
 
 # Set the working directory
 WORKDIR /app
 
-# Copy project files to the container
+# 전체 프로젝트 파일을 복사합니다.
 COPY . /app
 
+ENV PYTHONPATH="/app/src:/app/proto"
+
+# OAuth 인증 정보 복사 (필요시 추가)
+COPY oauth/google/credentials.json /app/oauth/google/credentials.json
+
 # Command to run the main Python script
-CMD ["python", "/app/main.py"]
+CMD ["python3", "/app/src/main.py"]

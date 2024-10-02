@@ -1,1 +1,8 @@
-google-api-python-client confluent-kafka pyspark protobuf
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
+pandas
+pyspark==3.4.3
+confluent-kafka
+protobuf

@@ -5,14 +5,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="67567525-69da-4532-8e3b-d14f97c57e3e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/docker/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kafka/docker-compose-kafka.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/proto/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/config_manager.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/main.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/main.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/config/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker/docker-compose.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker/docker-compose.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/protos/dashboard_status.proto" beforeDir="false" afterPath="$PROJECT_DIR$/proto/dashboard_status.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/protos/dashboard_status_pb2.py" beforeDir="false" afterPath="$PROJECT_DIR$/proto/dashboard_status_pb2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/protos/monthly_volume_status.proto" beforeDir="false" afterPath="$PROJECT_DIR$/proto/monthly_volume_status.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/protos/monthly_volume_status_pb2.py" beforeDir="false" afterPath="$PROJECT_DIR$/proto/monthly_volume_status_pb2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/consumer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/consumer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/googleApi.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/googleApi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/producer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/producer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../memo/consumer.py.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../memo/consumer.py.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../memo/main.py.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../memo/main.py.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../memo/producer.py.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../memo/producer.py.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../프로젝트 참고.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../프로젝트 참고.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -39,13 +50,22 @@
   &quot;keyToString&quot;: {
     &quot;Python.main.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;
   }
 }</component>
+  <component name="RunManager">
+    <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" temporary="true">
+      <deployment type="docker-compose.yml">
+        <settings />
+      </deployment>
+      <method v="2" />
+    </configuration>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-ce3d9afa04ac-ba05f1cad1b1-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.20224.347" />
+        <option value="bundled-python-sdk-98f27166c754-ba05f1cad1b1-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.21829.153" />
       </set>
     </attachedChunks>
   </component>
@@ -59,5 +79,16 @@
       <updated>1727555887926</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
