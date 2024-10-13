@@ -4,7 +4,7 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType, 
 import os
 import pandas as pd
 from google.protobuf.json_format import MessageToJson  # Protobuf 메시지를 JSON으로 변환
-from protos import dashboard_status_pb2, monthly_volume_status_pb2  # Protobuf 파일 임포트
+from proto import dashboard_status_pb2, monthly_volume_status_pb2  # Protobuf 파일 임포트
 
 # Kafka에서 데이터를 읽어오는 스키마 정의 (JSON 데이터용)
 dashboard_schema = StructType([

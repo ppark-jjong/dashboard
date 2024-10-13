@@ -1,15 +1,15 @@
+version: '3'
+
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.0.1
+    image: confluentinc/cp-zookeeper:7.3.2
     container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
 
   kafka:
-    image: confluentinc/cp-kafka:7.0.1
+    image: confluentinc/cp-kafka:7.3.2
     container_name: kafka
     depends_on:
       - zookeeper
@@ -18,33 +18,49 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
-  pyspark:
-    build: .
-    container_name: pyspark_app
-    environment:
-      - PYSPARK_PYTHON=python3
-      - SPARK_MASTER=local[*]
+  spark:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: spark
+    ports:
+      - "8080:8080"
+      - "7077:7077"
     volumes:
-      - .:/app
+      - ../src:/app/src
+      - ../proto:/app/proto
+      - ../oauth:/app/oauth
+    command: python3.10 /app/src/main.py
+
+  airflow:
+    image: apache/airflow:2.5.1-python3.10
+    container_name: airflow
     depends_on:
       - kafka
-    command: >
-      bash -c "sleep 10 && python /app/main.py"
     ports:
-      - "8888:8888"
-      - "4040:4040"
-    
-  # Optional: Add a service for Google Sheets API if needed
-  google_sheets_api:
-    build: .
-    container_name: google_sheets_api
-    depends_on:
-      - pyspark
+      - "8081:8080"
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/oauth/google/credentials.json
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=sqlite:////opt/airflow/airflow.db
     volumes:
-      - ./oauth:/app/oauth
-    command: python /app/googleApi.py
+      - ../src:/opt/airflow/dags
+      - ./airflow_logs:/opt/airflow/logs
+      - ./airflow_plugins:/opt/airflow/plugins
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: dashboard
+    ports:
+      - "8050:8050"
+    volumes:
+      - ../src:/app/src
+      - ../proto:/app/proto
+      - ../oauth:/app/oauth
+    command: python3.10 /app/src/main.py

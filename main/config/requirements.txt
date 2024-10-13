@@ -1,1 +1,9 @@
-google-api-python-client confluent-kafka pyspark protobuf
+pyspark==3.5.3
+google-api-python-client==2.105.0
+google-auth-httplib2==0.1.1
+google-auth-oauthlib==1.1.0
+confluent-kafka==2.3.0
+protobuf==4.24.4
+apache-airflow==2.7.2
+dash==2.14.0
+plotly==5.17.0

@@ -5,14 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="67567525-69da-4532-8e3b-d14f97c57e3e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/docker/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/main.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/main.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/proto/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/config/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker/docker-compose.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker/docker-compose.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/protos/dashboard_status.proto" beforeDir="false" afterPath="$PROJECT_DIR$/proto/dashboard_status.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/protos/dashboard_status_pb2.py" beforeDir="false" afterPath="$PROJECT_DIR$/proto/dashboard_status_pb2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/protos/monthly_volume_status.proto" beforeDir="false" afterPath="$PROJECT_DIR$/proto/monthly_volume_status.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/protos/monthly_volume_status_pb2.py" beforeDir="false" afterPath="$PROJECT_DIR$/proto/monthly_volume_status_pb2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/consumer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/consumer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../memo/consumer.py.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../memo/consumer.py.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../memo/main.py.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../memo/main.py.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../memo/producer.py.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../memo/producer.py.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/googleApi.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/googleApi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../memo/docker-compose.yaml.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../memo/docker-compose.yaml.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../프로젝트 참고.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../프로젝트 참고.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

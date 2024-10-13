@@ -4,8 +4,8 @@ from datetime import datetime
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from protos import dashboard_status_pb2
-from protos import monthly_volume_status_pb2
+from proto import dashboard_status_pb2
+from proto import monthly_volume_status_pb2
 
 # Google Sheets API 설정
 SHEET_ID = os.environ.get('SHEET_ID', '1x4P2VO-ZArT7ibSYywFIBXUTapBhUnE4_ouVMKrKBwc')
