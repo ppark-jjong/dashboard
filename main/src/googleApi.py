@@ -1,33 +1,21 @@
-import os
 import pandas as pd
 from datetime import datetime
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from proto import dashboard_status_pb2
 from proto import monthly_volume_status_pb2
+<<<<<<< HEAD
+=======
+from config_manager import ConfigManager
 
-# Google Sheets API 설정
-SHEET_ID = os.environ.get('SHEET_ID', '1x4P2VO-ZArT7ibSYywFIBXUTapBhUnE4_ouVMKrKBwc')
-RANGE_NAME = os.environ.get('RANGE_NAME', 'Sheet1!A1:o1000')
-SERVICE_ACCOUNT_FILE = os.environ.get('SERVICE_ACCOUNT_FILE', 'C:/MyMain/oauth/google/credentials.json')
+config = ConfigManager()
+>>>>>>> origin/main
+
 def get_sheet_data():
     try:
         print(f"[정보] Google Sheets API에 접근 중...")
-        print(f"[정보] SHEET_ID: {SHEET_ID}")
-        print(f"[정보] RANGE_NAME: {RANGE_NAME}")
-        print(f"[정보] SERVICE_ACCOUNT_FILE: {SERVICE_ACCOUNT_FILE}")
-
-        if not os.path.exists(SERVICE_ACCOUNT_FILE):
-            print(f"[오류] Service account file이 존재하지 않습니다: {SERVICE_ACCOUNT_FILE}")
-            return None
-
-        credentials = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=['https://www.googleapis.com/auth/spreadsheets.readonly'])
-        service = build('sheets', 'v4', credentials=credentials)
-
+        service = config.get_sheets_service()
         sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=SHEET_ID, range=RANGE_NAME).execute()
+        result = sheet.values().get(spreadsheetId=config.SHEET_ID, range=config.RANGE_NAME).execute()
         rows = result.get('values', [])
 
         if not rows:
@@ -44,6 +32,7 @@ def get_sheet_data():
     except Exception as e:
         print(f"[오류] 예기치 않은 오류 발생: {e}")
         return None
+
 def preprocess_data(data):
     print("[정보] 데이터 전처리 중...")
 
@@ -61,9 +50,9 @@ def preprocess_data(data):
     issues_today = today_data[today_data['issue'] == 'O']['DPS#'].tolist()
 
     dashboard_status = dashboard_status_pb2.DashboardStatus(
-        picked_count=status_counts['1. Picked'],
-        shipped_count=status_counts['2. Shipped'],
-        pod_count=status_counts['3. POD'],
+        picked_count=int(status_counts['1. Picked']),
+        shipped_count=int(status_counts['2. Shipped']),
+        pod_count=int(status_counts['3. POD']),
         sla_counts_today=sla_counts_today,
         issues_today=issues_today
     )
@@ -78,7 +67,7 @@ def preprocess_data(data):
     monthly_volume_status = monthly_volume_status_pb2.MonthlyVolumeStatus(
         sla_counts_month=sla_counts_month,
         weekday_counts=weekday_counts,
-        distance_counts=distance_counts
+        distance_counts={int(k): v for k, v in distance_counts.items()}
     )
 
     print("[성공] 데이터 전처리 및 직렬화 완료")

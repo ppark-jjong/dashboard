@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 pyspark==3.5.3
 google-api-python-client==2.105.0
 google-auth-httplib2==0.1.1
@@ -7,3 +8,13 @@ protobuf==4.24.4
 apache-airflow==2.7.2
 dash==2.14.0
 plotly==5.17.0
+=======
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
+pandas
+pyspark==3.4.3
+confluent-kafka
+protobuf
+>>>>>>> origin/main

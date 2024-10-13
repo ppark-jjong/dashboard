@@ -5,20 +5,28 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+<<<<<<< HEAD:memo/docker-compose.yaml.txt
     ports:
       - "2181:2181"
 
+=======
+>>>>>>> origin/main:main/kafka/docker-compose-kafka.yaml
   kafka:
     image: confluentinc/cp-kafka:7.0.1
     container_name: kafka
     depends_on:
       - zookeeper
     ports:
+<<<<<<< HEAD:memo/docker-compose.yaml.txt
       - "9092:9092"
+=======
+      - 9092:9092
+>>>>>>> origin/main:main/kafka/docker-compose-kafka.yaml
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+<<<<<<< HEAD:memo/docker-compose.yaml.txt
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
   pyspark:
@@ -48,3 +56,6 @@ services:
     volumes:
       - ./oauth:/app/oauth
     command: python /app/googleApi.py
+=======
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+>>>>>>> origin/main:main/kafka/docker-compose-kafka.yaml
