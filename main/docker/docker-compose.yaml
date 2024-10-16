@@ -31,16 +31,16 @@ services:
     volumes:
       - ./src:/app
 
-  airflow:
-    image: puckel/docker-airflow:1.10.9
-    container_name: airflow_scheduler
-    environment:
-      - LOAD_EX=n
-      - EXECUTOR=LocalExecutor
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./dags:/usr/local/airflow/dags
+#  airflow:
+#    image: puckel/docker-airflow:1.10.9
+#    container_name: airflow_scheduler
+#    environment:
+#      - LOAD_EX=n
+#      - EXECUTOR=LocalExecutor
+#    ports:
+#      - "8080:8080"
+#    volumes:
+#      - ./dags:/usr/local/airflow/dags
 
   teckwah-data-service:
     build:
@@ -49,8 +49,8 @@ services:
     image: teckwah-data:latest
     container_name: teckwah-data-service
     volumes:
-      - ./src:/app/src
-      - ./oauth:/app/oauth
+      - ../src:/app/src
+      - ../oauth:/app/oauth
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS="/app/oauth/google/credentials.json"
     depends_on:

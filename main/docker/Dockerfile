@@ -27,8 +27,8 @@ RUN apt-get install -y wget unzip && \
 ENV GOOGLE_APPLICATION_CREDENTIALS="/app/oauth/google/credentials.json"
 
 # 소스 코드와 OAuth 인증 폴더를 복사
-COPY src /app/src
-COPY oauth /app/oauth
+COPY ../src /app/src
+COPY ../oauth /app/oauth
 
 # PySpark와 Kafka 연동을 위한 필수 JAR 파일을 다운로드 및 설치
 RUN apt-get install -y curl && \

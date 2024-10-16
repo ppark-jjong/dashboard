@@ -5,14 +5,7 @@ venv\Scripts\activate
 deactivate
 
 
-import sys
-sys.executable
-
 pip install -r requirements.txt
-set SPARK_HOME=C:\MyMain\config\venv1\Lib\site-packages\pyspark
-
-set PYSPARK_PYTHON=C:\MyMain\config\venv1\Scripts\python.exe
-set PYSPARK_DRIVER_PYTHON=C:\MyMain\config\venv1\Scripts\python.exe
 
 
 netstat -a -o
@@ -128,7 +121,7 @@ spark-token-provider-kafka-0-10_2.12-3.4.1.jar
 ==================================================================
 
 
-project_root/
+main/
 ├── src/
 │   ├── collectors/                   # 데이터 수집 관련 코드
 │   │   ├── google_sheets_collector.py # Google Sheets 데이터 수집
