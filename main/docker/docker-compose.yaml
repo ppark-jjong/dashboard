@@ -1,98 +1,57 @@
-version: '3'
-<<<<<<< HEAD
-
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.3.2
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-
-  kafka:
-    image: confluentinc/cp-kafka:7.3.2
-    container_name: kafka
-=======
-services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:6.2.1
+    container_name: zookeeper_service
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     ports:
       - "2181:2181"
 
   kafka:
-    image: confluentinc/cp-kafka:latest
->>>>>>> origin/main
+    image: confluentinc/cp-kafka:6.2.1
+    container_name: kafka_broker
     depends_on:
       - zookeeper
-    ports:
-      - "9092:9092"
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-<<<<<<< HEAD
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-
-  spark:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    container_name: spark
-    ports:
-      - "8080:8080"
-      - "7077:7077"
-    volumes:
-      - ../src:/app/src
-      - ../proto:/app/proto
-      - ../oauth:/app/oauth
-    command: python3.10 /app/src/main.py
-
-  airflow:
-    image: apache/airflow:2.5.1-python3.10
-    container_name: airflow
-    depends_on:
-      - kafka
-    ports:
-      - "8081:8080"
-    environment:
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=sqlite:////opt/airflow/airflow.db
-    volumes:
-      - ../src:/opt/airflow/dags
-      - ./airflow_logs:/opt/airflow/logs
-      - ./airflow_plugins:/opt/airflow/plugins
-
-  dashboard:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    container_name: dashboard
-    ports:
-      - "8050:8050"
-    volumes:
-      - ../src:/app/src
-      - ../proto:/app/proto
-      - ../oauth:/app/oauth
-    command: python3.10 /app/src/main.py
-=======
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
 
-  pyspark_app:
+  pyspark:
+    image: bitnami/spark:3.3.0
+    container_name: pyspark_master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_PORT=7077
+    ports:
+      - "7077:7077"
+      - "4040:4040"
+    volumes:
+      - ./src:/app
+
+  airflow:
+    image: puckel/docker-airflow:1.10.9
+    container_name: airflow_scheduler
+    environment:
+      - LOAD_EX=n
+      - EXECUTOR=LocalExecutor
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dags:/usr/local/airflow/dags
+
+  teckwah-data-service:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SHEET_ID: "1x4P2VO-ZArT7ibSYywFIBXUTapBhUnE4_ouVMKrKBwc"
-      RANGE_NAME: "Sheet1!A1:O1000"
-      SERVICE_ACCOUNT_FILE: "/app/oauth/google/credentials.json"
+    image: teckwah-data:latest
+    container_name: teckwah-data-service
     volumes:
-      - ../oauth/google/credentials.json:/app/oauth/google/credentials.json
+      - ./src:/app/src
+      - ./oauth:/app/oauth
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS="/app/oauth/google/credentials.json"
     depends_on:
       - kafka
-    command: python3 /app/src/main.py
->>>>>>> origin/main
