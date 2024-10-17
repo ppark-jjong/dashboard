@@ -1,33 +1,43 @@
-from confluent_kafka import Producer
+from confluent_kafka import Producer, Consumer, KafkaError
+import time
 
-# Kafka 브로커 설정
-conf = {
-    'bootstrap.servers': 'localhost:9092'  # Docker Compose에서 설정한 포트
-}
 
-# 프로듀서 생성
-producer = Producer(**conf)
+# Kafka Producer 설정
+def produce_message():
+    producer = Producer({'bootstrap.servers': 'kafka:9092'})
+    for i in range(10):
+        producer.produce('test_topic', f'Message {i}')
+        producer.flush()
+        time.sleep(1)
+    print("메시지 전송 완료")
 
-# 전달할 메시지
-topic = 'test_topic'
 
-# 메시지 리스트 (키-밸류 쌍)
-messages = [
-    ('key1', 'value1'),
-    ('key2', 'value2'),
-    ('key3', 'value3')
-]
+# Kafka Consumer 설정
+def consume_message():
+    consumer = Consumer({
+        'bootstrap.servers': 'kafka:9092',
+        'group.id': 'test_group',
+        'auto.offset.reset': 'earliest'
+    })
 
-# 메시지 전달 콜백 함수
-def delivery_report(err, msg):
-    if err is not None:
-        print(f'Message delivery failed: {err}')
-    else:
-        print(f'Message delivered to {msg.topic()} [{msg.partition()}]')
+    consumer.subscribe(['test_topic'])
 
-# 키-밸류 쌍 메시지 전송
-for key, value in messages:
-    producer.produce(topic, key=key.encode('utf-8'), value=value.encode('utf-8'), callback=delivery_report)
+    print("메시지 소비 시작...")
+    while True:
+        msg = consumer.poll(1.0)
+        if msg is None:
+            continue
+        if msg.error():
+            if msg.error().code() == KafkaError._PARTITION_EOF:
+                continue
+            else:
+                print(msg.error())
+                break
+        print(f'Consumed message: {msg.value().decode("utf-8")}')
 
-# 메시지 전송이 완료될 때까지 대기
-producer.flush()
+    consumer.close()
+
+
+if __name__ == "__main__":
+    produce_message()  # 메시지 전송
+    consume_message()  # 메시지 소비

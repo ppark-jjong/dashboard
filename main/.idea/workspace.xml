@@ -5,10 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="67567525-69da-4532-8e3b-d14f97c57e3e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/collectors/google_sheets_collector.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/collectors/web_crawler_collector.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/config/config_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/processors/data_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/utils/file_handler.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/test-pyspark.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker/docker-compose.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker/docker-compose.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/test-kafka.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/test-kafka.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../프로젝트 참고.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../프로젝트 참고.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -40,16 +46,23 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Python.google_sheets_collector.executor": "Run",
     "Python.main.executor": "Run",
+    "Python.test.executor": "Run",
+    "Python.web_crawler_collector.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/MyMain/interpreter/venv",
+    "last_opened_file_path": "C:/MyMain/dataEng/main",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\MyMain\dashboard\main\src\processors" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\MyMain\dashboard\main\src" />
       <recent name="C:\MyMain\dashboard\main\oauth\google" />
       <recent name="C:\MyMain\dashboard\main\oauth" />
     </key>

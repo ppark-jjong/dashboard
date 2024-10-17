@@ -25,7 +25,7 @@ docker-compose down
 # 도커 이미지 빌드
 docker-compose build
 
-# 도커 컨테이너 실행
+# 도커 컨테이너 실행 (백그라운드 실행)
 docker-compose up -d
 
 cd C:\MyMain\test\
@@ -40,6 +40,12 @@ docker-compose logs -f
 
 docker-compose build --no-cache
 docker-compose up
+
+#컨테이너 접근
+docker exec -it <container_name> /bin/bash
+
+docker cp test-kafka.py <container_name>:/path/to/new_directory/
+
 
 =============================================================
 # Kafka CLI 명령어를 사용하여 토픽 목록 조회
