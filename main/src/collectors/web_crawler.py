@@ -12,7 +12,7 @@ from selenium.common.exceptions import (
     WebDriverException,
 )
 from typing import Dict, Any
-from ..config.config_manager import ConfigManager
+from src.config.config_manager import ConfigManager
 
 
 config_manager = ConfigManager()
@@ -22,6 +22,7 @@ web_crawler_config = config_manager.get_web_crawler_config()
 WEBDRIVER_TIMEOUT = web_crawler_config["WEBDRIVER_TIMEOUT"]
 MAX_RETRIES = web_crawler_config["MAX_RETRIES"]
 RETRY_DELAY = web_crawler_config["RETRY_DELAY"]
+DOWNLOAD_WAIT_TIME = web_crawler_config["DOWNLOAD_WAIT_TIME"] 
 logger = logging.getLogger(__name__)
 
 class WebCrawler:
@@ -115,22 +116,22 @@ class WebCrawler:
             )
             element_b.send_keys(end_date)
 
-            element_gen390 = WebDriverWait(self.driver, WEBDRIVER_TIMEOUT).until(
-                EC.presence_of_element_located((By.ID, "ext-gen371"))
+            element_c = WebDriverWait(self.driver, WEBDRIVER_TIMEOUT).until(
+                EC.presence_of_element_located((By.ID, "ext-gen370"))
             )
-            element_gen390.click()
+            element_c.click()
+            time.sleep(1)
             action.send_keys(Keys.ENTER).perform()
 
+
             element_gen403 = WebDriverWait(self.driver, WEBDRIVER_TIMEOUT).until(
-                EC.presence_of_element_located((By.ID, "ext-gen384"))
+                EC.presence_of_element_located((By.ID, "ext-gen383"))
             )
             element_gen403.click()
-            action.send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(
-                Keys.ENTER
-            ).perform()
+            action.send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.ENTER).perform()
 
             element_confirm = WebDriverWait(self.driver, WEBDRIVER_TIMEOUT).until(
-                EC.presence_of_element_located((By.ID, "ext-gen339"))
+                EC.presence_of_element_located((By.ID, "ext-gen338"))
             )
             element_confirm.click()
         except (TimeoutException, NoSuchElementException, WebDriverException) as e:

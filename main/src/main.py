@@ -1,4 +1,4 @@
-from src.collectors.google_sheets_collector import get_today_data, get_all_data
+from src.collectors.google_sheets import get_today_data, get_all_data
 from kafka.producer import create_kafka_producer, send_to_kafka
 
 def main():

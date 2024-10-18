@@ -38,10 +38,12 @@ class ConfigManager:
         self.S3_REGION = "us-east-1"
 
         # 웹 크롤링 설정
-        self.DOWNLOAD_FOLDER = "C:\\MyMain\\dashboard\\main\\xlsx"
+        self.DOWNLOAD_FOLDER = "C:/MyMain/dashboard/main/xlsx"
         self.WEBDRIVER_TIMEOUT = 30
         self.MAX_RETRIES = 3
         self.RETRY_DELAY = 5
+        self.DOWNLOAD_WAIT_TIME = 120
+
 
     def get_sheets_service(self):
         credentials = service_account.Credentials.from_service_account_file(
@@ -85,8 +87,8 @@ class ConfigManager:
     def get_web_crawler_config(self) -> Dict[str, Any]:
         return {
             "DOWNLOAD_FOLDER": self.DOWNLOAD_FOLDER,
-            "COMPLETE_FOLDER": self.COMPLETE_FOLDER,
             "WEBDRIVER_TIMEOUT": self.WEBDRIVER_TIMEOUT,
             "MAX_RETRIES": self.MAX_RETRIES,
-            "RETRY_DELAY": self.RETRY_DELAY
+            "RETRY_DELAY": self.RETRY_DELAY,
+            "DOWNLOAD_WAIT_TIME": self.DOWNLOAD_WAIT_TIME
         }
