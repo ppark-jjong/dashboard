@@ -141,7 +141,8 @@ main/
 │   │   ├── config_manager.py          # 설정 관리 (Kafka, S3, Google API 등)
 │   ├── utils/                        # 유틸리티 함수 모음
 │   │   ├── file_handler.py            # 파일 관리 (다운로드, 업로드 등)
-│   ├── main.py                       # 프로젝트 전체 실행을 관리하는 메인 스크립트
+│   ├── main.py   
+│   ├── test.py                    
 ├── docker/
 │   ├── Dockerfile                    # 도커 이미지 빌드 설정
 │   ├── docker-compose.yaml           # 도커 컴포즈 설정 (Kafka, PySpark, Zookeeper)

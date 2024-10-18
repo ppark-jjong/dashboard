@@ -1,22 +1,16 @@
-from config.config_manager import ConfigManager
-from collectors.web_crawler_collector import run_crawler
+from src.collectors.google_sheets_collector import get_today_data, get_all_data
+from kafka.producer import create_kafka_producer, send_to_kafka
 
-
-def main():
-    config_manager = ConfigManager()
-
-    config = {
-        "LOGIN_URL": "https://cs.vinfiniti.biz:8227/",
-        "USERNAME": "jhypark-dir",  # 실제 사용자 이름
-        "PASSWORD": "Hyeok970209!@",  # 실제 비밀번호
-        "DOWNLOAD_FOLDER": config_manager.EXCEL_SAVE_PATH,
-        "S3_BUCKET_NAME": config_manager.S3_BUCKET_NAME,
-        "S3_REGION": config_manager.S3_REGION,
-        "WEBDRIVER_TIMEOUT": 10,  # Selenium 타임아웃 설정
-    }
-
-    # 웹 크롤러 실행
-    run_crawler(config)
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     producer = create_kafka_producer()
+#
+#     # 오늘의 데이터 가져와 Kafka로 전송
+#     today_data = get_today_data()
+#     send_to_kafka(producer, 'today_delivery_data', today_data)
+#
+#     # 전체 데이터 가져와 Kafka로 전송
+#     all_data = get_all_data()
+#     send_to_kafka(producer, 'all_delivery_data', all_data)
+#
+# if __name__ == "__main__":
+#     main()
