@@ -25,9 +25,6 @@ class ConfigManager:
             'monthly_volume_status': 'monthly_volume_status'
         }
 
-        # Excel 저장 경로
-        self.EXCEL_SAVE_PATH = "C:/MyMain/dashboard/main/xlsx"
-
         # PySpark 설정
         self.SPARK_APP_NAME = "DeliveryAnalytics"
         self.SPARK_MASTER = "spark://spark-master:7077"
@@ -55,11 +52,6 @@ class ConfigManager:
 
     def get_kafka_admin_client(self):
         return AdminClient({'bootstrap.servers': self.KAFKA_BOOTSTRAP_SERVERS})
-
-    def get_excel_save_path(self, filename):
-        if not os.path.exists(self.EXCEL_SAVE_PATH):
-            os.makedirs(self.EXCEL_SAVE_PATH)
-        return os.path.join(self.EXCEL_SAVE_PATH, filename)
 
     def get_s3_client(self):
         return boto3.client('s3', region_name=self.S3_REGION)

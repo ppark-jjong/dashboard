@@ -5,11 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="67567525-69da-4532-8e3b-d14f97c57e3e" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/test1.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/main.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/main.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/collectors/google_sheets_collector.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/collectors/google_sheets.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/collectors/web_crawler_collector.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/collectors/web_crawler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/collectors/web_crawler.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/collectors/web_crawler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/config/config_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/config_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
