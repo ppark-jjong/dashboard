@@ -9,4 +9,9 @@ pyspark==3.3.0
 loguru==0.6.0
 requests==2.31.0
 selenium==4.3.0
-boto3
+boto3==1.35.42
+dash==2.18.1
+dash-core-components==2.0.0
+dash-html-components==2.0.0
+dash-table==5.0.0
+plotly==5.24.1

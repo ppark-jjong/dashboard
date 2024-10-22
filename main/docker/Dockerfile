@@ -48,5 +48,11 @@ ENV PATH $PATH:$JAVA_HOME/bin
 ENV PYSPARK_PYTHON=python3
 ENV PYSPARK_DRIVER_PYTHON=python3
 
-# 메인 실행 파일 설정
-CMD ["python", "src/main.py"]
+# 포트 노출 (Dash 웹 애플리케이션)
+EXPOSE 8050
+
+## 메인 실행 파일 설정
+#CMD ["python", "src/main.py"]
+
+# Kafka 소비 및 Dash 앱 실행
+CMD ["python", "src/dash_app.py"]

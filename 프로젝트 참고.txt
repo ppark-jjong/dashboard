@@ -130,8 +130,8 @@ spark-token-provider-kafka-0-10_2.12-3.4.1.jar
 main/
 ├── src/
 │   ├── collectors/                   # 데이터 수집 관련 코드
-│   │   ├── google_sheets_collector.py # Google Sheets 데이터 수집
-│   │   ├── web_crawler_collector.py   # 웹 크롤러를 통한 데이터 수집
+│   │   ├── google_sheets.py 	   # Google Sheets 데이터 수집
+│   │   ├── web_crawler.py        # 웹 크롤러를 통한 데이터 수집
 │   ├── processors/                   # 데이터 처리 관련 코드
 │   │   ├── data_processor.py          # 데이터 전처리 및 변환
 │   ├── kafka/
