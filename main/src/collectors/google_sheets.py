@@ -15,8 +15,8 @@ COLUMNS = [
     'Billed Distance (Put into system)', '인수자', 'issue'
 ]
 
+#Google Sheets에서 데이터를 가져와 DataFrame으로 반환
 def fetch_sheet_data():
-    """Google Sheets에서 데이터를 가져와 DataFrame으로 반환"""
     try:
         service = config.get_sheets_service()
         sheet = service.spreadsheets()
@@ -34,8 +34,8 @@ def fetch_sheet_data():
         logger.error(f"Google Sheets 데이터 가져오기 실패: {e}")
         return None
 
+# Google Sheets 데이터를 수집하여 Kafka로 전송
 def collect_and_send_data():
-    """Google Sheets 데이터를 수집하여 Kafka로 전송"""
     df = fetch_sheet_data()
     if df is not None and not df.empty:
         producer = create_kafka_producer()

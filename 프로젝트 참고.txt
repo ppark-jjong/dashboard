@@ -135,20 +135,18 @@ main/
 │   ├── processors/                   # 데이터 처리 관련 코드
 │   │   ├── data_processor.py          # 데이터 전처리 및 변환
 │   ├── kafka/
-│   │   ├── kafka_producer.py          # Kafka Producer - 데이터 전송
-│   │   ├── kafka_consumer.py          # Kafka Consumer - PySpark와 연동
+│   │   ├── producer.py          # Kafka Producer - 데이터 전송
+│   │   ├── consumer.py          # Kafka Consumer - PySpark와 연동
 │   ├── config/                       # 설정 관련 코드
 │   │   ├── config_manager.py          # 설정 관리 (Kafka, S3, Google API 등)
 │   ├── utils/                        # 유틸리티 함수 모음
-│   │   ├── file_handler.py            # 파일 관리 (다운로드, 업로드 등)
-│   ├── main.py   
-│   ├── test.py                    
+│   │   ├── file_handler.py            # 파일 관리 (다운로드, 업로드 등)   
+│   ├── test/     
+│   │   ├── test.py            # 기타 테스트 코드
+│    |	├── main.py
 ├── docker/
 │   ├── Dockerfile                    # 도커 이미지 빌드 설정
 │   ├── docker-compose.yaml           # 도커 컴포즈 설정 (Kafka, PySpark, Zookeeper)
-├── tests/                            # 테스트 스크립트
-│   ├── test_data_processor.py         # 데이터 처리 테스트
-│   ├── test_kafka.py                  # Kafka 관련 테스트
 ├── logs/                             # 로그 파일 저장 경로
 ├── oauth/                            # Google API 인증 파일 폴더
 │   └── google/                       # Google API 인증서 파일

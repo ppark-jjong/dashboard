@@ -1,5 +1,8 @@
 # src/tests/test_google_sheets_kafka.py
 import logging
+
+from confluent_kafka import KafkaError
+
 from src.collectors.google_sheets import collect_and_send_data
 from src.kafka.consumer import consume_messages, create_kafka_consumer
 from src.config.config_manager import ConfigManager
@@ -12,8 +15,8 @@ config = ConfigManager()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 
+# Google Sheets 데이터를 수집하고 Kafka로 전송한 후, 데이터를 소비하여 확인
 def test_google_sheets_to_kafka():
-    """Google Sheets 데이터를 수집하고 Kafka로 전송한 후, 데이터를 소비하여 확인"""
     # Step 1: Google Sheets 데이터 수집 및 Kafka 전송
     collect_and_send_data()
     logger.info("Google Sheets 데이터를 Kafka로 전송 완료.")

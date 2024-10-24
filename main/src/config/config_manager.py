@@ -1,9 +1,8 @@
-import os
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from confluent_kafka import Producer
 from confluent_kafka.admin import AdminClient
-import boto3
+from google.cloud import storage
 from pyspark.sql import SparkSession
 from selenium import webdriver
 from typing import Dict, Any
@@ -24,6 +23,9 @@ class ConfigManager:
             'dashboard_status': 'dashboard_status',
             'monthly_volume_status': 'monthly_volume_status'
         }
+
+        # GCS 설정
+        self.GCS_BUCKET_NAME = 'teckwah-data'  # GCS 버킷 이름
 
         # PySpark 설정
         self.SPARK_APP_NAME = "DeliveryAnalytics"
@@ -53,8 +55,8 @@ class ConfigManager:
     def get_kafka_admin_client(self):
         return AdminClient({'bootstrap.servers': self.KAFKA_BOOTSTRAP_SERVERS})
 
-    def get_s3_client(self):
-        return boto3.client('s3', region_name=self.S3_REGION)
+    def get_gcs_client(self):
+        return storage.Client.from_service_account_json(self.SERVICE_ACCOUNT_FILE)
 
     def get_spark_session(self):
         return SparkSession.builder \
