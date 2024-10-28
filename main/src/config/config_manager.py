@@ -1,8 +1,8 @@
+import boto3
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from confluent_kafka import Producer
 from confluent_kafka.admin import AdminClient
-from google.cloud import storage
 from pyspark.sql import SparkSession
 from selenium import webdriver
 from typing import Dict, Any
@@ -24,17 +24,16 @@ class ConfigManager:
             'monthly_volume_status': 'monthly_volume_status'
         }
 
-        # GCS 설정
-        self.GCS_BUCKET_NAME = 'teckwah-data'  # GCS 버킷 이름
+        # S3 설정
+        self.S3_BUCKET_NAME = "your-s3-bucket"
+        self.S3_REGION = "us-east-1"
+        self.AWS_ACCESS_KEY = "your_access_key"
+        self.AWS_SECRET_KEY = "your_secret_key"
 
         # PySpark 설정
         self.SPARK_APP_NAME = "DeliveryAnalytics"
         self.SPARK_MASTER = "spark://spark-master:7077"
         self.SPARK_EXECUTOR_MEMORY = "2g"
-
-        # AWS S3 설정
-        self.S3_BUCKET_NAME = "your-s3-bucket"
-        self.S3_REGION = "us-east-1"
 
         # 웹 크롤링 설정
         self.DOWNLOAD_FOLDER = "C:/MyMain/dashboard/main/xlsx"
@@ -42,7 +41,6 @@ class ConfigManager:
         self.MAX_RETRIES = 3
         self.RETRY_DELAY = 5
         self.DOWNLOAD_WAIT_TIME = 120
-
 
     def get_sheets_service(self):
         credentials = service_account.Credentials.from_service_account_file(
@@ -55,8 +53,13 @@ class ConfigManager:
     def get_kafka_admin_client(self):
         return AdminClient({'bootstrap.servers': self.KAFKA_BOOTSTRAP_SERVERS})
 
-    def get_gcs_client(self):
-        return storage.Client.from_service_account_json(self.SERVICE_ACCOUNT_FILE)
+    def get_s3_client(self):
+        return boto3.client(
+            's3',
+            region_name=self.S3_REGION,
+            aws_access_key_id=self.AWS_ACCESS_KEY,
+            aws_secret_access_key=self.AWS_SECRET_KEY
+        )
 
     def get_spark_session(self):
         return SparkSession.builder \
@@ -65,7 +68,6 @@ class ConfigManager:
             .config("spark.executor.memory", self.SPARK_EXECUTOR_MEMORY) \
             .getOrCreate()
 
-#        Selenium WebDriver 설정을 초기화합니다.
     def get_web_driver(self) -> webdriver.Chrome:
         chrome_options = webdriver.ChromeOptions()
         prefs = {
@@ -77,7 +79,6 @@ class ConfigManager:
         chrome_options.add_experimental_option("prefs", prefs)
         return webdriver.Chrome(options=chrome_options)
 
-# 웹 크롤러에 필요한 설정을 반환합니다.
     def get_web_crawler_config(self) -> Dict[str, Any]:
         return {
             "DOWNLOAD_FOLDER": self.DOWNLOAD_FOLDER,

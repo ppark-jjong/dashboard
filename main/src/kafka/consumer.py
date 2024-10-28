@@ -1,12 +1,11 @@
 import json
 import logging
 from datetime import datetime
-
+import boto3
 from confluent_kafka import Consumer, KafkaError
 from queue import Queue
 from src.config.config_manager import ConfigManager
 from src.processors.realtime_data_processor import process_data
-from google.cloud import storage
 import pandas as pd
 
 config = ConfigManager()
@@ -24,18 +23,17 @@ def create_kafka_consumer():
     }
     return Consumer(consumer_config)
 
+# 전처리된 데이터를 S3에 저장
+def save_to_s3(df, bucket_name, file_name):
+    s3_client = config.get_s3_client()
+    s3_client.put_object(
+        Bucket=bucket_name,
+        Key=file_name,
+        Body=df.to_csv(index=False)
+    )
+    logger.info(f"S3에 {file_name} 파일로 저장 완료")
 
-# 전처리된 데이터를 GCS에 저장
-def save_to_gcs(df, bucket_name, file_name):
-    storage_client = storage.Client.from_service_account_json(config.SERVICE_ACCOUNT_FILE)
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(file_name)
-
-    # DataFrame을 CSV로 저장한 후 업로드
-    blob.upload_from_string(df.to_csv(index=False), 'text/csv')
-    logger.info(f"GCS에 {file_name} 파일로 저장 완료")
-
-# Kafka 메시지를 수신하고 전처리 후 GCS와 Dash로 전달
+# Kafka 메시지를 수신하고 전처리 후 S3와 Dash로 전달
 def consume_and_process_messages(topic, message_queue: Queue):
     consumer = create_kafka_consumer()
     consumer.subscribe([topic])
@@ -65,12 +63,12 @@ def consume_and_process_messages(topic, message_queue: Queue):
 
                 # 오늘 데이터는 실시간 대시보드에 전달
                 for record in today_data.to_dict(orient='records'):
-                    message_queue.put(record)  # 실시간 데이터 대기열에 추가 (Dash로 전달)
+                    message_queue.put(record)
 
-                # 미래 데이터는 GCS에 저장
+                # 미래 데이터는 S3에 저장
                 if not future_data.empty:
                     file_name = f"future_eta_data_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
-                    save_to_gcs(future_data, config.S3_BUCKET_NAME, file_name)
+                    save_to_s3(future_data, config.S3_BUCKET_NAME, file_name)
 
                 records = []  # 기록 초기화
 
