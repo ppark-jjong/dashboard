@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="67567525-69da-4532-8e3b-d14f97c57e3e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/collectors/google_sheets.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/collectors/google_sheets.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/config/config_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/config_manager.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/kafka/consumer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/kafka/consumer.py" afterDir="false" />

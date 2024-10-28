@@ -1,4 +1,4 @@
-import boto3
+from google.cloud import storage
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from confluent_kafka import Producer
@@ -12,8 +12,11 @@ class ConfigManager:
         # Google Sheets API 설정
         self.SHEET_ID = '1x4P2VO-ZArT7ibSYywFIBXUTapBhUnE4_ouVMKrKBwc'
         self.RANGE_NAME = 'Sheet1!A2:n637'
+        self.GCS_BUCKET_NAME = "teckwah-data"
         self.SERVICE_ACCOUNT_FILE = 'C:/MyMain/dashboard/main/oauth/google/credentials.json'
 
+        def get_gcs_client(self):
+            return storage.Client.from_service_account_json(self.SERVICE_ACCOUNT_FILE)
         # Kafka 설정
         self.KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
         self.KAFKA_TOPICS = {
@@ -23,12 +26,6 @@ class ConfigManager:
             'dashboard_status': 'dashboard_status',
             'monthly_volume_status': 'monthly_volume_status'
         }
-
-        # S3 설정
-        self.S3_BUCKET_NAME = "your-s3-bucket"
-        self.S3_REGION = "us-east-1"
-        self.AWS_ACCESS_KEY = "your_access_key"
-        self.AWS_SECRET_KEY = "your_secret_key"
 
         # PySpark 설정
         self.SPARK_APP_NAME = "DeliveryAnalytics"
@@ -52,14 +49,6 @@ class ConfigManager:
 
     def get_kafka_admin_client(self):
         return AdminClient({'bootstrap.servers': self.KAFKA_BOOTSTRAP_SERVERS})
-
-    def get_s3_client(self):
-        return boto3.client(
-            's3',
-            region_name=self.S3_REGION,
-            aws_access_key_id=self.AWS_ACCESS_KEY,
-            aws_secret_access_key=self.AWS_SECRET_KEY
-        )
 
     def get_spark_session(self):
         return SparkSession.builder \

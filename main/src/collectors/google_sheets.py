@@ -1,5 +1,6 @@
 import json
-
+import os
+from google.cloud import storage
 import pandas as pd
 import logging
 from src.kafka.producer import create_kafka_producer, send_to_kafka
@@ -36,7 +37,18 @@ def fetch_sheet_data():
         logger.error(f"Google Sheets 데이터 가져오기 실패: {e}")
         return None
 
-# Google Sheets 데이터를 수집하여 Kafka와 S3로 전송
+# DataFrame 데이터를 GCS에 저장
+def save_to_gcs(df):
+    try:
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(config.GCS_BUCKET_NAME)
+        blob = bucket.blob(f"realtime_data_{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}.csv")
+        blob.upload_from_string(df.to_csv(index=False), 'text/csv')
+        logger.info("Google Sheets 데이터가 GCS에 저장되었습니다.")
+    except Exception as e:
+        logger.error(f"GCS에 데이터 저장 실패: {e}")
+
+# Google Sheets 데이터를 수집하여 Kafka와 GCP로 전송
 def collect_and_send_data():
     df = fetch_sheet_data()
     if df is not None and not df.empty:
@@ -46,40 +58,23 @@ def collect_and_send_data():
         send_to_kafka(producer, topic, df)
         logger.info(f"Google Sheets 데이터가 '{topic}' 토픽으로 전송되었습니다.")
 
-        # S3에 저장
-        s3_client = config.get_s3_client()
-        s3_key = f"realtime_data_{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}.csv"
-        s3_client.put_object(
-            Bucket=config.S3_BUCKET_NAME,
-            Key=s3_key,
-            Body=df.to_csv(index=False)
-        )
-        logger.info(f"Google Sheets 데이터가 S3에 '{s3_key}' 파일로 저장되었습니다.")
+        # GCS에 저장
+        save_to_gcs(df)
 
-
-def lambda_handler(event, context):
-    # Google Sheets에서 전달받은 데이터 파싱
+# Cloud Functions 핸들러
+def cloud_function_handler(request):
     try:
-        data = json.loads(event['body'])['data']
-        df = pd.DataFrame([data], columns=[
-            '주문번호', 'Date(접수일)', 'DPS#', 'ETA', 'SLA', 'Ship to (2)',
-            'Status', '1. Picked', '2. Shipped', '3. POD', 'Zip Code',
-            'Billed Distance (Put into system)', '인수자', 'issue'
-        ])
+        # 요청에서 데이터 추출
+        data = json.loads(request.data.decode('utf-8'))['data']
+        df = pd.DataFrame([data], columns=COLUMNS)
 
         # 데이터를 Kafka로 전송
         producer = create_kafka_producer()
         topic = config.KAFKA_TOPICS['realtime_status']
         send_to_kafka(producer, topic, df)
 
-        # S3에 데이터를 저장
-        s3_client = config.get_s3_client()
-        s3_key = f"realtime_data_{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}.csv"
-        s3_client.put_object(
-            Bucket=config.S3_BUCKET_NAME,
-            Key=s3_key,
-            Body=df.to_csv(index=False)
-        )
+        # GCS에 데이터 저장
+        save_to_gcs(df)
 
         return {
             'statusCode': 200,
@@ -87,6 +82,7 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
+        logger.error(f"데이터 처리 중 오류 발생: {e}")
         return {
             'statusCode': 500,
             'body': json.dumps(f'Error processing data: {str(e)}')
