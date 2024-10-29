@@ -1,9 +1,8 @@
 import json
-import os
 from google.cloud import storage
 import pandas as pd
 import logging
-from src.kafka.producer import create_kafka_producer, send_to_kafka
+from src.brokers.kafka.producer import create_kafka_producer, send_to_kafka
 from src.config.config_manager import ConfigManager
 
 config = ConfigManager()

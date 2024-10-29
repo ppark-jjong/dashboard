@@ -126,28 +126,46 @@ spark-token-provider-kafka-0-10_2.12-3.4.1.jar
 
 ==================================================================
 
-
 main/
 ├── src/
-│   ├── collectors/                   # 데이터 수집 관련 코드
-│   │   ├── google_sheets.py 	   # Google Sheets 데이터 수집
-│   │   ├── web_crawler.py        # 웹 크롤러를 통한 데이터 수집
-│   ├── processors/                   # 데이터 처리 관련 코드
-│   │   ├── data_processor.py          # 데이터 전처리 및 변환
-│   ├── kafka/
-│   │   ├── producer.py          # Kafka Producer - 데이터 전송
-│   │   ├── consumer.py          # Kafka Consumer - PySpark와 연동
-│   ├── config/                       # 설정 관련 코드
-│   │   ├── config_manager.py          # 설정 관리 (Kafka, S3, Google API 등)
-│   ├── utils/                        # 유틸리티 함수 모음
-│   │   ├── file_handler.py            # 파일 관리 (다운로드, 업로드 등)   
-│   ├── test/     
-│   │   ├── test.py            # 기타 테스트 코드
-│    |	├── main.py
+│   ├── api/                           # API 관련 코드
+│   │   ├── webhook_api.py             # Webhook을 통한 데이터 수집 (FastAPI)
+│   │
+│   ├── brokers/                       # 메시지 브로커 관련 코드
+│   │   ├── kafka/
+│   │       ├── producer.py            # Kafka Producer - 데이터 전송
+│   │       ├── consumer.py            # Kafka Consumer - PySpark와 연동
+│   │
+│   ├── collectors/                    # 데이터 수집 관련 코드
+│   │   ├── google_sheets.py           # Google Sheets 데이터 수집
+│   │   ├── web_crawler.py             # 웹 크롤러를 통한 데이터 수집
+│   │
+│   ├── config/                        # 설정 관련 코드
+│   │   ├── config_data.py             # Kafka, Spark 설정
+│   │   ├── config_google.py           # GCS, Google Sheets 설정
+│   │   ├── config_web_crawler.py      # Web Crawler 설정
+│   │   ├── config_manager.py          # 전체 설정 관리 파일
+│   │
+│   ├── processors/                    # 데이터 처리 관련 코드
+│   │   ├── realtime_data_processor.py # 실시간 데이터 처리 로직
+│   │   ├── historical_data_processor.py # 과거 데이터 처리 로직
+│   │
+│   ├── utils/                         # 유틸리티 함수 모음
+│   │   ├── file_handler.py            # 파일 관리 (다운로드, 업로드 등)
+│   │   ├── data_transformer.py        # 데이터 형식 변환 함수
+│
+├── test/                              # 테스트 코드
+│   ├── test_collectors.py             # 데이터 수집 관련 테스트 코드
+│   ├── test_processors.py             # 데이터 처리 관련 테스트 코드
+│   ├── test_api.py                    # API 관련 테스트 코드
+│
 ├── docker/
-│   ├── Dockerfile                    # 도커 이미지 빌드 설정
-│   ├── docker-compose.yaml           # 도커 컴포즈 설정 (Kafka, PySpark, Zookeeper)
-├── logs/                             # 로그 파일 저장 경로
-├── oauth/                            # Google API 인증 파일 폴더
-│   └── google/                       # Google API 인증서 파일
-└── requirements.txt                  # 프로젝트 의존성 관리
+│   ├── Dockerfile                     # 도커 이미지 빌드 설정
+│   ├── docker-compose.yaml            # 도커 컴포즈 설정 (Kafka, PySpark, Zookeeper)
+│
+├── logs/                              # 로그 파일 저장 경로
+├── secrets/                           # 민감한 정보 (API 인증 정보 등)
+│   └── google/                        # Google API 인증서 파일
+│       └── credentials.json           # Google API 인증서
+│
+└── requirements.txt                   # 프로젝트 의존성 관리

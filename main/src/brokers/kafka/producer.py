@@ -3,16 +3,21 @@ import logging
 from confluent_kafka import Producer, KafkaError
 from src.config.config_manager import ConfigManager
 
+# 설정 불러오기 및 로거 설정
 config = ConfigManager()
-
-# 한글 로그 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 
+
 # Kafka Producer 인스턴스 생성
 def create_kafka_producer():
+    """
+    Kafka Producer 인스턴스를 생성
+    Returns:
+        Producer: Kafka Producer 인스턴스
+    """
     producer_config = {
-        'bootstrap.servers': config.KAFKA_BOOTSTRAP_SERVERS,
+        'bootstrap.servers': config.kafka.BOOTSTRAP_SERVERS,
         'client.id': 'google-sheets-producer'
     }
     return Producer(producer_config)
@@ -20,15 +25,26 @@ def create_kafka_producer():
 
 # DataFrame을 Kafka로 전송
 def send_to_kafka(producer, topic, data):
+    """
+    DataFrame 데이터를 Kafka로 전송
+    Args:
+        producer (Producer): Kafka Producer 인스턴스
+        topic (str): Kafka 토픽 이름
+        data (pd.DataFrame): 전송할 데이터프레임
+    """
     if data is None or data.empty:
         logger.warning("전송할 데이터가 없습니다.")
         return
 
+    total_records = len(data)
+    logger.info(f"전송할 데이터 프레임 표본 (상위 5개 행):\n{data.head()}")
+
     try:
-        total_records = len(data)
-        logger.info(f"전송할 데이터 프레임 표본 (상위 5개 행):\n{data.head()}")
+        # DataFrame의 각 행을 JSON 형식으로 변환하여 Kafka로 전송
         for record in data.to_dict(orient='records'):
             producer.produce(topic, value=json.dumps(record), callback=delivery_report)
+
+        # 메시지 전송이 완료될 때까지 대기
         producer.flush()
         logger.info(f"총 {total_records}개의 레코드를 Kafka 토픽 '{topic}'에 전송했습니다.")
     except KafkaError as e:
@@ -37,6 +53,13 @@ def send_to_kafka(producer, topic, data):
 
 # Kafka 메시지 전송 결과 콜백 함수
 def delivery_report(err, msg):
+    """
+    Kafka 메시지 전송 결과를 처리
+    Args:
+        err (KafkaError): Kafka 전송 오류
+        msg (Message): 전송된 메시지
+    """
     if err is not None:
         logger.error(f"메시지 전송 실패: {err}")
-
+    else:
+        logger.info(f"메시지 전송 성공: {msg.topic()} [{msg.partition()}] @ {msg.offset()}")

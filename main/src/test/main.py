@@ -7,7 +7,7 @@ import pandas as pd  # 데이터 분석 라이브러리
 from queue import Queue  # 실시간 데이터 처리를 위한 큐
 from confluent_kafka import Consumer, KafkaError  # Kafka Consumer 관련 라이브러리
 from src.collectors.google_sheets import fetch_sheet_data  # Google Sheets 데이터 수집 함수
-from src.kafka.producer import create_kafka_producer, send_to_kafka  # Kafka 프로듀서 함수
+from src.brokers.kafka.producer import create_kafka_producer, send_to_kafka  # Kafka 프로듀서 함수
 from src.processors.realtime_data_processor import process_data
 from src.utils.file_handler import save_to_gcs  # GCS에 데이터 저장 함수
 from src.config.config_manager import ConfigManager  # 설정 관리 클래스

@@ -4,7 +4,7 @@ import logging
 from confluent_kafka import KafkaError
 
 from src.collectors.google_sheets import collect_and_send_data
-from src.kafka.consumer import consume_messages, create_kafka_consumer
+from src.brokers.kafka.consumer import create_kafka_consumer
 from src.config.config_manager import ConfigManager
 from queue import Queue
 import time
