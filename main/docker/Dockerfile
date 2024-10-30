@@ -13,9 +13,9 @@ ENV PATH=$PATH:$JAVA_HOME/bin
 ENV PYSPARK_PYTHON=python3
 ENV PYSPARK_DRIVER_PYTHON=python3
 
-# 의존성 설치 - requirements.txt 복사 및 설치
-COPY ./requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# 의존성 설치 - requirements-api.txt 복사 및 설치
+COPY ../requirements.txt .
+RUN pip install --no-cache-dir -r requirements-api.txt
 
 # 필수 패키지 설치 및 Chrome WebDriver와 Chrome 브라우저 설치
 RUN apt-get update && apt-get install -y \

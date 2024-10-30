@@ -47,7 +47,7 @@ docker exec -it <container_name> /bin/bash
 docker cp test-kafka.py <container_name>:/path/to/new_directory/
 
 
-=============================================================
+
 # Kafka CLI 명령어를 사용하여 토픽 목록 조회
 docker exec -it kafka kafka-topics --list --bootstrap-server localhost:9092
 
@@ -59,7 +59,18 @@ docker exec -it kafka kafka-topics --list --bootstrap-server localhost:9092
 
 ==================================================================
 
+Google Cloud에 배포 (Cloud  Run 사용 예시)
 
+
+# 변수 설정
+$PROJECT_ID = "dashboard-435121"
+$IMAGE_NAME = "fastapi-webhook"
+
+# Docker 명령어에서 변수 사용
+docker build -t gcr.io/$PROJECT_ID/$IMAGE_NAME -f docker/Dockerfile.fastapi .
+docker push gcr.io/$PROJECT_ID/$IMAGE_NAME
+
+=============================================================
 
 1. 실시간 배송 상태 및 KPI 모니터링
 목표: 오늘 날짜의 각 배송 상태별 갯수, 완료율, 평균 배송 시간을 모니터링하여 실시간으로 성과를 확인.
@@ -163,8 +174,7 @@ main/
 │   ├── Dockerfile                     # 도커 이미지 빌드 설정
 │   ├── docker-compose.yaml            # 도커 컴포즈 설정 (Kafka, PySpark, Zookeeper)
 │
-├── logs/                              # 로그 파일 저장 경로
-├── secrets/                           # 민감한 정보 (API 인증 정보 등)
+├── oauth/                           # 민감한 정보 (API 인증 정보 등)
 │   └── google/                        # Google API 인증서 파일
 │       └── credentials.json           # Google API 인증서
 │

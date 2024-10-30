@@ -5,27 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="67567525-69da-4532-8e3b-d14f97c57e3e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/docker/Dockerfile-fastapi" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/api/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/api/webhook_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/brokers/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/brokers/kafka/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/config/config_data.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/config/config_google.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/config/config_web_crawler.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/utils/data_transformer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/requirements-api.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/main.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/main.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker/docker-compose.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker/docker-compose.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker/Dockerfile-fastapi" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile-fastapi" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/collectors/google_sheets.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/collectors/google_sheets.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/config/config_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/config_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/dash/dash_app.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/kafka/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/kafka/consumer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/brokers/kafka/consumer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/kafka/producer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/brokers/kafka/producer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/test-kafka.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/test-kafka.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../프로젝트 참고.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../프로젝트 참고.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -55,36 +40,36 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.dash_app.executor": "Run",
-    "Python.google_sheets.executor": "Run",
-    "Python.google_sheets_collector.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.test-dash.executor": "Run",
-    "Python.test-gcp.executor": "Run",
-    "Python.test-kafka.executor": "Run",
-    "Python.test-server.executor": "Run",
-    "Python.test.executor": "Run",
-    "Python.web_crawler_collector.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/MyMain/dashboard/main/docker",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.dash_app.executor&quot;: &quot;Run&quot;,
+    &quot;Python.google_sheets.executor&quot;: &quot;Run&quot;,
+    &quot;Python.google_sheets_collector.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test-dash.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test-gcp.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test-kafka.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test-server.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test.executor&quot;: &quot;Run&quot;,
+    &quot;Python.web_crawler_collector.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/MyMain/dashboard/main/docker&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\MyMain\dashboard\main\docker" />
       <recent name="C:\MyMain\dashboard\main\src\processors" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\MyMain\dashboard\main" />
       <recent name="C:\MyMain\dashboard\main\src\brokers\kafka" />
       <recent name="C:\MyMain\dashboard\main\src\test" />
       <recent name="C:\MyMain\dashboard\main\src" />
       <recent name="C:\MyMain\dashboard\main\test" />
-      <recent name="C:\MyMain\dashboard\main\oauth\google" />
     </key>
   </component>
   <component name="RunManager">
