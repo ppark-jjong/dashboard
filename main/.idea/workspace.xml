@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="67567525-69da-4532-8e3b-d14f97c57e3e" name="Changes" comment="">
+<<<<<<< HEAD
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker/Dockerfile-fastapi" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile-fastapi" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements-api.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements-api.txt" afterDir="false" />
@@ -12,6 +13,10 @@
       <change beforePath="$PROJECT_DIR$/src/config/config_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/config_data.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/config/config_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/config_manager.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../프로젝트 참고.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../프로젝트 참고.txt" afterDir="false" />
+=======
+      <change afterPath="$PROJECT_DIR$/docker/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+>>>>>>> origin/main
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,11 +70,11 @@
       <recent name="C:\MyMain\dashboard\main\src\processors" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\MyMain\dashboard\main" />
       <recent name="C:\MyMain\dashboard\main\src\brokers\kafka" />
       <recent name="C:\MyMain\dashboard\main\src\test" />
       <recent name="C:\MyMain\dashboard\main\src" />
       <recent name="C:\MyMain\dashboard\main\test" />
+      <recent name="C:\MyMain\dashboard\main\oauth\google" />
     </key>
   </component>
   <component name="RunManager">

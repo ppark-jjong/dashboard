@@ -12,12 +12,12 @@ RUN apt-get update && \
 # Python 경로를 설정하여 src 디렉토리를 인식하도록 함
 ENV PYTHONPATH=/app
 
-# 의존성 설치 - requirements-api.txt 복사 및 설치
-COPY requirements-api.txt .
-RUN pip install --no-cache-dir -r requirements-api.txt
+# 의존성 설치 - requirements.txt 복사 및 설치
+COPY ./requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # 소스 코드 복사
-COPY src /app/src
+COPY ./src /app/src
 
 # FastAPI 포트 노출
 EXPOSE 8080
