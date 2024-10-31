@@ -5,12 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="67567525-69da-4532-8e3b-d14f97c57e3e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/requirements-api.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/main.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/main.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker/Dockerfile-fastapi" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile-fastapi" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements-api.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements-api.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/webhook_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/webhook_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/config_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/config_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/config_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/config_manager.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../프로젝트 참고.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../프로젝트 참고.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

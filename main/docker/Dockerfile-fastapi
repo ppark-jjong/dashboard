@@ -1,9 +1,13 @@
-
 # Python 3.10 경량 이미지를 기반으로 사용
 FROM python:3.10-slim
 
 # 작업 디렉토리를 /app으로 설정
 WORKDIR /app
+
+# 컴파일러 및 필수 라이브러리 설치
+RUN apt-get update && \
+    apt-get install -y gcc librdkafka-dev build-essential --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
 # Python 경로를 설정하여 src 디렉토리를 인식하도록 함
 ENV PYTHONPATH=/app
@@ -19,4 +23,4 @@ COPY src /app/src
 EXPOSE 8080
 
 # FastAPI Webhook 실행 (uvicorn 사용)
-CMD ["uvicorn", "src.api.webhook_api:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["python", "src/api/webhook_api.py"]
