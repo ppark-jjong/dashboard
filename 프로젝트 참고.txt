@@ -61,14 +61,32 @@ docker exec -it kafka kafka-topics --list --bootstrap-server localhost:9092
 
 Google Cloud에 배포 (Cloud  Run 사용 예시)
 
+도커가 gcp 리전에 접근 권한 할 수 있게 허용
+gcloud auth configure-docker asia-northeast3-docker.pkg.dev
+
+docker push asia-northeast3-docker.pkg.dev/dashboard-435121/teckwah-data/fastapi-webhook:latest
+docker build -t asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwah-data/${IMAGE_NAME}:latest -f docker/Dockerfile-fastapi .
+
+
 
 # 변수 설정
 $PROJECT_ID = "dashboard-435121"
 $IMAGE_NAME = "fastapi-webhook"
 
 # Docker 명령어에서 변수 사용
-docker build -t gcr.io/$PROJECT_ID/$IMAGE_NAME -f docker/Dockerfile.fastapi .
-docker push gcr.io/$PROJECT_ID/$IMAGE_NAME
+docker build -t $PROJECT_ID/$IMAGE_NAME -f docker/Dockerfile.fastapi .
+docker push $PROJECT_ID/$IMAGE_NAME
+
+
+# Docker 이미지 빌드
+docker build -t asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwah-data/${IMAGE_NAME}:latest -f docker/Dockerfile-fastapi .
+
+# Docker 이미지 Artifact Registry로 푸시
+docker push asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwah-data/${IMAGE_NAME}:latest
+
+# 이미지 로컬 실행
+docker run -e PORT=8080 -p 8080:8080 asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwah-data/${IMAGE_NAME}:latest
+
 
 =============================================================
 
