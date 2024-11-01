@@ -72,9 +72,10 @@ $IMAGE_NAME = "fastapi-webhook"
 # Docker 명령어에서 변수 사용
 docker build -t gcr.io/$PROJECT_ID/$IMAGE_NAME -f docker/Dockerfile.fastapi .
 docker run -e PORT=8080 -p 8080:8080 asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwah-data/${IMAGE_NAME}:latest
+docker build --no-cache -t asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwah-data/${IMAGE_NAME}:latest -f docker/Dockerfile-fastapi .
 
 
-docker push gcr.io/$PROJECT_ID/$IMAGE_NAME
+docker push asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwah-data/${IMAGE_NAME}:latest
 
 # Google Cloud Artifact Registry에 Docker로 접근
 gcloud auth configure-docker asia-northeast3-docker.pkg.dev
