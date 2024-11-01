@@ -13,8 +13,8 @@ RUN apt-get update && \
 ENV PYTHONPATH=/app
 
 # 의존성 설치 - requirements.txt 복사 및 설치
-COPY ./requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY ./requirements-api.txt .
+RUN pip install --no-cache-dir -r requirements-api.txt
 
 # 소스 코드 복사
 COPY ./src /app/src
