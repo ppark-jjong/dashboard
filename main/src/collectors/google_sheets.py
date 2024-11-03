@@ -12,9 +12,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 COLUMNS = [
-    '주문번호', 'Date(접수일)', 'DPS#', 'ETA', 'SLA', 'Ship to (2)',
-    'Status', '1. Picked', '2. Shipped', '3. POD', 'Zip Code',
-    'Billed Distance (Put into system)', '인수자', 'issue'
+    'Delivery', 'Date', 'DPS', 'ETA', 'SLA', 'Ship to',
+    'Status', 'Picked', 'Shipped', 'POD', 'Zip Code',
+    'Billed Distance', 'Recipient', 'Issue'
 ]
 
 # Google Sheets에서 데이터를 가져와 DataFrame으로 반환
@@ -27,7 +27,7 @@ def fetch_sheet_data():
 
         if not rows:
             logger.warning("Google Sheets에서 데이터를 찾을 수 없습니다.")
-            return None
+            return
 
         logger.info(f"{len(rows)}개의 데이터를 Google Sheets에서 가져왔습니다.")
         df = pd.DataFrame(rows[1:], columns=COLUMNS)
@@ -60,12 +60,18 @@ def collect_and_send_data():
         # GCS에 저장
         save_to_gcs(df)
 
-# Cloud Functions 핸들러
+
 def cloud_function_handler(request):
     try:
         # 요청에서 데이터 추출
         data = json.loads(request.data.decode('utf-8'))['data']
+
+        # 데이터프레임 생성 및 컬럼 매핑
         df = pd.DataFrame([data], columns=COLUMNS)
+
+        # 필요한 데이터 전처리 로직 추가
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')  # 날짜 형식 변환 예시
+        df['Status'] = df['Status'].fillna('Unknown')  # 결측값 처리 예시
 
         # 데이터를 Kafka로 전송
         producer = create_kafka_producer()
