@@ -20,3 +20,4 @@ def process_data(records):
 
     logger.info(f"오늘 데이터: {len(today_data)}건, 미래 데이터: {len(future_data)}건")
     return today_data, future_data
+
