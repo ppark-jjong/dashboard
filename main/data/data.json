@@ -1,0 +1,16 @@
+{
+  "Delivery": "12345",
+  "Date": "2024-11-05",
+  "DPS": "DPS123",
+  "ETA": "2024-11-06",
+  "SLA": "Standard",
+  "Address": "123 Main St",
+  "Status": "Shipped",
+  "Picked": "Yes",
+  "Shipped": "Yes",
+  "POD": "Yes",
+  "Zip Code": "12345",
+  "Billed Distance": "15",
+  "Recipient": "John Doe",
+  "Issue": "None"
+}

@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y \
 
 # 소스 코드와 OAuth 인증 폴더를 복사
 COPY ./src /app/src
-COPY ./oauth /app/oauth
+COPY ./secrets /app/secrets
 
 # PySpark와 Kafka 연동을 위한 필수 JAR 파일 다운로드
 RUN mkdir -p /opt/spark/jars && \
@@ -44,4 +44,4 @@ EXPOSE 8080
 EXPOSE 8050
 
 # Webhook 및 Dash 서비스 실행을 위한 기본 명령
-CMD ["python", "src/api/webhook_api.py"]
+CMD ["python", "src/test/test-dash.py"]

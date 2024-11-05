@@ -1,4 +1,3 @@
-# webhook_api.py
 import os
 import logging
 import pandas as pd
