@@ -1,5 +1,5 @@
-from src.config.config_data import KafkaConfig
-from src.config.config_google import GCSConfig, SheetsConfig
+from src.config.data_format import KafkaConfig
+from src.config.google import GCSConfig, SheetsConfig, TimestampConfig
 # from src.config.config_web_crawler import WebCrawlerConfig
 
 class ConfigManager:
@@ -8,3 +8,5 @@ class ConfigManager:
     gcs = GCSConfig
     sheets = SheetsConfig
     # web_crawler = WebCrawlerConfig
+    timestamp = TimestampConfig
+

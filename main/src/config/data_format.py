@@ -1,7 +1,8 @@
-#Kafka, Spark 설정
+# Kafka, Spark 설정
 
 from confluent_kafka import Producer
 # from pyspark.sql import SparkSession
+
 
 class KafkaConfig:
     BOOTSTRAP_SERVERS = 'localhost:9092'

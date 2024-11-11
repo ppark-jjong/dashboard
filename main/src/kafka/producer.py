@@ -11,11 +11,6 @@ logger = logging.getLogger(__name__)
 
 # Kafka Producer 인스턴스 생성
 def create_kafka_producer():
-    """
-    Kafka Producer 인스턴스를 생성
-    Returns:
-        Producer: Kafka Producer 인스턴스
-    """
     producer_config = {
         'bootstrap.servers': config.kafka.BOOTSTRAP_SERVERS,
         'client.id': 'google-sheets-producer'
@@ -53,12 +48,6 @@ def send_to_kafka(producer, topic, data):
 
 # Kafka 메시지 전송 결과 콜백 함수
 def delivery_report(err, msg):
-    """
-    Kafka 메시지 전송 결과를 처리
-    Args:
-        err (KafkaError): Kafka 전송 오류
-        msg (Message): 전송된 메시지
-    """
     if err is not None:
         logger.error(f"메시지 전송 실패: {err}")
     else:
