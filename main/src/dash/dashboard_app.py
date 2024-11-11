@@ -6,7 +6,7 @@ from src.config.config_manager import ConfigManager
 
 GCSConfig = ConfigManager().gcs
 
-file_name = GCSConfig.file_name
+file_name = ConfigManager.file_name
 cloud_end_point = GCSConfig.cloud_end_point
 
 # Dash 앱 초기화

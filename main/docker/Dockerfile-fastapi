@@ -12,6 +12,12 @@ RUN apt-get update && \
 # Python 경로를 설정하여 src 디렉토리를 인식하도록 함
 ENV PYTHONPATH=/app
 
+# 서비스 계정 파일을 컨테이너로 복사
+COPY ./secrets/google/credentials.json /app/secrets/google/credentials.json
+
+# GOOGLE_APPLICATION_CREDENTIALS 환경 변수 설정
+ENV GOOGLE_APPLICATION_CREDENTIALS="/app/secrets/google/credentials.json"
+
 # 의존성 설치 - requirements.txt 복사 및 설치
 COPY ./requirements-api.txt .
 RUN pip install --no-cache-dir -r requirements-api.txt

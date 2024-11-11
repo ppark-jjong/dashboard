@@ -100,7 +100,9 @@ gcloud auth configure-docker asia-northeast3-docker.pkg.dev
 gcloud run deploy SERVICE_NAME \
    --image=asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwah-data/${IMAGE_NAME}:latest \
    --region=asia-northeast3
+
 =============================================================
+
 cloud function 로컬 테스트 
 
 #cloud function framework 로컬 구동 

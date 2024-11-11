@@ -1,26 +1,24 @@
 import logging
-from datetime import datetime
-
-import pandas as pd
+import os
 import pytz
+import pandas as pd
+from datetime import datetime
 from google.cloud import storage
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from src.config.config_manager import ConfigManager
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 
-SERVICE_ACCOUNT_FILE = "/app/secrets/google/credentials.json"
-file_name = f"data_{ConfigManager.timestamp.format_timestamp()}.csv"
-cloud_end_point = "https://fastapi-webhook-1069664741745.asia-northeast3.run.app"
 
 class GCSConfig:
     BUCKET_NAME = "teckwah-data"
+    SERVICE_ACCOUNT_FILE = "/app/secrets/google/credentials.json"
 
     @staticmethod
     def get_client():
-        return storage.Client.from_service_account_json(SERVICE_ACCOUNT_FILE)
+        credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "/app/secrets/google/credentials.json")
+        return storage.Client.from_service_account_json(credentials_path)
 
 
 class TimestampConfig:
@@ -48,8 +46,9 @@ class SheetsConfig:
 
     @staticmethod
     def get_service():
+        credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "/app/secrets/google/credentials.json")
         credentials = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=['https://www.googleapis.com/auth/spreadsheets.readonly']
+            credentials_path, scopes=['https://www.googleapis.com/auth/spreadsheets.readonly']
         )
         return build('sheets', 'v4', credentials=credentials)
 

@@ -7,16 +7,15 @@ from src.collectors.google_sheets import save_to_gcs
 from src.kafka.producer import create_kafka_producer, send_to_kafka
 
 app = FastAPI()
+client = storage.Client()
 config = ConfigManager()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 producer = create_kafka_producer()
 KAFKA_TOPIC = config.kafka.TOPIC
-config = ConfigManager()
 GCS_BUCKET_NAME = config.gcs.BUCKET_NAME
-client = storage.Client()
 bucket = client.bucket(GCS_BUCKET_NAME)
-file_name = config.gcs.file_name
+file_name = config.file_name
 
 
 @app.post("/webhook")
