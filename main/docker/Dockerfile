@@ -15,6 +15,8 @@ ENV PYSPARK_DRIVER_PYTHON=python3
 
 # 의존성 설치 - requirements.txt 복사 및 설치
 COPY ./requirements.txt .
+COPY ./src /app/src
+COPY ./secrets /app/secrets
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 필수 패키지 설치 및 Chrome WebDriver와 Chrome 브라우저 설치
@@ -26,9 +28,6 @@ RUN apt-get update && apt-get install -y \
     unzip chromedriver_linux64.zip -d /usr/local/bin && \
     rm -f google-chrome-stable_current_amd64.deb chromedriver_linux64.zip
 
-# 소스 코드와 OAuth 인증 폴더를 복사
-COPY ./src /app/src
-COPY ./secrets /app/secrets
 
 # PySpark와 Kafka 연동을 위한 필수 JAR 파일 다운로드
 RUN mkdir -p /opt/spark/jars && \
