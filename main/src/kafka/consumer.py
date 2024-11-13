@@ -32,15 +32,3 @@ def save_to_gcs(df, bucket_name, file_name):
     blob.upload_from_string(df.to_csv(index=False), 'text/csv')
     logger.info(f"GCS에 {file_name} 파일로 저장 완료")
 
-
-# Kafka 메시지를 수신하고 전처리 후 S3와 Dash로 전달
-def consume_and_process_messages(topic, message_queue: Queue):
-    consumer = create_kafka_consumer()
-    consumer.subscribe([topic])
-    logger.info(f"'{topic}' 토픽에서 메시지를 수신합니다.")
-
-    records = []
-
-    try:
-        message = msg.value().decode('utf-8')
-        data_queue.put(message)  # 대기열에 추가하여 Dash에서 사용
