@@ -31,31 +31,37 @@ services:
     volumes:
       - ../src:/app/src
       - ../data:/app/data
-
-  teckwah-data-service:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile   # 전체 서비스용 Dockerfile 경로
-    image: teckwah-data:latest
-    container_name: teckwah-data-service
-    depends_on:
-      - kafka
-    environment:
-      - GOOGLE_APPLICATION_CREDENTIALS="/app/secrets/google/credentials.json"
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-    ports:
-      - "8050:8050"
-    volumes:
-      - ../src:/app/src
-      - ../secrets:/app/secrets
-
-  # airflow:
-  #   image: puckel/docker-airflow:1.10.9
-  #   container_name: airflow_scheduler
-  #   environment:
-  #     - LOAD_EX=n
-  #     - EXECUTOR=LocalExecutor
-  #   ports:
-  #     - "8080:8080"
-  #   volumes:
-  #     - ./dags:/usr/local/airflow/dags
+#
+#  teckwah-data-service:
+#    build:
+#      context: ..
+#      dockerfile: docker/Dockerfile
+#    image: teckwah-data:latest
+#    container_name: teckwah-data-service
+#    depends_on:
+#      - kafka
+#    environment:
+#      #      - GOOGLE_APPLICATION_CREDENTIALS="/app/secrets/google/credentials.json"
+#      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+#    ports:
+#      - "8080:8080"
+#    volumes:
+#      - ../src:/app/src
+#      - ../secrets:/app/secrets
+#    command: [ "uvicorn", "src.api.main_api:app", "--host", "0.0.0.0", "--port", "8080" ]
+#
+#  dash-service:
+#    build:
+#      context: ..
+#      dockerfile: docker/Dockerfile
+#    image: teckwah-dash:latest
+#    container_name: dash_service
+#    environment:
+#      - GOOGLE_APPLICATION_CREDENTIALS="/app/secrets/google/credentials.json"
+#      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+#    ports:
+#      - "8050:8050"
+#    volumes:
+#      - ../src:/app/src
+#      - ../secrets:/app/secrets
+#    command: [ "python", "src/dash_app/dashboard_app.py" ]

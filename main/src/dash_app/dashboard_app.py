@@ -4,71 +4,64 @@ import pandas as pd
 import threading
 import json
 import requests
-from src.kafka.consumer import KafkaConsumerService, data_queue
+from queue import Queue, Empty
+import logging
+from src.kafka.consumer import KafkaConsumerService
 from src.config.config_manager import ConfigManager
 
-threading.Thread(target=consumer_service.consume_messages, daemon=True).start()
-
+# Logging 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 
+# Dash 애플리케이션 인스턴스 생성
 app = dash.Dash(__name__)
 config = ConfigManager()
-consumer_service = KafkaConsumerService()
+data_queue = Queue()
+consumer_service = KafkaConsumerService(topic="dashboard_status")
 
-
-def create_kafka_consumer():
-    consumer_config = {
-        'bootstrap.servers': config.kafka.BOOTSTRAP_SERVERS,
-        'group.id': 'dashboard-consumer-group',
-        'auto.offset.reset': 'latest'
-    }
-    consumer = Consumer(consumer_config)
-    consumer.subscribe([config.kafka.TOPICS['dashboard_status']])
-    return consumer
-
-
+# Kafka Consumer에서 데이터를 소비하여 메모리 큐에 저장
 def consume_kafka_messages():
-    consumer = create_kafka_consumer()
     try:
         while True:
-            msg = consumer.poll(timeout=1.0)
-            if msg is None:
-                continue
-            if msg.error():
-                logger.error(f"Kafka Consumer 오류: {msg.error()}")
-                continue
+            # Kafka에서 데이터를 소비하여 큐에 추가
+            message = consumer_service.data_queue.get(timeout=1)
+            if message:
+                logger.info("Queue에 데이터 추가")
+    except Empty:
+        pass
 
-            message = msg.value().decode('utf-8')
-            data_queue.put(message)
-    except KeyboardInterrupt:
-        logger.info("Kafka 메시지 소비를 중단합니다.")
-    finally:
-        consumer.close()
-
-
+# Kafka Consumer를 별도 스레드에서 실행하여 데이터 소비
+threading.Thread(target=consumer_service.consume_messages, daemon=True).start()
 threading.Thread(target=consume_kafka_messages, daemon=True).start()
 
 
+# Dash 레이아웃 정의
 app.layout = html.Div([
-                          html.H1("실시간 Kafka 데이터 대시보드"),
-                          dcc.Interval(id="interval-component", interval=2000, n_intervals=0),
-
-html.Button("Cloud Run Trigger", id="trigger-button", n_clicks=0),
-html.Div(id="output-message"),
-html.Div(id="live-update-text"),
-html.Div(id="gcs-data")
+    html.H1("실시간 Kafka 데이터 대시보드"),
+    dcc.Interval(id="interval-component", interval=2000, n_intervals=0),
+    html.Button("Cloud Run Trigger", id="trigger-button", n_clicks=0),
+    html.Div(id="output-message"),
+    html.Div(id="live-update-text"),
+    html.Div(id="gcs-data")
 ])
 
+
+# 실시간 데이터 업데이트 콜백 함수
 @app.callback(Output("live-update-text", "children"), Input("interval-component", "n_intervals"))
 def update_data(n):
-    if not data_queue.empty():
-        data = []
-        while not data_queue.empty():
-            data.append(data_queue.get())
+    data = []
+    try:
+        # 큐에서 데이터를 꺼내 DataFrame을 구성
+        while True:
+            data.append(data_queue.get_nowait())
+    except Empty:
+        pass
 
-        df = pd.DataFrame([eval(row) for row in data])
+    if data:
+        # 수신된 JSON 데이터 리스트를 DataFrame으로 변환
+        df = pd.DataFrame([json.loads(row) for row in data])
 
+        # 그래프 시각화 (Date와 Status 기반으로 예시)
         return html.Div([
             html.H2("실시간 데이터"),
             dcc.Graph(
@@ -79,29 +72,36 @@ def update_data(n):
             )
         ])
     else:
-        return "데이터가 없습니다."
+        # 데이터가 없을 경우 기본 메세지와 빈 차트
+        return html.Div([
+            html.H2("실시간 데이터 없음"),
+            dcc.Graph(figure={"data": [], "layout": {"title": "데이터가 없습니다"}})
+        ])
 
 
-# 버튼 클릭 시 Cloud Run 호출
+# Cloud Run 트리거 버튼 클릭 콜백 함수
 @app.callback(
     Output("output-message", "children"),
     Input("trigger-button", "n_clicks")
 )
 def trigger_cloud_run(n_clicks):
     if n_clicks > 0:
-        url = config.cloud_run.CLOUD_RUN_ENDPOINT
-        response = requests.post(url)
-        return f"Cloud Run 응답 상태 코드: {response.status_code}"
+        try:
+            url = config.cloud_run.CLOUD_RUN_ENDPOINT
+            response = requests.post(url)
+            return f"Cloud Run 응답 상태 코드: {response.status_code}"
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Cloud Run 트리거 오류: {e}")
+            return "Cloud Run 트리거 실패"
 
 
-# GCS 데이터 로드 및 테이블 출력
+# GCS 데이터 로드 콜백 함수
 @app.callback(
     Output("gcs-data", "children"),
     Input("trigger-button", "n_clicks")
 )
 def display_gcs_data(n_clicks):
     if n_clicks > 0:
-        # 임시로 data.json 데이터를 불러오는 예시 로직
         try:
             with open("data/data.json", "r") as f:
                 data = json.load(f)
@@ -114,6 +114,7 @@ def display_gcs_data(n_clicks):
                            )
             ])
         except Exception as e:
+            logger.error(f"GCS 데이터 로드 오류: {e}")
             return f"데이터 로드 오류: {str(e)}"
 
 

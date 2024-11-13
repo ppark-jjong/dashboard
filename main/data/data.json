@@ -1,16 +1,47 @@
-{
-  "Delivery": "12345",
-  "Date": "2024-11-05",
-  "DPS": "DPS123",
-  "ETA": "2024-11-06",
-  "SLA": "Standard",
-  "Address": "123 Main St",
-  "Status": "Shipped",
-  "Picked": "Yes",
-  "Shipped": "Yes",
-  "POD": "Yes",
-  "Zip Code": "12345",
-  "Billed Distance": "15",
-  "Recipient": "John Doe",
-  "Issue": "None"
-}
+[
+  {
+    "Delivery": "12345",
+    "Date": "2024-11-05",
+    "DPS": "DPS123",
+    "ETA": "2024-11-06",
+    "SLA": "Standard",
+    "Address": "123 Main St",
+    "Status": "Shipped",
+    "Picked": "O",
+    "Shipped": "O",
+    "POD": "O",
+    "Zip Code": "12345",
+    "Billed Distance": "15",
+    "Recipient": "John Doe"
+  },
+  {
+    "Delivery": "12346",
+    "Date": "2024-11-07",
+    "DPS": "DPS124",
+    "ETA": "2024-11-08",
+    "SLA": "Express",
+    "Address": "456 Elm St",
+    "Status": "Delivered",
+    "Picked": "O",
+    "Shipped": "O",
+    "POD": "O",
+    "Zip Code": "54321",
+    "Billed Distance": "10",
+    "Recipient": "Jane Smith"
+  },
+  {
+    "Delivery": "12347",
+    "Date": "2024-11-08",
+    "DPS": "DPS125",
+    "ETA": "2024-11-09",
+    "SLA": "Standard",
+    "Address": "789 Pine St",
+    "Status": "In Transit",
+    "Picked": "O",
+    "Shipped": "X",
+    "POD": "X",
+    "Zip Code": "67890",
+    "Billed Distance": "20",
+    "Recipient": "Alice Brown"
+  }
+]

@@ -22,14 +22,17 @@ class KafkaProducerService:
 
     def send_data(self, data):
         if data.empty:
-            logger.warning("전송할 데이터가 없습니다.")
+            logger.warning("전송할 데이터가 비어있습니다. 데이터 내용: %s", data.to_dict())
             return
 
         topic = config.kafka.TOPICS['dashboard_status']
-        for record in data.to_dict(orient='records'):
-            self.producer.produce(topic, value=json.dumps(record), callback=self.delivery_report)
-        self.producer.flush()
-        logger.info(f"{len(data)}개의 레코드를 Kafka 토픽 '{topic}'에 전송했습니다.")
+        try:
+            for record in data.to_dict(orient='records'):
+                self.producer.produce(topic, value=json.dumps(record), callback=self.delivery_report)
+            self.producer.flush()
+            logger.info(f"{len(data)}개의 레코드를 Kafka 토픽 '{topic}'에 전송했습니다.")
+        except Exception as e:
+            logger.error(f"Kafka 전송 실패: {e}")
 
     @staticmethod
     def delivery_report(err, msg):
