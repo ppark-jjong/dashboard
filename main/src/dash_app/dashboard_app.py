@@ -1,4 +1,3 @@
-# src/dash/dashboard_app.py
 import dash
 from dash import html, dcc, Input, Output
 import pandas as pd
@@ -8,20 +7,57 @@ import requests
 from src.kafka.consumer import KafkaConsumerService, data_queue
 from src.config.config_manager import ConfigManager
 
+threading.Thread(target=consumer_service.consume_messages, daemon=True).start()
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logger = logging.getLogger(__name__)
+
 app = dash.Dash(__name__)
 config = ConfigManager()
 consumer_service = KafkaConsumerService()
 
-# Kafka Consumer를 별도 쓰레드로 실행
-threading.Thread(target=consumer_service.consume_messages, daemon=True).start()
+
+def create_kafka_consumer():
+    consumer_config = {
+        'bootstrap.servers': config.kafka.BOOTSTRAP_SERVERS,
+        'group.id': 'dashboard-consumer-group',
+        'auto.offset.reset': 'latest'
+    }
+    consumer = Consumer(consumer_config)
+    consumer.subscribe([config.kafka.TOPICS['dashboard_status']])
+    return consumer
+
+
+def consume_kafka_messages():
+    consumer = create_kafka_consumer()
+    try:
+        while True:
+            msg = consumer.poll(timeout=1.0)
+            if msg is None:
+                continue
+            if msg.error():
+                logger.error(f"Kafka Consumer 오류: {msg.error()}")
+                continue
+
+            message = msg.value().decode('utf-8')
+            data_queue.put(message)
+    except KeyboardInterrupt:
+        logger.info("Kafka 메시지 소비를 중단합니다.")
+    finally:
+        consumer.close()
+
+
+threading.Thread(target=consume_kafka_messages, daemon=True).start()
+
 
 app.layout = html.Div([
-    html.H1("실시간 Kafka 데이터 대시보드"),
-    dcc.Interval(id="interval-component", interval=2000, n_intervals=0),
-    html.Button("Cloud Run Trigger", id="trigger-button", n_clicks=0),
-    html.Div(id="output-message"),
-    html.Div(id="live-update-text"),
-    html.Div(id="gcs-data")
+                          html.H1("실시간 Kafka 데이터 대시보드"),
+                          dcc.Interval(id="interval-component", interval=2000, n_intervals=0),
+
+html.Button("Cloud Run Trigger", id="trigger-button", n_clicks=0),
+html.Div(id="output-message"),
+html.Div(id="live-update-text"),
+html.Div(id="gcs-data")
 ])
 
 @app.callback(Output("live-update-text", "children"), Input("interval-component", "n_intervals"))
@@ -30,7 +66,9 @@ def update_data(n):
         data = []
         while not data_queue.empty():
             data.append(data_queue.get())
-        df = pd.DataFrame([json.loads(row) for row in data])
+
+        df = pd.DataFrame([eval(row) for row in data])
+
         return html.Div([
             html.H2("실시간 데이터"),
             dcc.Graph(
@@ -43,6 +81,7 @@ def update_data(n):
     else:
         return "데이터가 없습니다."
 
+
 # 버튼 클릭 시 Cloud Run 호출
 @app.callback(
     Output("output-message", "children"),
@@ -53,6 +92,7 @@ def trigger_cloud_run(n_clicks):
         url = config.cloud_run.CLOUD_RUN_ENDPOINT
         response = requests.post(url)
         return f"Cloud Run 응답 상태 코드: {response.status_code}"
+
 
 # GCS 데이터 로드 및 테이블 출력
 @app.callback(
@@ -69,12 +109,13 @@ def display_gcs_data(n_clicks):
             return html.Div([
                 html.H2("GCS 데이터"),
                 html.Table([
-                    html.Tr([html.Th(col) for col in df.columns])] +
-                    [html.Tr([html.Td(df.iloc[i][col]) for col in df.columns]) for i in range(min(len(df), 10))]
-                )
+                               html.Tr([html.Th(col) for col in df.columns])] +
+                           [html.Tr([html.Td(df.iloc[i][col]) for col in df.columns]) for i in range(min(len(df), 10))]
+                           )
             ])
         except Exception as e:
             return f"데이터 로드 오류: {str(e)}"
+
 
 if __name__ == "__main__":
     app.run_server(debug=True)
