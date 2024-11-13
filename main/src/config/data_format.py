@@ -3,6 +3,11 @@
 from confluent_kafka import Producer
 # from pyspark.sql import SparkSession
 
+class DashBoardConfig:
+    DASHBOARD_COLUMNS = [
+        'Delivery', 'DPS', 'ETA', 'SLA', 'Address',
+        'Status', 'Billed Distance', 'Recipient'
+    ]
 
 class KafkaConfig:
     BOOTSTRAP_SERVERS = 'localhost:9092'

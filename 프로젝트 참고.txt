@@ -39,7 +39,6 @@ docker exec -it kafka kafka-topics --list --bootstrap-server localhost:9092  # K
 
 
 
-
 =======================================================================
 4. Google Cloud Platform (GCP) 명령어
 
@@ -79,10 +78,14 @@ gcloud run deploy SERVICE_NAME --image=asia-northeast3-docker.pkg.dev/${PROJECT_
 5. Cloud Function 로컬 테스트 명령어
 
 python -m functions_framework --target=kafka_stream --source=src/api/cloud_function_api.py  # Functions Framework 구동
-Invoke-WebRequest -Uri "http://127.0.0.1:8080" -Method POST -ContentType "application/json" -InFile "data/data.json"  # 로컬 Cloud Function 데이터 테스트
+Invoke-WebRequest -Uri "http://127.0.0.1:8080" -Method POST -ContentType "application/json" -InFile "data/data.json"  
+
+# 로컬 Cloud Function 데이터 테스트
 uvicorn src.api.main_api:app --host 0.0.0.0 --port 8080  # 로컬에서 Uvicorn 구동
 
 
+# curl 명령어
+Invoke-WebRequest -Uri "http://localhost:8080/test-gcs-kafka" -Method GET
 
 
 
