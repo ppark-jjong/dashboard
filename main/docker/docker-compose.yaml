@@ -41,27 +41,10 @@ services:
     depends_on:
       - kafka
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS="/app/oauth/google/credentials.json"
+      - GOOGLE_APPLICATION_CREDENTIALS="/app/secrets/google/credentials.json"
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     ports:
       - "8050:8050"
-    volumes:
-      - ../src:/app/src
-      - ../secrets:/app/secrets
-
-  fastapi-webhook:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile-fastapi  # FastAPI 전용 Dockerfile 경로
-    image: fastapi-webhook:latest
-    container_name: fastapi-webhook-service
-    depends_on:
-      - kafka
-    environment:
-      - GOOGLE_APPLICATION_CREDENTIALS="/app/oauth/google/credentials.json"
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-    ports:
-      - "8080:8080"
     volumes:
       - ../src:/app/src
       - ../secrets:/app/secrets

@@ -22,21 +22,11 @@ protoc --proto_path=. -I . --python_out=. --pyi_out=. ./realtime_status.proto
 # 기존 컨테이너 중지 및 제거 (선택 사항)
 docker-compose down
 
-# 도커 이미지 빌드
-docker-compose build
-docker-compose -f docker/Docker-fastapi build --no-cache
-docker-compose build --no-cache
-
-
 
 # 도커 컨테이너 실행 
-docker-compose up
-docker-compose up -d
-docker-compose -f docker/docker-compose.yaml up -d
-
-cd C:\MyMain\test\
-docker-compose -f docker/docker-compose.yaml up
-
+docker build -t localmain:latest --no-cache -f docker/Dockerfile .
+docker-compose -f docker/docker-compose.yaml up -d 
+docker-compose -f docker/docker-compose.yaml up --build -d 
 
 # 실행 상태 확인
 docker-compose ps
@@ -93,6 +83,10 @@ docker build --no-cache -t asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwahk
 
 docker push asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwahkr-artifactregistry/${IMAGE_NAME}:latest
 
+docker build -t my-image:latest --no-cache -f path/to/Dockerfile .
+
+
+
 # Google Cloud Artifact Registry에 Docker로 접근
 gcloud auth configure-docker asia-northeast3-docker.pkg.dev
 
@@ -100,9 +94,7 @@ gcloud auth configure-docker asia-northeast3-docker.pkg.dev
 gcloud run deploy SERVICE_NAME \
    --image=asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwah-data/${IMAGE_NAME}:latest \
    --region=asia-northeast3
-
 =============================================================
-
 cloud function 로컬 테스트 
 
 #cloud function framework 로컬 구동 
@@ -111,6 +103,13 @@ python -m functions_framework --target=kafka_stream --source=src/api/cloud_funct
 
 #로컬에서 data.json을 토대로 cloud function 데이터 테스트 (powershell)
 Invoke-WebRequest -Uri "http://127.0.0.1:8080" -Method POST -ContentType "application/json" -InFile "data/data.json"
+
+#HTTP 엔드포인트를 호출 (로컬)
+curl -X POST https://your-cloud-run-url/run-kafka-process \
+     -H "Content-Type: application/json" \
+     -d '{"key": "value"}'
+
+
 
 =============================================================
 
@@ -184,12 +183,15 @@ main/
 │   ├── api/                           # API 관련 코드
 │   │   ├── main_api.py             # api 관련 통합 엔드포인트 모음 코드
 │   │
+│   ├── dash/                           # API 관련 코드
+│   │   ├── dashboard_app.py             # api 관련 통합 엔드포인트 모음 코드
+│   │
 │   ├── kafka/                       # 메시지 브로커 관련 코드
 │       ├── producer.py            # Kafka Producer - 데이터 전송
 │       ├── consumer.py            # Kafka Consumer - PySpark와 연동
 │   │
 │   ├── collectors/                    # 데이터 수집 관련 코드
-│   │   ├── google_sheets.py           # Google Sheets 데이터 수집 관련 코드
+│   │   ├── gcp_data.py           # Google 데이터 수집 관련 코드
 │   │   ├── crawler.py                # 웹 크롤러를 통한 데이터 수집
 │   │
 │   ├── config/                        # 설정 관련 코드
@@ -203,11 +205,15 @@ main/
 │   │   ├── historical_data_processor.py # 과거 데이터 처리 로직
 │   │
 ├── docker/
-│   ├── Dockerfile                     # 도커 이미지 빌드 설정
-│   ├── docker-compose.yaml            # 도커 컴포즈 설정 (Kafka, PySpark, Zookeeper)
+│   ├── Dockerfile                     	# 도커 이미지 로컬
+│   ├── Dockerfile-fastapi                # 도커 이미지 cloud 
+│   ├── docker-compose.yaml           # 도커 컴포즈 설정 (Kafka, PySpark, Zookeeper)
 │
 ├── secrets/                           # 민감한 정보 (API 인증 정보 등)
 │   └── google/                        # Google API 인증서 파일
 │       └── credentials.json           # Google API 인증서
+│
+├── data/                           # 임시 데이터
+│   └── data.json                        # 임시 데이터
 │
 └── requirements.txt                   # 프로젝트 의존성 관리
