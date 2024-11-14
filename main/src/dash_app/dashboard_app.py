@@ -1,13 +1,14 @@
 import dash
-from dash import html, dcc, Input, Output
+from dash import html, dcc
 import pandas as pd
 import threading
 import json
-import requests
-from queue import Queue, Empty
 import logging
+from queue import Queue
+from dash.dependencies import Input, Output
 from src.kafka.consumer import KafkaConsumerService
 from src.config.config_manager import ConfigManager
+from dash import dash_table
 
 # Logging 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -16,106 +17,93 @@ logger = logging.getLogger(__name__)
 # Dash 애플리케이션 인스턴스 생성
 app = dash.Dash(__name__)
 config = ConfigManager()
-data_queue = Queue()
-consumer_service = KafkaConsumerService(topic="dashboard_status")
+data_queue = Queue()  # 전역 큐 인스턴스
+consumer_service = KafkaConsumerService(topic="dashboard_status")  # Kafka 소비자 인스턴스 생성
+latest_data = pd.DataFrame(columns=["DPS", "Delivery", "ETA", "Status", "Billed Distance"])  # 전체 데이터를 저장할 DataFrame
 
-# Kafka Consumer에서 데이터를 소비하여 메모리 큐에 저장
-def consume_kafka_messages():
-    try:
-        while True:
-            # Kafka에서 데이터를 소비하여 큐에 추가
-            message = consumer_service.data_queue.get(timeout=1)
-            if message:
-                logger.info("Queue에 데이터 추가")
-    except Empty:
-        pass
+# 새로운 데이터 플래그 설정
+new_data_flag = False
+
+
+# Kafka 메시지를 소비하여 Queue에 추가 및 Dash 업데이트 트리거
+def consume_kafka_data():
+    global new_data_flag
+    while True:
+        consumer_service.consume_messages(max_records=5)
+
+        # 수신된 메시지 크기 로그 확인
+        queue_size = data_queue.qsize()
+        logger.info("Queue에 새로운 데이터 추가됨, 현재 Queue 크기: %d", queue_size)
+
+        # new_data_flag 설정
+        new_data_flag = queue_size > 0
+
 
 # Kafka Consumer를 별도 스레드에서 실행하여 데이터 소비
-threading.Thread(target=consumer_service.consume_messages, daemon=True).start()
-threading.Thread(target=consume_kafka_messages, daemon=True).start()
-
+threading.Thread(target=consume_kafka_data, daemon=True).start()
 
 # Dash 레이아웃 정의
 app.layout = html.Div([
     html.H1("실시간 Kafka 데이터 대시보드"),
     dcc.Interval(id="interval-component", interval=2000, n_intervals=0),
-    html.Button("Cloud Run Trigger", id="trigger-button", n_clicks=0),
-    html.Div(id="output-message"),
-    html.Div(id="live-update-text"),
-    html.Div(id="gcs-data")
+    html.Div(id="live-update-text")
 ])
 
 
-# 실시간 데이터 업데이트 콜백 함수
+# 실시간 데이터 테이블 업데이트 함수
 @app.callback(Output("live-update-text", "children"), Input("interval-component", "n_intervals"))
-def update_data(n):
+def update_data(n_intervals):
+    global latest_data, new_data_flag
+    logger.info("update_data 함수 호출됨 - new_data_flag: %s, Queue 크기: %d", new_data_flag, data_queue.qsize())
+
+    # 새로운 데이터가 없으면 업데이트 중단
+    if not new_data_flag:
+        return html.Div([
+            html.H2("실시간 데이터 없음")
+        ])
+
+    # Queue에서 모든 데이터를 가져와 DataFrame으로 추가
     data = []
-    try:
-        # 큐에서 데이터를 꺼내 DataFrame을 구성
-        while True:
-            data.append(data_queue.get_nowait())
-    except Empty:
-        pass
+    while not data_queue.empty():
+        data.append(data_queue.get())
 
     if data:
-        # 수신된 JSON 데이터 리스트를 DataFrame으로 변환
         df = pd.DataFrame([json.loads(row) for row in data])
 
-        # 그래프 시각화 (Date와 Status 기반으로 예시)
+        # bool 컬럼 변환
+        if 'Picked' in df.columns:
+            df['Picked'] = df['Picked'].astype(bool)
+        if 'Shipped' in df.columns:
+            df['Shipped'] = df['Shipped'].astype(bool)
+        if 'POD' in df.columns:
+            df['POD'] = df['POD'].astype(bool)
+
+        # 기존 데이터에 새로운 데이터 추가
+        latest_data = pd.concat([latest_data, df], ignore_index=True)
+        logger.info("DataFrame 업데이트됨:\n%s", latest_data)
+
+    # 새로운 데이터가 처리되었으므로 플래그 초기화
+    new_data_flag = False
+
+    # 필요한 컬럼만 필터링하여 테이블 형식으로 표시
+    if all(col in latest_data.columns for col in ["DPS", "Delivery", "ETA", "Status", "Billed Distance"]):
+        table = dash_table.DataTable(
+            columns=[{"name": i, "id": i} for i in ["DPS", "Delivery", "ETA", "Status", "Billed Distance"]],
+            data=latest_data[["DPS", "Delivery", "ETA", "Status", "Billed Distance"]].to_dict("records"),
+            style_table={'overflowX': 'auto'},
+            style_cell={'textAlign': 'left'},
+            style_header={'fontWeight': 'bold'}
+        )
+        logger.info("DataTable 업데이트됨")
         return html.Div([
-            html.H2("실시간 데이터"),
-            dcc.Graph(
-                figure={
-                    "data": [{"x": df["Date"], "y": df["Status"], "type": "bar"}],
-                    "layout": {"title": "Status 별 실시간 분포"}
-                }
-            )
+            html.H2("실시간 데이터 테이블"),
+            table
         ])
     else:
-        # 데이터가 없을 경우 기본 메세지와 빈 차트
+        logger.warning("DataFrame에 필요한 컬럼이 없습니다.")
         return html.Div([
-            html.H2("실시간 데이터 없음"),
-            dcc.Graph(figure={"data": [], "layout": {"title": "데이터가 없습니다"}})
+            html.H2("유효한 데이터가 없습니다")
         ])
-
-
-# Cloud Run 트리거 버튼 클릭 콜백 함수
-@app.callback(
-    Output("output-message", "children"),
-    Input("trigger-button", "n_clicks")
-)
-def trigger_cloud_run(n_clicks):
-    if n_clicks > 0:
-        try:
-            url = config.cloud_run.CLOUD_RUN_ENDPOINT
-            response = requests.post(url)
-            return f"Cloud Run 응답 상태 코드: {response.status_code}"
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Cloud Run 트리거 오류: {e}")
-            return "Cloud Run 트리거 실패"
-
-
-# GCS 데이터 로드 콜백 함수
-@app.callback(
-    Output("gcs-data", "children"),
-    Input("trigger-button", "n_clicks")
-)
-def display_gcs_data(n_clicks):
-    if n_clicks > 0:
-        try:
-            with open("data/data.json", "r") as f:
-                data = json.load(f)
-            df = pd.DataFrame(data)
-            return html.Div([
-                html.H2("GCS 데이터"),
-                html.Table([
-                               html.Tr([html.Th(col) for col in df.columns])] +
-                           [html.Tr([html.Td(df.iloc[i][col]) for col in df.columns]) for i in range(min(len(df), 10))]
-                           )
-            ])
-        except Exception as e:
-            logger.error(f"GCS 데이터 로드 오류: {e}")
-            return f"데이터 로드 오류: {str(e)}"
 
 
 if __name__ == "__main__":

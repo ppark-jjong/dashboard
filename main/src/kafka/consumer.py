@@ -30,26 +30,33 @@ class KafkaConsumerService:
         data = json.loads(message)
         processed_data = {col: data.get(col, None) for col in DashBoardConfig.DASHBOARD_COLUMNS}
 
-        # Status 업데이트 로직 및 타입 변환
-        processed_data['Picked'] = (data.get('Picked') == 'O')
-        processed_data['Shipped'] = (data.get('Shipped') == 'O')
-        processed_data['POD'] = (data.get('POD') == 'O')
+        # Status 필드를 변환
+        processed_data['Picked'], processed_data['Shipped'], processed_data['POD'] = \
+            self.convert_to_bool(data, ['Picked', 'Shipped', 'POD'])
+        processed_data['Status'] = self.determine_status(processed_data)
 
-        # bool 타입으로 명시적 변환
+        # 명시적으로 bool 타입으로 변환
         processed_data['Picked'] = bool(processed_data['Picked'])
         processed_data['Shipped'] = bool(processed_data['Shipped'])
         processed_data['POD'] = bool(processed_data['POD'])
 
-        if processed_data['Picked'] and not processed_data['Shipped'] and not processed_data['POD']:
-            processed_data['Status'] = 'Picked'
-        elif processed_data['Picked'] and processed_data['Shipped'] and not processed_data['POD']:
-            processed_data['Status'] = 'Shipped'
-        elif processed_data['Picked'] and processed_data['Shipped'] and processed_data['POD']:
-            processed_data['Status'] = 'Delivered'
-        else:
-            processed_data['Status'] = 'Pending'
-
         return pd.DataFrame([processed_data])
+
+    @staticmethod
+    def convert_to_bool(data, fields):
+        """주어진 필드를 bool 타입으로 변환"""
+        return [(data.get(field) == 'O') for field in fields]
+
+    @staticmethod
+    def determine_status(data):
+        """Status 상태를 결정"""
+        if data['Picked'] and not data['Shipped'] and not data['POD']:
+            return 'Picked'
+        elif data['Picked'] and data['Shipped'] and not data['POD']:
+            return 'Shipped'
+        elif data['Picked'] and data['Shipped'] and data['POD']:
+            return 'Delivered'
+        return 'Pending'
 
     def consume_messages(self, max_records=5):
         """Kafka에서 메시지를 소비하여 대시보드용 데이터프레임에 필요한 데이터만 추가."""
@@ -77,14 +84,3 @@ class KafkaConsumerService:
     def get_dashboard_data(self):
         """대시보드에 표시할 DataFrame을 반환."""
         return self.data_frame.tail(5)  # 최신 5개 데이터만 반환하여 대시보드에 표시
-
-    # def save_to_gcs(self, file_name):
-    #     """현재 DataFrame을 GCS에 저장."""
-    #     try:
-    #         storage_client = storage.Client()
-    #         bucket = storage_client.bucket(config.gcs.BUCKET_NAME)
-    #         blob = bucket.blob(file_name)
-    #         blob.upload_from_string(self.data_frame.to_csv(index=False), 'text/csv')
-    #         logger.info(f"GCS에 {file_name} 파일로 저장 완료")
-    #     except Exception as e:
-    #         logger.error(f"GCS 저장 오류: {e}")
