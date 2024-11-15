@@ -131,11 +131,11 @@ main/
 │       ├── producer.py                # Kafka Producer - 데이터 전송
 │       ├── consumer.py                # Kafka Consumer - PySpark와 연동
 │   ├── collectors/                    # 데이터 수집 관련 코드
-│       ├── google_sheets.py           # Google Sheets 데이터 수집 관련 코드
+│       ├── google_sheet.py           # Google Sheets 데이터 수집 관련 코드
 │       ├── crawler.py                 # 웹 크롤러를 통한 데이터 수집
 │   ├── config/                        # 설정 관련 코드
-│       ├── data_format.py             # Kafka, Spark 데이터 전처리 시 format 관련 설정
-│       ├── google.py                  # GCS, Google Sheets 설정
+│       ├── config_data_format.py       # Kafka, Spark 데이터 전처리 시 format 관련 설정
+│       ├── config_google.py             # GCS, Google Sheets 설정
 │       ├── config_crawler.py          # Web Crawler 설정
 │       ├── config_manager.py          # 전체 설정 관리 파일
 │   ├── processors/                    # 데이터 처리 관련 코드

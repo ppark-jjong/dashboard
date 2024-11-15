@@ -1,7 +1,7 @@
 # Kafka, Spark 설정
 
 from confluent_kafka import Producer
-# from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession
 
 class DashBoardConfig:
     DASHBOARD_COLUMNS = [

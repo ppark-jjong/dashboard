@@ -1,6 +1,5 @@
-from src.config.data_format import KafkaConfig
-from src.config.google import GCSConfig, SheetsConfig, TimestampConfig
-# from src.config.config_web_crawler import WebCrawlerConfig
+from src.config.config_data_format import KafkaConfig
+from src.config.config_google import GCSConfig, SheetsConfig, TimestampConfig
 
 class ConfigManager:
     kafka = KafkaConfig

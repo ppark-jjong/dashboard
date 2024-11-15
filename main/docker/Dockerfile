@@ -6,7 +6,6 @@ WORKDIR /app
 
 # Python 경로를 설정하여 src 디렉토리를 인식하도록 함
 ENV PYTHONPATH=/app
-#ENV GOOGLE_APPLICATION_CREDENTIALS="/app/secrets/google/credentials.json"
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH=$PATH:$JAVA_HOME/bin
 ENV PYSPARK_PYTHON=python3

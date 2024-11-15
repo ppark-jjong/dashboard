@@ -1,7 +1,9 @@
+import asyncio
+
 from fastapi import FastAPI, Request, HTTPException
 from src.config.config_manager import ConfigManager
-# from google.cloud import storage
-# from src.collectors.gcp_data import save_to_gcs
+from google.cloud import storage
+from src.collectors.google_sheet import save_to_gcs
 from src.kafka.producer import KafkaProducerService
 import os
 import json
@@ -9,46 +11,79 @@ import pandas as pd
 import logging
 
 app = FastAPI()
-# client = storage.Client()
+client = storage.Client()
 config = ConfigManager()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 producer_service = KafkaProducerService()
 KAFKA_TOPIC = config.kafka.TOPICS['dashboard_status']
 GCS_BUCKET_NAME = config.gcs.BUCKET_NAME
-# bucket = client.bucket(GCS_BUCKET_NAME)
+bucket = client.bucket(GCS_BUCKET_NAME)
 file_name = config.file_name
 
-# @app.post("/webhook")
-# async def receive_data(request: Request):
-#     try:
-#         data = await request.json()
-#         logger.info(f"수신된 원본 데이터: {data}")
-#
-#         df = pd.DataFrame(data['values'], columns=config.sheets.COLUMNS)
-#         df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-#         df.sort_values(by=['Date'], inplace=True)
-#
-#         # GCS에 데이터 저장만 수행
-#         save_to_gcs(df, file_name)
-#         return {"status": "success", "message": "Data saved to GCS"}
-#
-#     except Exception as e:
-#         logger.error(f"데이터 처리 중 오류 발생: {e}")
-#         raise HTTPException(status_code=500, detail="데이터 처리 실패")
+
+@app.post("/webhook")
+async def receive_data(request: Request):
+    try:
+        # 1. 데이터 수신
+        data = await request.json()
+        logger.info(f"수신된 원본 데이터: {data}")
+
+        # 2. DataFrame 변환
+        df = pd.DataFrame(data['values'], columns=config.sheets.COLUMNS)
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+        df.sort_values(by=['Date'], inplace=True)
+
+        # 3. 비동기 작업 생성
+        gcs_save_task = save_to_gcs_async(df, config.file_name)  # GCS 저장 작업
+        kafka_task = kafka_produce_async(df)  # Kafka 전송 작업
+
+        # 4. 비동기 작업 병렬 실행
+        results = await asyncio.gather(
+            gcs_save_task,
+            kafka_task,
+            return_exceptions=True  # 작업이 독립적으로 처리되도록 설정
+        )
+
+        # 5. 결과 처리
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                logger.error(f"작업 {i + 1} 실패: {result}")
+            else:
+                logger.info(f"작업 {i + 1} 성공: {result}")
+
+        return {"status": "success", "message": "작업 완료"}
+    except Exception as e:
+        logger.error(f"전체 처리 중 오류 발생: {e}")
+        raise HTTPException(status_code=500, detail="데이터 처리 실패")
 
 
-# @app.get("/send-data-to-kafka")
-# async def send_data_to_kafka():
-#     try:
-#         dummy_data = load_dummy_data_from_gcs(file_name)
-#         send_to_kafka(producer, KAFKA_TOPIC, dummy_data)
-#         return {"status": "success", "message": "Dummy data sent to Kafka"}
-#
-#     except Exception as e:
-#         logger.error(f"Kafka로 데이터 전송 중 오류 발생: {e}")
-#         raise HTTPException(status_code=500, detail="Kafka 전송 실패")
+async def save_to_gcs_async(dataframe, file_name):
+    try:
+        blob = bucket.blob(file_name)
+        blob.upload_from_string(dataframe.to_csv(index=False), content_type="text/csv")
+        logger.info(f"GCS 버킷 {config.gcs.BUCKET_NAME}에 {file_name} 파일 저장 완료")
+    except Exception as e:
+        logger.error(f"GCS 저장 실패: {e}")
+        raise
 
+
+async def kafka_produce_async(dataframe):
+    try:
+        for record in dataframe.to_dict(orient='records'):
+            producer_service.producer.produce(
+                config.kafka.TOPICS['dashboard_status'],
+                value=json.dumps(record),
+                callback=producer_service.delivery_report
+            )
+        producer_service.producer.flush()
+        logger.info(f"{len(dataframe)}개의 데이터를 Kafka로 전송 완료")
+    except Exception as e:
+        logger.error(f"Kafka 전송 실패: {e}")
+        raise
+
+
+# GCS data
 @app.get("/test-gcs-kafka")
 async def test_gcs_kafka():
     try:
