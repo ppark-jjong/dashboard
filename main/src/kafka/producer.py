@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class KafkaProducerService:
     def __init__(self):
-        self. producer = Producer({'bootstrap.servers': config.kafka.BOOTSTRAP_SERVERS})
+        self.producer = Producer({'bootstrap.servers': config.kafka.BOOTSTRAP_SERVERS})
 
     # Kafka Producer 인스턴스 생성
     def create_kafka_producer(self):
@@ -21,6 +21,7 @@ class KafkaProducerService:
         return Producer(producer_config)
 
     def send_data(self, data):
+        """동기 Kafka 전송"""
         if data.empty:
             logger.warning("전송할 데이터가 비어있습니다. 데이터 내용: %s", data.to_dict())
             return
@@ -34,8 +35,21 @@ class KafkaProducerService:
         except Exception as e:
             logger.error(f"Kafka 전송 실패: {e}")
 
+    async def kafka_produce_async(self, dataframe):
+        """비동기 Kafka 전송"""
+        try:
+            topic = config.kafka.TOPICS['dashboard_status']
+            for record in dataframe.to_dict(orient='records'):
+                self.producer.produce(topic, value=json.dumps(record), callback=self.delivery_report)
+            self.producer.flush()
+            logger.info(f"{len(dataframe)}개의 데이터를 Kafka로 비동기 전송 완료")
+        except Exception as e:
+            logger.error(f"Kafka 비동기 전송 실패: {e}")
+            raise
+
     @staticmethod
     def delivery_report(err, msg):
+        """Kafka 전송 결과 콜백"""
         if err is not None:
             logger.error(f"메시지 전송 실패: {err}")
         else:

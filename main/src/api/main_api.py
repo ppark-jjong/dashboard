@@ -3,7 +3,6 @@ import asyncio
 from fastapi import FastAPI, Request, HTTPException
 from src.config.config_manager import ConfigManager
 from google.cloud import storage
-from src.collectors.google_sheet import save_to_gcs
 from src.kafka.producer import KafkaProducerService
 import os
 import json
@@ -36,7 +35,7 @@ async def receive_data(request: Request):
 
         # 3. 비동기 작업 생성
         gcs_save_task = save_to_gcs_async(df, config.file_name)  # GCS 저장 작업
-        kafka_task = kafka_produce_async(df)  # Kafka 전송 작업
+        kafka_task =producer_service.kafka_produce_async(df)  # Kafka 전송 작업
 
         # 4. 비동기 작업 병렬 실행
         results = await asyncio.gather(
@@ -68,19 +67,6 @@ async def save_to_gcs_async(dataframe, file_name):
         raise
 
 
-async def kafka_produce_async(dataframe):
-    try:
-        for record in dataframe.to_dict(orient='records'):
-            producer_service.producer.produce(
-                config.kafka.TOPICS['dashboard_status'],
-                value=json.dumps(record),
-                callback=producer_service.delivery_report
-            )
-        producer_service.producer.flush()
-        logger.info(f"{len(dataframe)}개의 데이터를 Kafka로 전송 완료")
-    except Exception as e:
-        logger.error(f"Kafka 전송 실패: {e}")
-        raise
 
 
 # GCS data
