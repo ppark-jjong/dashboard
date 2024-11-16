@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class KafkaProducerService:
     def __init__(self):
-        self.producer = Producer({'bootstrap.servers': config.kafka.BOOTSTRAP_SERVERS})
+        self. producer = Producer({'bootstrap.servers': config.kafka.BOOTSTRAP_SERVERS})
 
     # Kafka Producer 인스턴스 생성
     def create_kafka_producer(self):

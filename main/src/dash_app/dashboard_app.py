@@ -19,7 +19,7 @@ consumer_service = KafkaConsumerService(topic="dashboard_status")  # Kafka 소�
 
 # Dash 레이아웃 정의
 app.layout = html.Div([
-    html.H1("실시간 Kafka 데이터 대시보드"),
+    html.H1("실시간 배송 현황"),
     html.Div(id="live-update-text")
 ])
 
@@ -37,12 +37,12 @@ def generate_table(dataframe):
 def consume_kafka_data():
     global latest_data
     while True:
-        new_data = consumer_service.consume_messages(max_records=5)
-        if not new_data.empty:
-            latest_data = pd.concat([latest_data, new_data], ignore_index=True)
-            logger.info("DataFrame 업데이트됨:\n%s", latest_data)
+        today_data = consumer_service.consume_today_data()
+        if not today_data.empty:
+            latest_data = pd.concat([latest_data, today_data], ignore_index=True)
+            logger.info("오늘 데이터 업데이트됨:\n%s", latest_data)
 
-            # Dash의 layout에 직접 테이블을 업데이트
+            # Dash 레이아웃 업데이트
             app.layout['live-update-text'].children = generate_table(latest_data)
 
 # Kafka Consumer를 별도 스레드에서 실행하여 데이터 소비

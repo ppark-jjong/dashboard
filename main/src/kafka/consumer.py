@@ -1,14 +1,16 @@
 import json
 import logging
+import datetime
 import pandas as pd
 from confluent_kafka import Consumer, KafkaError
 from src.config.config_manager import ConfigManager
-from src.config.data_format import DashBoardConfig
+from src.config.config_data_format import DashBoardConfig
 
 # 설정 로드 및 로그 설정
 config = ConfigManager()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
+
 
 class KafkaConsumerService:
     def __init__(self, topic, group_id='delivery-status-group'):
@@ -73,4 +75,19 @@ class KafkaConsumerService:
             except Exception as e:
                 logger.error(f"메시지 처리 오류: {e}")
 
-        return pd.concat(records, ignore_index=True) if records else pd.DataFrame(columns=DashBoardConfig.DASHBOARD_COLUMNS)
+        return pd.concat(records, ignore_index=True) if records else pd.DataFrame(
+            columns=DashBoardConfig.DASHBOARD_COLUMNS)
+
+    def consume_today_data(self):
+        """오늘 날짜 데이터만 반환"""
+        today = datetime.date.today()
+
+        # Kafka 메시지 소비
+        records = self.consume_messages(max_records=100)
+
+        if not records.empty:
+            records['Date'] = pd.to_datetime(records['Date'], errors='coerce')
+            today_data = records[records['Date'].dt.date == today]
+            return today_data
+
+        return pd.DataFrame(columns=DashBoardConfig.DASHBOARD_COLUMNS)
