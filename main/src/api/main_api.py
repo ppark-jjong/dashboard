@@ -35,7 +35,7 @@ async def receive_data(request: Request):
 
         # 3. 비동기 작업 생성
         gcs_save_task = save_to_gcs_async(df, config.file_name)  # GCS 저장 작업
-        kafka_task =producer_service.kafka_produce_async(df)  # Kafka 전송 작업
+        kafka_task = producer_service.kafka_produce_async(df)  # Kafka 전송 작업
 
         # 4. 비동기 작업 병렬 실행
         results = await asyncio.gather(
@@ -65,8 +65,6 @@ async def save_to_gcs_async(dataframe, file_name):
     except Exception as e:
         logger.error(f"GCS 저장 실패: {e}")
         raise
-
-
 
 
 # GCS data

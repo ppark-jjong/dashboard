@@ -12,7 +12,6 @@ class DashBoardConfig:
 class KafkaConfig:
     BOOTSTRAP_SERVERS = 'localhost:9092'
     TOPICS = {
-        'realtime_status': 'realtime_status',
         'weekly_analysis': 'weekly_analysis',
         'monthly_analysis': 'monthly_analysis',
         'dashboard_status': 'dashboard_status',
