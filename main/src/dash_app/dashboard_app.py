@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 # Dash 애플리케이션 인스턴스 생성
 app = dash.Dash(__name__)
-latest_data = pd.DataFrame(columns=["DPS", "Delivery", "ETA", "Status", "Billed Distance"])  # 전체 데이터를 저장할 DataFrame
-consumer_service = KafkaConsumerService(topic="dashboard_status")  # Kafka 소비자 인스턴스 생성
+latest_data = pd.DataFrame(columns=["DPS", "Delivery", "ETA", "Status", "Billed Distance"])
+consumer_service = KafkaConsumerService(topic="dashboard_status")
 
 # Dash 레이아웃 정의
 app.layout = html.Div([

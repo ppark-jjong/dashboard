@@ -1,7 +1,6 @@
-# Kafka, Spark 설정
-
 from confluent_kafka import Producer
 from pyspark.sql import SparkSession
+
 
 class DashBoardConfig:
     DASHBOARD_COLUMNS = [
@@ -9,6 +8,7 @@ class DashBoardConfig:
         'Status', 'Billed Distance', 'Recipient'
     ]
 
+gt
 class KafkaConfig:
     BOOTSTRAP_SERVERS = 'localhost:9092'
     TOPICS = {
@@ -22,15 +22,16 @@ class KafkaConfig:
     def get_producer():
         return Producer({'bootstrap.servers': KafkaConfig.BOOTSTRAP_SERVERS})
 
-# class SparkConfig:
-#     APP_NAME = "DeliveryAnalytics"
-#     MASTER = "spark://spark-master:7077"
-#     EXECUTOR_MEMORY = "2g"
-#
-#     @staticmethod
-#     def get_spark_session():
-#         return SparkSession.builder \
-#             .appName(SparkConfig.APP_NAME) \
-#             .master(SparkConfig.MASTER) \
-#             .config("spark.executor.memory", SparkConfig.EXECUTOR_MEMORY) \
-#             .getOrCreate()
+
+class SparkConfig:
+    APP_NAME = "DeliveryAnalytics"
+    MASTER = "spark://spark-master:7077"
+    EXECUTOR_MEMORY = "2g"
+
+    @staticmethod
+    def get_spark_session():
+        return SparkSession.builder \
+            .appName(SparkConfig.APP_NAME) \
+            .master(SparkConfig.MASTER) \
+            .config("spark.executor.memory", SparkConfig.EXECUTOR_MEMORY) \
+            .getOrCreate()
