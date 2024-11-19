@@ -1,55 +1,39 @@
 import json
 import logging
 from confluent_kafka import Producer
-from src.config.config_manager import ConfigManager
+from src.config.config_data_format import KafkaConfig
 
-config = ConfigManager()
+# 로그 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 
 
+# Kafka Producer 서비스
 class KafkaProducerService:
     def __init__(self):
-        self.producer = Producer({'bootstrap.servers': config.kafka.BOOTSTRAP_SERVERS})
+        self.producer = KafkaConfig.get_producer()  # Kafka Producer 초기화
 
-    # Kafka Producer 인스턴스 생성
-    def create_kafka_producer(self):
-        producer_config = {
-            'bootstrap.servers': config.kafka.BOOTSTRAP_SERVERS,
-            'client.id': 'google-sheets-producer'
-        }
-        return Producer(producer_config)
-
-    def send_data(self, data):
-        """동기 Kafka 전송"""
-        if data.empty:
-            logger.warning("전송할 데이터가 비어있습니다. 데이터 내용: %s", data.to_dict())
-            return
-
-        topic = config.kafka.TOPICS['dashboard_status']
+    async def kafka_produce_async(self, data, topic):
+        # 비동기 방식으로 데이터 전송 (DataFrame 또는 Dictionary)
         try:
-            for record in data.to_dict(orient='records'):
-                self.producer.produce(topic, value=json.dumps(record), callback=self.delivery_report)
-            self.producer.flush()
-            logger.info(f"{len(data)}개의 레코드를 Kafka 토픽 '{topic}'에 전송했습니다.")
-        except Exception as e:
-            logger.error(f"Kafka 전송 실패: {e}")
+            if isinstance(data, dict):  # 단일 레코드
+                self.producer.produce(topic, value=json.dumps(data), callback=self.delivery_report)
+            elif isinstance(data, list):  # 다중 레코드 (리스트 형태)
+                for record in data:
+                    self.producer.produce(topic, value=json.dumps(record), callback=self.delivery_report)
+            else:  # DataFrame 처리
+                for record in data.to_dict(orient='records'):
+                    self.producer.produce(topic, value=json.dumps(record), callback=self.delivery_report)
 
-    async def kafka_produce_async(self, dataframe):
-        """비동기 Kafka 전송"""
-        try:
-            topic = config.kafka.TOPICS['dashboard_status']
-            for record in dataframe.to_dict(orient='records'):
-                self.producer.produce(topic, value=json.dumps(record), callback=self.delivery_report)
             self.producer.flush()
-            logger.info(f"{len(dataframe)}개의 데이터를 Kafka로 비동기 전송 완료")
+            logger.info(f"Kafka 토픽 '{topic}'에 비동기 전송 완료")
         except Exception as e:
             logger.error(f"Kafka 비동기 전송 실패: {e}")
-            raise
+
 
     @staticmethod
     def delivery_report(err, msg):
-        """Kafka 전송 결과 콜백"""
+        # Kafka 메시지 전송 결과 로그
         if err is not None:
             logger.error(f"메시지 전송 실패: {err}")
         else:

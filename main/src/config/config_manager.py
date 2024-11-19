@@ -9,4 +9,3 @@ class ConfigManager:
     # web_crawler = WebCrawlerConfig
     timestamp = TimestampConfig
     file_name = f"data_{timestamp.format_timestamp()}.csv"
-

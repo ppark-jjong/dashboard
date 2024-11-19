@@ -1,28 +1,29 @@
 from confluent_kafka import Producer
 from pyspark.sql import SparkSession
 
-
+# Dashboard 관련 데이터 컬럼
 class DashBoardConfig:
     DASHBOARD_COLUMNS = [
         'Delivery', 'DPS', 'ETA', 'SLA', 'Address',
-        'Status', 'Billed Distance', 'Recipient'
+        'Status', 'Recipient'
     ]
 
-gt
+# Kafka 설정 정보
 class KafkaConfig:
     BOOTSTRAP_SERVERS = 'localhost:9092'
+    RAW_TOPIC = 'raw_deliveries'
     TOPICS = {
-        'weekly_analysis': 'weekly_analysis',
-        'monthly_analysis': 'monthly_analysis',
-        'dashboard_status': 'dashboard_status',
-        'monthly_volume_status': 'monthly_volume_status'
+        'regional_trends': 'regional_trends',
+        'time_based_trends': 'time_based_trends',
+        'delivery_performance': 'delivery_performance',
+        'driver_delivery_trends': 'driver_delivery_trends'
     }
 
     @staticmethod
     def get_producer():
         return Producer({'bootstrap.servers': KafkaConfig.BOOTSTRAP_SERVERS})
 
-
+# Spark 설정 정보
 class SparkConfig:
     APP_NAME = "DeliveryAnalytics"
     MASTER = "spark://spark-master:7077"
@@ -35,3 +36,4 @@ class SparkConfig:
             .master(SparkConfig.MASTER) \
             .config("spark.executor.memory", SparkConfig.EXECUTOR_MEMORY) \
             .getOrCreate()
+
