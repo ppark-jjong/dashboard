@@ -1,4 +1,4 @@
-from src.config.config_data_format import KafkaConfig
+from src.config.config_format import KafkaConfig
 from src.config.config_google import GCSConfig, SheetsConfig, TimestampConfig
 
 class ConfigManager:

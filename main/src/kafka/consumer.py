@@ -5,9 +5,9 @@ import pandas as pd
 from datetime import datetime
 from confluent_kafka import Consumer, KafkaError
 from confluent_kafka.admin import AdminClient, NewTopic
-from src.config.config_data_format import KafkaConfig
+from src.config.config_format import KafkaConfig
 from src.kafka.producer import KafkaProducerService
-from src.config.config_data_format import DashBoardConfig
+from src.config.config_format import DashBoardConfig
 
 # 로그 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')

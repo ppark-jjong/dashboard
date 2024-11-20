@@ -118,27 +118,30 @@ uvicorn src.api.main_api:app --host 0.0.0.0 --port 8080
 
 main/
 ├── src/
-│   ├── api/                           # API 관련 코드
-│       ├── main_api.py               # API 관련 통합 엔드포인트 모음 코드
-│   ├── kafka/                         # 메시지 브로커 관련 코드
+│   ├── api/                           	# API 관련 코드
+│       ├── main_api.py               	# API 관련 통합 엔드포인트 모음 코드
+│   ├── kafka/                         	# 메시지 브로커 관련 코드
 │       ├── producer.py                # Kafka Producer - 데이터 전송
-│       ├── consumer.py                # Kafka Consumer - PySpark와 연동
-│   ├── collectors/                    # 데이터 수집 관련 코드
+│       ├── consumer.py               # Kafka Consumer - PySpark와 연동
+│   ├── collectors/                    	# 데이터 수집 관련 코드
 │       ├── google_sheet.py           # Google Sheets 데이터 수집 관련 코드
-│       ├── crawler.py                 # 웹 크롤러를 통한 데이터 수집
-│   ├── config/                        # 설정 관련 코드
-│       ├── config_data_format.py       # Kafka, Spark 데이터 전처리 시 format 관련 설정
-│       ├── config_google.py             # GCS, Google Sheets 설정
-│       ├── config_crawler.py          # Web Crawler 설정
-│       ├── config_manager.py          # 전체 설정 관리 파일
+│       ├── crawler.py                 	# 웹 크롤러를 통한 데이터 수집
+│   ├── config/                        	# 설정 관련 코드
+│       ├── config_data_format.py   # Kafka, Spark 데이터 전처리 시 format 관련 설정
+│       ├── config_google.py        	# GCS, Google Sheets 설정
+│       ├── config_crawler.py         # Web Crawler 설정
+│       ├── config_manager.py       # 전체 설정 관리 파일
 │   ├── processors/                    # 데이터 처리 관련 코드
-│       ├── realtime_data_processor.py # 실시간 데이터 처리 로직
-│       ├── historical_data_processor.py # 과거 데이터 처리 로직
+│       ├── processor_manager.py 	# 데이터 처리 공통 로직 관리
+│       ├── processor_regional.py 	# 지역별 배송 트렌드 로직
+│       ├── processor_time.py 		# 시간대, 요일별 트렌드 로직
+│       ├── processor_distance.py 	# 거리별 예측 데이터 로직
+│       ├── processor_driver.py 		# 기사별 배송 트렌드 로직
 ├── docker/
-│   ├── Dockerfile                     # 도커 이미지 빌드 설정
-│   ├── docker-compose.yaml            # 도커 컴포즈 설정 (Kafka, PySpark, Zookeeper)
-├── secrets/                           # 민감한 정보 (API 인증 정보 등)
-│   └── google/                        # Google API 인증서 파일
+│   ├── Dockerfile                    	# 도커 이미지 빌드 설정
+│   ├── docker-compose.yaml     	# 도커 컴포즈 설정 (Kafka, PySpark, Zookeeper)
+├── secrets/                           	# 민감한 정보 (API 인증 정보 등)
+│   └── google/                    	# Google API 인증서 파일
 │       └── credentials.json           # Google API 인증서
 ├── data/
 │   ├──  data.json                     # 임시 데이터
