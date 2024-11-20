@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 class ProcessManager:
-    
+
 
 # 데이터 전처리 함수
 def preprocess_status(data):
