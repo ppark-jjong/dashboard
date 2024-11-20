@@ -2,9 +2,14 @@ import dash
 from dash import html, dash_table
 import pandas as pd
 import threading
+import logging
+
 from dash.dependencies import Output
 from src.kafka.consumer import KafkaConsumerService
 from src.config.config_data_format import DashBoardConfig
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logger = logging.getLogger(__name__)
 
 # 글로벌 변수
 latest_data = pd.DataFrame(columns=DashBoardConfig.DASHBOARD_COLUMNS)
@@ -26,6 +31,7 @@ app.layout = html.Div([
     )
 ])
 
+
 # Kafka 데이터를 읽고 테이블을 즉시 업데이트
 def consume_kafka_data():
     global latest_data
@@ -35,12 +41,15 @@ def consume_kafka_data():
             with lock:
                 latest_data = pd.concat([latest_data, today_data], ignore_index=True)
                 latest_data.drop_duplicates(subset=DashBoardConfig.DASHBOARD_COLUMNS, inplace=True)
+                logger.info(f"dash 가 카프카 데이터 consume 완료")
 
                 # 테이블 강제 갱신
                 app.callback_map['live-table.data']['callback']()
 
+
 # Kafka Consumer 스레드 실행
 threading.Thread(target=consume_kafka_data, daemon=True).start()
+
 
 # Dash 콜백
 @app.callback(
@@ -53,6 +62,7 @@ def update_table():
     """
     with lock:
         return latest_data.to_dict('records')
+
 
 if __name__ == "__main__":
     app.run_server(debug=True)

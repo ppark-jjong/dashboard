@@ -4,12 +4,10 @@ import pandas as pd
 
 from datetime import datetime
 from confluent_kafka import Consumer, KafkaError
-from dash import callback
-
+from confluent_kafka.admin import AdminClient, NewTopic
 from src.config.config_data_format import KafkaConfig
 from src.kafka.producer import KafkaProducerService
 from src.config.config_data_format import DashBoardConfig
-
 
 # 로그 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -25,72 +23,10 @@ class KafkaConsumerService:
             'auto.offset.reset': 'earliest'
         })
         self.consumer.subscribe([KafkaConfig.RAW_TOPIC])  # raw_deliveries 구독
-        self.producer = KafkaProducerService()  # 파생 토픽 전송용 Kafka Producer 초기화
         logger.info(f"Kafka Consumer가 토픽 '{KafkaConfig.RAW_TOPIC}'에 구독되었습니다.")
 
-    # 메시지를 처리하여 파생 토픽으로 전송
-    def process_message(self, message):
-        try:
-            data = json.loads(message)
-
-            # Regional Trends 전송
-            if data.get('Zip Code'):
-                regional_data = {
-                    "DPS": data["DPS"],
-                    "Zip Code": data["Zip Code"],
-                    "Address": data["Address"],
-                    "SLA": data["SLA"],
-                    "Status": data["Status"],
-                    "Billed Distance": data.get("Billed Distance"),
-                    "Date": data.get("Date")
-                }
-                self.producer.kafka_produce_async(regional_data, KafkaConfig.TOPICS['regional_trends'])
-
-            # Time Based Trends 전송
-            if data.get("ETA"):
-                time_based_data = {
-                    "DPS": data["DPS"],
-                    "Date": data["ETA"].split('T')[0],  # ETA의 날짜 부분 추출
-                    "Time": data["ETA"].split('T')[1],  # ETA의 시간 부분 추출
-                    "SLA": data.get("SLA"),
-                    "Status": data.get("Status")
-                }
-                self.producer.kafka_produce_async(time_based_data, KafkaConfig.TOPICS['time_based_trends'])
-
-            # Delivery Performance 전송
-            delivery_performance_data = {
-                "DPS": data["DPS"],
-                "Date": data.get("Date"),
-                "ETA": data.get("ETA"),
-                "SLA": data.get("SLA"),
-                "Status": data.get("Status"),
-                "Zip Code": data.get("Zip Code"),
-                "Billed Distance": data.get("Billed Distance")
-            }
-            self.producer.kafka_produce_async(delivery_performance_data, KafkaConfig.TOPICS['delivery_performance'])
-
-            # Driver Delivery Trends 전송
-            if data.get("Driver ID"):
-                driver_data = {
-                    "DPS": data["DPS"],
-                    "Driver ID": data["Driver ID"],
-                    "ETA": data["ETA"].split('T')[0],  # ETA에서 날짜만 추출
-                    "Time": data["ETA"].split('T')[1],  # ETA에서 시간만 추출
-                    "Zip Code": data.get("Zip Code"),
-                    "Status": data["Status"],
-                    "Billed Distance": data.get("Billed Distance"),
-                    "SLA": data.get("SLA")
-                }
-                self.producer.kafka_produce_async(driver_data, KafkaConfig.TOPICS['driver_delivery_trends'])
-
-        except Exception as e:
-            logger.error(f"메시지 처리 중 오류 발생: {e}")
-
-
+    #   dash에 필요한 consume 로직
     def consume_latest_data(self):
-        """
-        Kafka에서 메시지를 소비하고 ETA가 오늘 날짜인 데이터만 반환
-        """
         records = []
         today = datetime.now().strftime('%Y-%m-%d')  # 오늘 날짜 (YYYY-MM-DD 형식)
 
@@ -120,3 +56,4 @@ class KafkaConsumerService:
             return pd.DataFrame(records)
         else:
             return pd.DataFrame(columns=DashBoardConfig.DASHBOARD_COLUMNS)
+

@@ -30,7 +30,6 @@ file_name = config.file_name
 
 # 데이터 전처리 함수
 def preprocess_status(data):
-    # Picked, Shipped, POD 필드를 기반으로 Status를 표준화
     picked = data.get('Picked', '').upper() == 'O'
     shipped = data.get('Shipped', '').upper() == 'O'
     pod = data.get('POD', '').upper() == 'O'
