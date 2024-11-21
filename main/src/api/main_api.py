@@ -1,12 +1,18 @@
 import asyncio
-from fastapi import FastAPI, Request, HTTPException
-from src.config.config_manager import ConfigManager
-# from google.cloud import storage
-from src.kafka.producer import KafkaProducerService
 import os
 import json
 import pandas as pd
 import logging
+
+from fastapi import FastAPI, Request, HTTPException
+from src.config.config_manager import ConfigManager
+# from google.cloud import storage
+from src.kafka.producer import KafkaProducerService
+from src.processors.process_common import preprocess_status_udf
+
+from src.config.logger import Logger
+
+logger = Logger.get_logger(__name__)
 
 # FastAPI 설정
 app = FastAPI()
@@ -14,8 +20,7 @@ app = FastAPI()
 # 클라이언트 및 설정 초기화
 # client = storage.Client()
 config = ConfigManager()
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-logger = logging.getLogger(__name__)
+
 producer_service = KafkaProducerService()
 
 # Topic 설정
@@ -26,22 +31,6 @@ RAW_TOPIC = config.kafka.RAW_TOPIC
 GCS_BUCKET_NAME = config.gcs.BUCKET_NAME
 # bucket = client.bucket(GCS_BUCKET_NAME)
 file_name = config.file_name
-
-
-# 데이터 전처리 함수
-def preprocess_status(data):
-    picked = data.get('Picked', '').upper() == 'O'
-    shipped = data.get('Shipped', '').upper() == 'O'
-    pod = data.get('POD', '').upper() == 'O'
-
-    if picked and not shipped and not pod:
-        return 'Picked'
-    elif picked and shipped and not pod:
-        return 'Shipped'
-    elif picked and shipped and pod:
-        return 'Delivered'
-    else:
-        return 'Unknown'
 
 
 @app.post("/webhook")
@@ -62,7 +51,7 @@ async def receive_data():
         print(df.head())
 
         # 3. Status 전처리
-        df['Status'] = df.apply(preprocess_status, axis=1)
+        df['Status'] = df.apply(preprocess_status_udf, axis=1)
 
         # 4. 비동기 작업 생성
         # GCS 저장 작업
@@ -88,7 +77,6 @@ async def receive_data():
     except Exception as e:
         logger.error(f"전체 처리 중 오류 발생: {e}")
         raise HTTPException(status_code=500, detail="데이터 처리 실패")
-
 
 # async def save_to_gcs_async(dataframe, file_name):
 #     try:

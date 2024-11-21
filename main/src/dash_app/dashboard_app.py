@@ -2,14 +2,13 @@ import dash
 from dash import html, dash_table
 import pandas as pd
 import threading
-import logging
 
 from dash.dependencies import Output
 from src.kafka.consumer import KafkaConsumerService
 from src.config.config_format import DashBoardConfig
+from src.config.logger import Logger
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-logger = logging.getLogger(__name__)
+logger = Logger.get_logger(__name__)
 
 # 글로벌 변수
 latest_data = pd.DataFrame(columns=DashBoardConfig.DASHBOARD_COLUMNS)
@@ -56,10 +55,8 @@ threading.Thread(target=consume_kafka_data, daemon=True).start()
     Output('live-table', 'data'),
     prevent_initial_call=True
 )
+#     새로운 데이터가 들어올 때 테이블을 최신화
 def update_table():
-    """
-    새로운 데이터가 들어올 때 테이블을 최신화
-    """
     with lock:
         return latest_data.to_dict('records')
 

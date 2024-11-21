@@ -1,21 +1,19 @@
 import json
-import logging
 import pandas as pd
 
 from datetime import datetime
 from confluent_kafka.admin import AdminClient, NewTopic
-from src.config.config_format import KafkaConfig
+from src.config.config_manager import ConfigManager
+from src.config.logger import Logger
 
-# 로그 설정
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-logger = logging.getLogger(__name__)
+logger = Logger.get_logger(__name__)
 
 
 # Kafka Producer 서비스
 class KafkaProducerService:
     def __init__(self):
-        self.producer = KafkaConfig.get_producer()  # Kafka Producer 초기화
-        self.admin_client = AdminClient({'bootstrap.servers': KafkaConfig.BOOTSTRAP_SERVERS})
+        self.producer = ConfigManager.kafka.get_producer()  # Kafka Producer 초기화
+        self.admin_client = AdminClient({'bootstrap.servers': ConfigManager.kafka.BOOTSTRAP_SERVERS})
         self.create_raw_topic()
 
 
@@ -58,7 +56,7 @@ class KafkaProducerService:
 
 #   raw_deliveries 토픽을 생성
     def create_raw_topic(self):
-        topic_name = KafkaConfig.RAW_TOPIC
+        topic_name = ConfigManager.kafka.RAW_TOPIC
         existing_topics = self.admin_client.list_topics(timeout=5).topics
 
         if topic_name not in existing_topics:

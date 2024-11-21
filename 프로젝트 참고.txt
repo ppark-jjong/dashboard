@@ -132,7 +132,8 @@ main/
 │       ├── config_crawler.py         # Web Crawler 설정
 │       ├── config_manager.py       # 전체 설정 관리 파일
 │   ├── processors/                    # 데이터 처리 관련 코드
-│       ├── processor_manager.py 	# 데이터 처리 공통 로직 관리
+│       ├── processor_manager.py 	# 데이터 처리 클래스 소프트 코딩 관리
+│       ├── processor_common.py 	# 데이터 처리 공통 메서드 관리
 │       ├── processor_regional.py 	# 지역별 배송 트렌드 로직
 │       ├── processor_time.py 		# 시간대, 요일별 트렌드 로직
 │       ├── processor_distance.py 	# 거리별 예측 데이터 로직
