@@ -138,6 +138,7 @@ main/
 │       ├── processor_time.py 		# 시간대, 요일별 트렌드 로직
 │       ├── processor_distance.py 	# 거리별 예측 데이터 로직
 │       ├── processor_driver.py 		# 기사별 배송 트렌드 로직
+│       ├── test_spark.py 		# spark 테스트 엔트리 포인트
 ├── docker/
 │   ├── Dockerfile                    	# 도커 이미지 빌드 설정
 │   ├── docker-compose.yaml     	# 도커 컴포즈 설정 (Kafka, PySpark, Zookeeper)
