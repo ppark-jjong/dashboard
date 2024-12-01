@@ -8,8 +8,6 @@ from fastapi import FastAPI, Request, HTTPException
 from src.config.config_manager import ConfigManager
 # from google.cloud import storage
 from src.kafka.producer import KafkaProducerService
-from src.processors.process_common import preprocess_status_udf
-
 from src.config.logger import Logger
 
 logger = Logger.get_logger(__name__)

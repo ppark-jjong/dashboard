@@ -175,3 +175,11 @@ Address
 Zipcode
 BilledDistance
 BillingCost
+DepartureTime
+ArrivalTime
+
+
+지역별 예상 소요시간 값 머신러닝 학습을 하기 위한 프로세스 설정
+1. 각 특정 지역별을 우편번호 패턴을 묶어 평균 거리 및 소요시간 값 확인
+
+2. 지금까지의 배송 건들을 전부 입력하여 패턴별 지역을 어림잡아 소요시간 값 확인
