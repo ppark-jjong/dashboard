@@ -3,7 +3,7 @@ from pyspark.sql.functions import col, count, sum
 from pathlib import Path
 
 
-def load_local_data(spark, local_path="./data/dummy.csv"):
+def load_local_data(spark, local_path="../data/dummy.csv"):
     """
     로컬 CSV 데이터를 로드합니다.
     :param spark: SparkSession
@@ -123,14 +123,3 @@ def process_cloud_data():
     finally:
         # SparkSession 종료
         ConfigManager.stop_spark_session()
-
-
-if __name__ == "__main__":
-    mode = input("Enter mode ('local' or 'cloud'): ").strip().lower()
-
-    if mode == "local":
-        process_local_data()
-    elif mode == "cloud":
-        process_cloud_data()
-    else:
-        print("올바른 모드를 입력하세요: 'local' 또는 'cloud'")
