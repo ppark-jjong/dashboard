@@ -1,47 +1,12 @@
-[
-  {
-    "Delivery": "12345",
-    "Date": "2024-11-05",
-    "DPS": "DPS123",
-    "ETA": "2024-11-06",
-    "SLA": "PO4",
-    "Address": "123 Main St",
-    "Status": "Shipping",
-    "Picked": "O",
-    "Shipped": "O",
-    "POD": "X",
-    "Zip Code": "12345",
-    "Billed Distance": "15",
-    "Recipient": "John Doe"
-  },
-  {
-    "Delivery": "12346",
-    "Date": "2024-11-07",
-    "DPS": "DPS124",
-    "ETA": "2024-11-08",
-    "SLA": "4HR",
-    "Address": "456 Elm St",
-    "Status": "Delivered",
-    "Picked": "O",
-    "Shipped": "O",
-    "POD": "O",
-    "Zip Code": "54321",
-    "Billed Distance": "10",
-    "Recipient": "Jane Smith"
-  },
-  {
-    "Delivery": "12347",
-    "Date": "2024-11-08",
-    "DPS": "DPS125",
-    "ETA": "2024-11-09",
-    "SLA": "POW",
-    "Address": "789 Pine St",
-    "Status": "Picked",
-    "Picked": "O",
-    "Shipped": "X",
-    "POD": "X",
-    "Zip Code": "67890",
-    "Billed Distance": "20",
-    "Recipient": "Alice Brown"
-  }
-]
+{
+    "Delivery": "Order123",
+    "OrderDate": "2024-12-01",
+    "DPS": "DPS001",
+    "ETA": "2024-12-02",
+    "SLA": "2024-12-03",
+    "Status": "Pending",
+    "Address": "123 Test Street, City",
+    "Zipcode": "12345",
+    "BilledDistance": 12.5,
+    "BilingCost": 15.0
+}

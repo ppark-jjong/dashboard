@@ -5,7 +5,7 @@ import threading
 
 from dash.dependencies import Output
 from src.kafka.consumer import KafkaConsumerService
-from src.config.config_format import DashBoardConfig
+from src.config.gcp_config import DashBoardConfig
 from src.config.logger import Logger
 
 logger = Logger.get_logger(__name__)

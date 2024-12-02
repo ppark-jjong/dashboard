@@ -118,36 +118,28 @@ uvicorn src.api.main_api:app --host 0.0.0.0 --port 8080
 
 main/
 ├── src/
-│   ├── api/                           	# API 관련 코드
-│       ├── main_api.py               	# API 관련 통합 엔드포인트 모음 코드
-│   ├── kafka/                         	# 메시지 브로커 관련 코드
-│       ├── producer.py                # Kafka Producer - 데이터 전송
-│       ├── consumer.py               # Kafka Consumer - PySpark와 연동
-│   ├── collectors/                    	# 데이터 수집 관련 코드
-│       ├── google_sheet.py           # Google Sheets 데이터 수집 관련 코드
-│       ├── crawler.py                 	# 웹 크롤러를 통한 데이터 수집
-│   ├── config/                        	# 설정 관련 코드
-│       ├── config_data_format.py   # Kafka, Spark 데이터 전처리 시 format 관련 설정
-│       ├── config_google.py        	# GCS, Google Sheets 설정
-│       ├── config_crawler.py         # Web Crawler 설정
-│       ├── config_manager.py       # 전체 설정 관리 파일
-│   ├── processors/                    # 데이터 처리 관련 코드
-│       ├── processor_manager.py 	# 데이터 처리 클래스 소프트 코딩 관리
-│       ├── processor_common.py 	# 데이터 처리 공통 메서드 관리
-│       ├── processor_regional.py 	# 지역별 배송 트렌드 로직
-│       ├── processor_time.py 		# 시간대, 요일별 트렌드 로직
-│       ├── processor_distance.py 	# 거리별 예측 데이터 로직
-│       ├── processor_driver.py 		# 기사별 배송 트렌드 로직
-│       ├── test_spark.py 		# spark 테스트 엔트리 포인트
-├── docker/
-│   ├── Dockerfile                    	# 도커 이미지 빌드 설정
-│   ├── docker-compose.yaml     	# 도커 컴포즈 설정 (Kafka, PySpark, Zookeeper)
-├── secrets/                           	# 민감한 정보 (API 인증 정보 등)
-│   └── google/                    	# Google API 인증서 파일
-│       └── credentials.json           # Google API 인증서
-├── data/
-│   ├──  data.json                     # 임시 데이터
-└── requirements.txt                   # 프로젝트 의존성 관리
+│   ├── config/                         
+│   │   ├── gcp_config.py               # GCP 관련 설정
+│   │   ├── spark_config.py             # Spark 관련 설정
+│   │   ├── etc_config.py               # 기타 설정 (타임스탬프 등)
+│   │   ├── logger.py                   # 로깅 설정
+│   │   └── manager_config.py           # 설정 통합 관리
+│   ├── collectors/                    
+│   │   └── pubsub_manager.py           # Pub/Sub 데이터 관리
+│   ├── processors/                    
+│   │   └── process_data.py             # 데이터 처리 로직
+├── data/                               
+│   ├── data.json                       # 로컬 테스트용 데이터
+│   ├── dummy.csv                       # 더미 CSV 파일
+├── output/                             # 처리된 데이터 저장 경로
+│   └── results/                        # 결과 저장 디렉토리
+├── secrets/                            # 민감한 정보
+│   └── google/
+│       └── credentials.json            # GCP 인증 파일
+├── tests/                              # 테스트 관련 코드
+└── requirements.txt                    # Python 패키지 의존성
+
+
 
 
 
@@ -162,24 +154,79 @@ spark-protobuf_2.12-3.4.1.jar
 spark-sql-kafka-0-10_2.12-3.4.1.jar
 spark-token-provider-kafka-0-10_2.12-3.4.1.jar
 ====================================================================================
-9. 대시보드 필요 컬럼
-Delivery - Type1(담당 Warehouse),Type2(고정, 퀵), Type3(퀵 OrderNumber, 고정기사)
-	광주,부산,대전
-	고정기사 
-	퀵Number 
-OrderDate(YYMMDDHH)
+9. 대시보드 컬럼
+(Show Column)
+Delivery
+OrderDate(YY-MM-DD HH)
+DPS
+ETA(YY-MM-DD HH:MM)
+SLA
+Status
+Address
+Zipcode
+Recipient
+BilledDistance
+DepartureTime
+(Hide Column)
+BillingCost
+ArrivalTime
+DeliveryTime
+------------------------------
+입력 컬럼
+Delivery
+OrderDate
 DPS
 ETA
 SLA
 Address
-Zipcode
+Departed	
+Arrived
+Zipdcode
 BilledDistance
-BillingCost
-DepartureTime
-ArrivalTime
+Recipient
+BilingCost(보류)
+
+
+### **`dashboard_status`**
+
+- **목적**: 실시간 대시보드 데이터 제공.
+- **주요 분석 주제**: 실시간 배송 상태 확인.
+
+### **`regional_trends`**
+
+- **목적**: 지역 중심의 배송 트렌드 및 히트맵 분석.
+- **주요 분석 주제**: 지역별 배송량
+
+### **`time_trends`**
+
+- **목적**: 시간대 및 요일 기반 주문 접수 트렌드 분석.
+- **주요 분석 주제**: 요일별/시간대별 접수량
+
+### **`distance_performance`**
+
+- **목적**: 우편번호, 거리별 소요시간 예측
+- **주요 분석 주제**: 거리 기반 예측 시간.
+
+### **`driver_trends`**
+
+- **목적**: 기사별 배송 트렌드
+- **주요 분석 주제**: 기사별 작업량, 지역별 패턴 분석.
+
 
 
 지역별 예상 소요시간 값 머신러닝 학습을 하기 위한 프로세스 설정
 1. 각 특정 지역별을 우편번호 패턴을 묶어 평균 거리 및 소요시간 값 확인
 
 2. 지금까지의 배송 건들을 전부 입력하여 패턴별 지역을 어림잡아 소요시간 값 확인
+
+
+Delivery - Type1(담당 Warehouse),Type2(고정, 퀵), Type3(퀵 OrderNumber, 고정기사)
+	광주,부산,대전
+	고정기사 
+	퀵Number 
+
+Status 상태 변경 시 Departure Time, Arrival Time, Delivery Time 자동 측정
+	이태현, 박진일, 퀵 총 3가지 중점 Time 측정
+	지방, NBD 등 시간 무의미
+
+ 
