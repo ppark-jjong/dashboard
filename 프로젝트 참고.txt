@@ -117,37 +117,40 @@ uvicorn src.api.main_api:app --host 0.0.0.0 --port 8080
 7. 프로젝트 구조 (파일 및 폴더)
 
 main/
-├── src/
-│   ├── api/                           	# API 관련 코드
-│       ├── main_api.py               	# API 관련 통합 엔드포인트 모음 코드
-│   ├── kafka/                         	# 메시지 브로커 관련 코드
-│       ├── producer.py                # Kafka Producer - 데이터 전송
-│       ├── consumer.py               # Kafka Consumer - PySpark와 연동
-│   ├── collectors/                    	# 데이터 수집 관련 코드
-│       ├── google_sheet.py           # Google Sheets 데이터 수집 관련 코드
-│       ├── crawler.py                 	# 웹 크롤러를 통한 데이터 수집
-│   ├── config/                        	# 설정 관련 코드
-│       ├── config_data_format.py   # Kafka, Spark 데이터 전처리 시 format 관련 설정
-│       ├── config_google.py        	# GCS, Google Sheets 설정
-│       ├── config_crawler.py         # Web Crawler 설정
-│       ├── config_manager.py       # 전체 설정 관리 파일
-│   ├── processors/                    # 데이터 처리 관련 코드
-│       ├── processor_manager.py 	# 데이터 처리 클래스 소프트 코딩 관리
-│       ├── processor_common.py 	# 데이터 처리 공통 메서드 관리
-│       ├── processor_regional.py 	# 지역별 배송 트렌드 로직
-│       ├── processor_time.py 		# 시간대, 요일별 트렌드 로직
-│       ├── processor_distance.py 	# 거리별 예측 데이터 로직
-│       ├── processor_driver.py 		# 기사별 배송 트렌드 로직
-│       ├── test_spark.py 		# spark 테스트 엔트리 포인트
-├── docker/
-│   ├── Dockerfile                    	# 도커 이미지 빌드 설정
-│   ├── docker-compose.yaml     	# 도커 컴포즈 설정 (Kafka, PySpark, Zookeeper)
-├── secrets/                           	# 민감한 정보 (API 인증 정보 등)
-│   └── google/                    	# Google API 인증서 파일
-│       └── credentials.json           # Google API 인증서
-├── data/
-│   ├──  data.json                     # 임시 데이터
-└── requirements.txt                   # 프로젝트 의존성 관리
+├── data/                               # 데이터 파일 저장
+│   ├── data.json                       # JSON 데이터 파일
+│   └── CS_Delivery_Report.csv          # CSV 데이터 파일
+├── docker/                             # Docker 관련 파일 및 설정
+│   ├── docker-compose.yaml             # Docker Compose 설정 파일
+│   ├── Dockerfile                      # Dockerfile (PySpark 등 커스텀 이미지)
+│   └── zookeeper.Dockerfile            # Zookeeper 전용 Dockerfile (필요 시)
+├── src/                                # 소스 코드 디렉토리
+│   ├── api/                            # API 관련 코드
+│   │   ├── __init__.py                 # 패키지 초기화 파일
+│   │   ├── main_api.py                 # FastAPI 메인 엔드포인트
+│   │   └── models.py                   # Pydantic 데이터 모델 정의
+│   ├── collectors/                     # 데이터 수집 관련 코드
+│   │   ├── __init__.py                 # 패키지 초기화 파일
+│   │   └── pubsub_manager.py           # Pub/Sub 관리 코드
+│   ├── config/                         # 설정 관련 코드
+│   │   ├── __init__.py                 # 패키지 초기화 파일
+│   │   ├── gcp_config.py               # GCP 관련 설정
+│   │   ├── spark_config.py             # Spark 관련 설정
+│   │   ├── etc_config.py               # 기타 설정 (타임스탬프 등)
+│   │   ├── logger.py                   # 로깅 설정
+│   │   └── manager_config.py           # 설정 통합 관리
+│   ├── dash_app/                       # Dash 대시보드 관련 코드
+│   │   ├── __init__.py                 # 패키지 초기화 파일
+│   │   └── app.py                      # Dash 애플리케이션 실행 코드
+│   ├── processors/                     # 데이터 처리 관련 코드
+│   │   ├── __init__.py                 # 패키지 초기화 파일
+│   │   └── process_data.py             # 데이터 처리 로직
+│   ├── test/                           # 테스트 관련 코드
+│   │   ├── __init__.py                 # 패키지 초기화 파일
+│   │   ├── test_spark.py                # 데이터 처리 로직 테스트 main코드
+├── requirements.txt                    # Python 패키지 의존성
+├── README.md                           # 프로젝트 설명서
+└── .gitignore                          # Git에서 제외할 파일/폴더 목록
 
 
 
@@ -171,11 +174,28 @@ SLA(Service Type)
 Address
 Zipcode
 BilledDistance
-BillingCost (숨김)
 DepartureTime 
 ArrivalTime 
 DeliveryTime
 
+
+
+
+-------------------------------------------------------------
+Delivery	
+DepartTime	
+ArriveTime	
+DPS	
+VehicleType	
+OrderDate	
+ETA	
+SLA	
+Address	
+ZipCode	
+BilledDistance
+Recipient
+
+BillingCost (숨김)
 
 
 Delivery - Type1(담당 Warehouse),Type2(고정, 퀵), Type3(퀵 OrderNumber, 고정기사)

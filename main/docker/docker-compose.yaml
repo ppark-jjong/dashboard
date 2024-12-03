@@ -1,49 +1,29 @@
+version: '3.8'
 services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:latest
-    container_name: zookeeper_service
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-    ports:
-      - "2181:2181"
-
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    container_name: kafka_broker
-    depends_on:
-      - zookeeper
-    environment:
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    ports:
-      - "9092:9092"
-
   pyspark:
-    image: bitnami/spark:latest
+    build: ..
     container_name: pyspark_master
     environment:
       - SPARK_MODE=master
       - SPARK_MASTER_PORT=7077
+      - PYSPARK_PYTHON=python3
+      - PYSPARK_DRIVER_PYTHON=python3
+      - MODE=local  # 로컬 모드 설정
     ports:
       - "7077:7077"
       - "4040:4040"
     volumes:
       - ../src:/app/src
       - ../data:/app/data
-#
+      - ../output:/app/output
 #  teckwah-data-service:
 #    build:
 #      context: ..
 #      dockerfile: docker/Dockerfile
 #    image: teckwah-data:latest
 #    container_name: teckwah-data-service
-#    depends_on:
-#      - kafka
 #    environment:
-#      #      - GOOGLE_APPLICATION_CREDENTIALS="/app/secrets/google/credentials.json"
-#      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-#    ports:
+#      - GOOGLE_APPLICATION_CREDENTIALS="/app/secrets/google/credentials.json"#    ports:
 #      - "8080:8080"
 #    volumes:
 #      - ../src:/app/src
