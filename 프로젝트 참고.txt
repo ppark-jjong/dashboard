@@ -194,8 +194,7 @@ Address
 ZipCode	
 BilledDistance
 Recipient
-
-BillingCost (숨김)
+BillingCost (숨김예정)
 
 
 Delivery - Type1(담당 Warehouse),Type2(고정, 퀵), Type3(퀵 OrderNumber, 고정기사)
