@@ -221,12 +221,6 @@ Delivery - Type1(담당 Warehouse),Type2(고정, 퀵), Type3(퀵 OrderNumber, �
 
 
 
-
-
-
-
-
-
 ENV=development
 REDIS_HOST=localhost
 REDIS_PORT=6379
