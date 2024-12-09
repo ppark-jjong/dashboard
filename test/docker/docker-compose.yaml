@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: api
+    command: python api/apitest.py
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  dash:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: dash
+    command: python dash/dashboard.py
+    ports:
+      - "8050:8050"
+    depends_on:
+      - redis

@@ -1,5 +1,5 @@
 from google.cloud import storage
-from src.config import sheet_cofig
+from src.config import main_config
 
 def upload_to_gcs(file_path, destination_blob_name):
     """

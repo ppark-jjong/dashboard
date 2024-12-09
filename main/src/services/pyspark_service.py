@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from src.config import sheet_cofig as config
+from src.config import main_config as config
 
 def create_spark_session():
     """
