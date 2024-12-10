@@ -1,237 +1,201 @@
 import pandas as pd
 import dash_bootstrap_components as dbc
-from dash import html, callback, Output, Input, dash_table, dcc, State, callback_context
-from .common import COLORS, status_color_map
+from dash import html, callback, Output, Input, dash_table, dcc
 
-def generate_sample_driver_data():
+
+def generate_sample_rider_data():
     data = [
         {
-            '담당부서(Department)': 'Logistics',
-            '기사명(Name)': '기사 1',
-            '상태(Status)': '대기',
-            '도착예정시간(ArriveTime)': '2024-12-10 15:00',
-            '연락처(TelNumber)': '010-1111-2222'
+            'No.': 1,
+            '담당부서': 'Logistics',
+            '기사명': '김철수',
+            '상태': '배송중',
+            '도착예정시간': '2024-12-10 14:30',
+            '연락처': '010-1234-5678',
+            '총배송건수': 15,
+            '완료건수': 10,
+            '진행률': '66%'
         },
         {
-            '담당부서(Department)': 'Express',
-            '기사명(Name)': '기사 2',
-            '상태(Status)': '배송중',
-            '도착예정시간(ArriveTime)': '2024-12-10 16:30',
-            '연락처(TelNumber)': '010-3333-4444'
+            'No.': 2,
+            '담당부서': 'Express',
+            '기사명': '이영희',
+            '상태': '대기',
+            '도착예정시간': '2024-12-10 16:00',
+            '연락처': '010-9876-5432',
+            '총배송건수': 20,
+            '완료건수': 5,
+            '진행률': '25%'
         },
         {
-            '담당부서(Department)': 'Special Delivery',
-            '기사명(Name)': '기사 3',
-            '상태(Status)': '복귀중',
-            '도착예정시간(ArriveTime)': '2024-12-10 17:20',
-            '연락처(TelNumber)': '010-5555-6666'
-        },
-        {
-            '담당부서(Department)': 'Logistics',
-            '기사명(Name)': '기사 4',
-            '상태(Status)': '퇴근',
-            '도착예정시간(ArriveTime)': '2024-12-10 18:00',
-            '연락처(TelNumber)': '010-7777-8888'
+            'No.': 3,
+            '담당부서': 'Special Delivery',
+            '기사명': '박영수',
+            '상태': '완료',
+            '도착예정시간': '2024-12-10 12:45',
+            '연락처': '010-2222-3333',
+            '총배송건수': 12,
+            '완료건수': 12,
+            '진행률': '100%'
         }
     ]
-    data = data * 30
+    data = data * 50
     df = pd.DataFrame(data)
-    df.insert(0, 'No.', range(1, len(df)+1))
     return df
 
-def create_status_cards(dataframe):
-    status_counts = dataframe['상태(Status)'].value_counts()
-    cards = []
-    for status, count in status_counts.items():
-        color = status_color_map.get(status, COLORS['text_primary'])
-        cards.append(
-            dbc.Col(
-                dbc.Card([
-                    dbc.CardBody([
-                        html.H6(status, className="text-muted", style={
-                            'fontSize':'1.1rem',
-                            'color': COLORS['text_secondary'],
-                            'textAlign':'center'
-                        }),
-                        html.H4(str(count), style={
-                            'textAlign':'center',
-                            'fontSize':'1.8rem',
-                            'fontWeight':'bold',
-                            'color': color
-                        })
-                    ], style={'padding':'1rem'})
-                ], style={'border': f'1px solid {COLORS["bg_primary"]}', 'borderRadius':'5px'}),
-                width=3
-            )
-        )
-    return dbc.Row(cards, className="mb-3", style={'marginTop':'1rem', 'marginBottom':'1rem'})
 
+# Styles
 card_style = {
-    'padding': '1rem',
-    'borderRadius': '8px',
-    'boxShadow': '0 2px 5px rgba(0,0,0,0.1)',
-    'backgroundColor': '#fff'
+    'padding': '1.5rem',
+    'borderRadius': '16px',
+    'boxShadow': '0 10px 25px rgba(0,0,0,0.08)',
+    'backgroundColor': 'white',
+    'border': 'none',
+    'margin': '1rem 0',
+    'width': '100%'
 }
 
 search_input_style = {
-    'width': '200px',
-    'borderRadius': '4px',
-    'border': '1px solid #ccc',
-    'padding': '0.5rem',
-    'fontSize': '0.9rem'
+    'width': '300px',
+    'borderRadius': '8px',
+    'border': '1px solid #e2e8f0',
+    'padding': '0.5rem 1rem',
+    'fontSize': '0.95rem',
+    'marginBottom': '1rem'
 }
 
-driver_layout = [
-    html.Div(style={'margin': '2rem 0'}),
-    html.Div(id='driver-state-cards'),
+rider_layout = [
     html.Div([
         dbc.Card([
-            dbc.Row([
-                dbc.Col([], width=3),
-                dbc.Col(
-                    html.Div(id='driver-pagination', style={'textAlign': 'center'}),
-                    width=6
-                ),
-                dbc.Col(
-                    html.Div(
-                        dcc.Input(
-                            id='driver-search-input',
-                            type='text',
-                            placeholder='검색...',
-                            style=search_input_style
-                        ),
-                        style={'textAlign': 'right'}
-                    ),
-                    width=3
+            # Search Input
+            html.Div([
+                dcc.Input(
+                    id='rider-search-input',
+                    type='text',
+                    placeholder='검색...',
+                    style=search_input_style,
+                    debounce=True
                 )
-            ], align='center', className="mb-3"),
+            ], style={
+                'display': 'flex',
+                'justifyContent': 'flex-end',
+                'width': '100%',
+                'marginBottom': '1rem'
+            }),
 
             dash_table.DataTable(
-                id='driver-table',
+                id='rider-table',
                 columns=[],
                 data=[],
-                sort_action='custom',
-                page_action='custom',
+                sort_action='native',
                 page_current=0,
                 page_size=15,
                 style_cell={
                     'textAlign': 'center',
-                    'fontSize': '1rem',
-                    'padding': '0.5rem',
-                    'border': '1px solid #ddd'
+                    'fontSize': '0.9rem',
+                    'padding': '0.75rem',
+                    'fontFamily': 'Arial, sans-serif',
+                    'color': '#2c3e50',
+                    'borderRight': '1px solid #e2e8f0'  # Add column separator
                 },
                 style_header={
-                    'backgroundColor': '#f0f0f0',
-                    'fontWeight': 'bold',
-                    'border': '1px solid #ccc',
-                    'borderBottom': '2px solid #ccc'
+                    'backgroundColor': '#f8fafc',
+                    'fontWeight': '600',
+                    'border': '1px solid #e2e8f0',
+                    'borderBottom': '2px solid #3b82f6',
+                    'textAlign': 'center',
+                    'fontSize': '0.95rem',
+                    'color': '#1e293b',
+                    'textTransform': 'uppercase',
+                    'cursor': 'pointer'
                 },
                 style_data_conditional=[
-                    {
-                        'if': {'row_index': 'odd'},
-                        'backgroundColor': '#f9f9f9'
-                    },
-                    {
-                        'if': {'state': 'active'},
-                        'backgroundColor': '#e8f0fe',
-                        'border': '1px solid #e8f0fe'
-                    },
-                    {
-                        'if': {'column_id': 'No.'},
-                        'backgroundColor': '#f7f7f7',
-                        'fontWeight': 'bold',
-                        'borderRight': '2px solid #ccc'
-                    }
+                    {'if': {'row_index': 'odd'}, 'backgroundColor': '#f8fafc'},
+                    {'if': {'state': 'active'}, 'backgroundColor': '#e9f3ff'},
+                    {'if': {'column_id': 'No.'},
+                     'backgroundColor': '#f1f5f9',
+                     'fontWeight': 'bold'}
                 ],
-                style_table={'overflowX': 'auto', 'border': 'none'}
+                style_table={
+                    'overflowX': 'auto',
+                    'border': 'none',
+                    'borderRadius': '12px',
+                    'width': '100%'
+                },
+                style_as_list_view=True
             ),
-            dcc.Store(id='driver-total-rows')
+
+            # Pagination
+            html.Div(id='rider-pagination', style={
+                'display': 'flex',
+                'justifyContent': 'center',
+                'alignItems': 'center',
+                'marginTop': '1rem',
+                'padding': '0.75rem',
+                'backgroundColor': '#f8fafc',
+                'borderRadius': '12px'
+            })
         ], style=card_style)
-    ], style={'marginTop': '2rem'})
+    ], style={'width': '100%', 'padding': '1rem'})
 ]
 
-@callback(
-    Output('driver-table', 'data'),
-    Output('driver-table', 'columns'),
-    Output('driver-total-rows', 'data'),
-    [Input('interval-component', 'n_intervals'),
-     Input('driver-search-input', 'value'),
-     Input('driver-table', 'page_current'),
-     Input('driver-table', 'page_size'),
-     Input('driver-table', 'sort_by')]
-)
-def update_driver_table(n, search_value, page_current, page_size, sort_by):
-    df = generate_sample_driver_data()
 
+@callback(
+    Output('rider-table', 'data'),
+    Output('rider-table', 'columns'),
+    [Input('rider-search-input', 'value'),
+     Input('interval-component', 'n_intervals')]
+)
+def update_rider_table(search_value, n):
+    df = generate_sample_rider_data()
+
+    # Search logic (search across all columns)
     if search_value and search_value.strip():
         s = search_value.strip().lower()
-        df = df[df.apply(lambda row: any(s in str(val).lower() for val in row), axis=1)]
+        df = df[df.apply(lambda row: row.astype(str).str.lower().str.contains(s).any(), axis=1)]
 
-    if sort_by and len(sort_by):
-        df = df.sort_values(
-            by=[col['column_id'] for col in sort_by],
-            ascending=[col['direction'] == 'asc' for col in sort_by],
-            inplace=False
-        )
+    columns = [{'name': col, 'id': col} for col in df.columns]
+    page_size = 15
+    df_page = df.head(page_size)
 
-    columns = [{'name': c, 'id': c} for c in df.columns]
-    total_rows = len(df)
-    start = page_current * page_size
-    end = start + page_size
-    df_page = df.iloc[start:end]
+    return df_page.to_dict('records'), columns
 
-    return df_page.to_dict('records'), columns, total_rows
 
 @callback(
-    Output('driver-pagination', 'children'),
-    [Input('driver-total-rows', 'data'),
-     Input('driver-table', 'page_current'),
-     Input('driver-table', 'page_size')]
-)
-def update_driver_pagination(total_rows, page_current, page_size):
-    if total_rows is None:
-        return None
-    total_pages = max(1, -(-total_rows // page_size))
-    current_page = page_current + 1
-
-    prev_disabled = current_page <= 1
-    next_disabled = current_page >= total_pages
-
-    return html.Div([
-        dbc.Button("◀ 이전", id='driver-prev-page', disabled=prev_disabled, size='sm', color='secondary', className="me-2"),
-        html.Span(f"페이지 {current_page} / {total_pages}", style={'fontSize': '0.9rem'}),
-        dbc.Button("다음 ▶", id='driver-next-page', disabled=next_disabled, size='sm', color='secondary', className="ms-2")
-    ], style={'display': 'inline-block'})
-
-@callback(
-    Output('driver-table', 'page_current'),
-    [Input('driver-prev-page', 'n_clicks'),
-     Input('driver-next-page', 'n_clicks')],
-    [State('driver-table', 'page_current'),
-     State('driver-total-rows', 'data'),
-     State('driver-table', 'page_size')]
-)
-def paginate_driver(prev_clicks, next_clicks, page_current, total_rows, page_size):
-    if total_rows is None:
-        return page_current
-    total_pages = max(1, -(-total_rows // page_size))
-
-    ctx = callback_context
-    if not ctx.triggered:
-        return page_current
-
-    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    if trigger_id == 'driver-prev-page' and page_current > 0:
-        return page_current - 1
-    elif trigger_id == 'driver-next-page' and page_current < total_pages - 1:
-        return page_current + 1
-
-    return page_current
-
-@callback(
-    Output('driver-state-cards', 'children'),
+    Output('rider-pagination', 'children'),
     [Input('interval-component', 'n_intervals')]
 )
-def update_driver_state_cards(n):
-    df = generate_sample_driver_data()
-    return create_status_cards(df)
+def update_rider_pagination(n):
+    total_rows = len(generate_sample_rider_data())
+    page_size = 15
+    total_pages = max(1, -(-total_rows // page_size))
+
+    return html.Div([
+        dbc.Button("◀ 이전",
+                   id='rider-prev-page',
+                   size='sm',
+                   color='primary',
+                   className="me-3",
+                   style={'borderRadius': '8px'}
+                   ),
+        html.Span(
+            f"1 / {total_pages}",
+            style={
+                'fontSize': '0.9rem',
+                'fontWeight': 'bold',
+                'color': '#3b82f6',
+                'margin': '0 1rem'
+            }
+        ),
+        dbc.Button("다음 ▶",
+                   id='rider-next-page',
+                   size='sm',
+                   color='primary',
+                   className="ms-3",
+                   style={'borderRadius': '8px'}
+                   )
+    ], style={
+        'display': 'flex',
+        'justifyContent': 'center',
+        'alignItems': 'center'
+    })

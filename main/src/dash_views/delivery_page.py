@@ -1,7 +1,6 @@
 import pandas as pd
 import dash_bootstrap_components as dbc
-from dash import html, callback, Output, Input, dash_table, dcc, State, callback_context
-from .common import create_stat_row
+from dash import html, callback, Output, Input, dash_table, dcc
 
 
 def generate_sample_delivery_data():
@@ -49,194 +48,158 @@ def generate_sample_delivery_data():
     return df
 
 
-# Advanced Styling with Modern, Clean Design
+# Styles
 card_style = {
     'padding': '1.5rem',
     'borderRadius': '16px',
-    'boxShadow': '0 10px 25px rgba(0,0,0,0.1)',
+    'boxShadow': '0 10px 25px rgba(0,0,0,0.08)',
     'backgroundColor': 'white',
     'border': 'none',
-    'transition': 'all 0.3s ease'
-}
-
-top_container_style = {
-    'display': 'flex',
-    'justifyContent': 'space-between',
-    'alignItems': 'center',
-    'marginBottom': '1rem',
-    'gap': '1rem'
+    'margin': '1rem 0',
+    'width': '100%'
 }
 
 search_input_style = {
-    'width': '250px',
+    'width': '300px',
     'borderRadius': '8px',
-    'border': '1px solid #ced4da',
+    'border': '1px solid #e2e8f0',
     'padding': '0.5rem 1rem',
-    'fontSize': '0.9rem',
-    'boxShadow': '0 2px 4px rgba(0,0,0,0.05)',
-    'transition': 'all 0.3s ease'
-}
-
-pagination_style = {
-    'display': 'flex',
-    'justifyContent': 'center',
-    'alignItems': 'center',
-    'backgroundColor': '#f8f9fa',
-    'borderRadius': '12px',
-    'padding': '0.5rem',
-    'boxShadow': '0 2px 4px rgba(0,0,0,0.05)'
+    'fontSize': '0.95rem',
+    'marginBottom': '1rem'
 }
 
 delivery_layout = [
-    html.Div(style={'margin': '2rem 0'}),
-    create_stat_row(50, 12, 38),
     html.Div([
         dbc.Card([
-            # Top Container with Search and Pagination
+            # Search Input
             html.Div([
                 dcc.Input(
-                    id='global-search-input',
+                    id='delivery-search-input',
                     type='text',
-                    placeholder='검색.',
-                    style=search_input_style
-                ),
-                html.Div(id='table-top-pagination', style=pagination_style)
-            ], style=top_container_style),
+                    placeholder='검색...',
+                    style=search_input_style,
+                    debounce=True
+                )
+            ], style={
+                'display': 'flex',
+                'justifyContent': 'flex-end',
+                'width': '100%',
+                'marginBottom': '1rem'
+            }),
 
             dash_table.DataTable(
                 id='delivery-table',
                 columns=[],
                 data=[],
                 sort_action='native',
-                sort_mode='multi',
-                page_action='native',
                 page_current=0,
                 page_size=15,
                 style_cell={
                     'textAlign': 'center',
                     'fontSize': '0.9rem',
-                    'padding': '0.85rem',
-                    'borderLeft': '1px solid #e9ecef',
-                    'borderRight': '1px solid #e9ecef',
-                    'border': '1px solid #dee2e6'  # 셀 구분선 추가
+                    'padding': '0.75rem',
+                    'fontFamily': 'Arial, sans-serif',
+                    'color': '#2c3e50',
+                    'borderRight': '1px solid #e2e8f0'  # Add column separator
                 },
                 style_header={
-                    'backgroundColor': '#f1f3f5',
-                    'fontWeight': 'bold',
-                    'border': '2px solid #339af0',
+                    'backgroundColor': '#f8fafc',
+                    'fontWeight': '600',
+                    'border': '1px solid #e2e8f0',
+                    'borderBottom': '2px solid #3b82f6',
                     'textAlign': 'center',
                     'fontSize': '0.95rem',
+                    'color': '#1e293b',
+                    'textTransform': 'uppercase',
                     'cursor': 'pointer'
                 },
                 style_data_conditional=[
-                    {
-                        'if': {'row_index': 'odd'},
-                        'backgroundColor': '#f8f9fa'
-                    },
-                    {
-                        'if': {'state': 'active'},
-                        'backgroundColor': '#e7f5ff',
-                        'border': '1px solid #339af0'
-                    },
-                    {
-                        'if': {'column_id': 'No.'},
-                        'backgroundColor': '#f1f3f5',
-                        'fontWeight': 'bold'
-                    }
+                    {'if': {'row_index': 'odd'}, 'backgroundColor': '#f8fafc'},
+                    {'if': {'state': 'active'}, 'backgroundColor': '#e9f3ff'},
+                    {'if': {'column_id': 'No.'},
+                     'backgroundColor': '#f1f5f9',
+                     'fontWeight': 'bold'}
                 ],
                 style_table={
                     'overflowX': 'auto',
-                    'border': '1px solid #dee2e6',
-                    'borderRadius': '12px'
-                }
+                    'border': 'none',
+                    'borderRadius': '12px',
+                    'width': '100%'
+                },
+                style_as_list_view=True
             ),
 
-            # Bottom Pagination
-            html.Div(id='table-bottom-pagination', style=pagination_style)
+            # Pagination
+            html.Div(id='delivery-pagination', style={
+                'display': 'flex',
+                'justifyContent': 'center',
+                'alignItems': 'center',
+                'marginTop': '1rem',
+                'padding': '0.75rem',
+                'backgroundColor': '#f8fafc',
+                'borderRadius': '12px'
+            })
         ], style=card_style)
-    ], style={'marginTop': '2rem'})
+    ], style={'width': '100%', 'padding': '1rem'})
 ]
 
 
 @callback(
     Output('delivery-table', 'data'),
     Output('delivery-table', 'columns'),
-    Output('table-top-pagination', 'children'),
-    Output('table-bottom-pagination', 'children'),
-    [Input('interval-component', 'n_intervals'),
-     Input('global-search-input', 'value'),
-     Input('delivery-table', 'page_current')]
+    [Input('delivery-search-input', 'value'),
+     Input('interval-component', 'n_intervals')]
 )
-def update_delivery_table(n, search_value, page_current):
+def update_delivery_table(search_value, n):
     df = generate_sample_delivery_data()
 
-    # 글로벌 검색
+    # Search logic (search across all columns)
     if search_value and search_value.strip():
         s = search_value.strip().lower()
         df = df[df.apply(lambda row: row.astype(str).str.lower().str.contains(s).any(), axis=1)]
 
     columns = [{'name': col, 'id': col} for col in df.columns]
-    total_pages = max(1, -(-len(df) // 15))
-    current_page = page_current + 1
+    page_size = 15
+    df_page = df.head(page_size)
 
-    # 페이지네이션 버튼 생성
-    pagination = html.Div([
-        dbc.Button("◀ 이전",
-                   id='top-prev-page',
-                   disabled=current_page <= 1,
-                   size='sm',
-                   color='primary',
-                   className="me-2",
-                   style={'borderRadius': '6px'}
-                   ),
-        html.Span(
-            f"페이지 {current_page} / {total_pages}",
-            style={
-                'fontSize': '0.9rem',
-                'fontWeight': 'bold',
-                'color': '#339af0',
-                'margin': '0 0.5rem'
-            }
-        ),
-        dbc.Button("다음 ▶",
-                   id='top-next-page',
-                   disabled=current_page >= total_pages,
-                   size='sm',
-                   color='primary',
-                   className="ms-2",
-                   style={'borderRadius': '6px'}
-                   )
-    ], style={
-        'display': 'flex',
-        'alignItems': 'center',
-        'justifyContent': 'center'
-    })
-
-    # 페이지 데이터 슬라이싱
-    start = page_current * 15
-    end = start + 15
-    page_data = df.iloc[start:end]
-
-    return page_data.to_dict('records'), columns, pagination, pagination
+    return df_page.to_dict('records'), columns
 
 
 @callback(
-    Output('delivery-table', 'page_current'),
-    [Input('top-prev-page', 'n_clicks'),
-     Input('top-next-page', 'n_clicks')],
-    [State('delivery-table', 'page_current'),
-     State('delivery-table', 'data')]
+    Output('delivery-pagination', 'children'),
+    [Input('interval-component', 'n_intervals')]
 )
-def update_page(prev_clicks, next_clicks, current_page, data):
-    ctx = callback_context
-    if not ctx.triggered:
-        return current_page
+def update_delivery_pagination(n):
+    total_rows = len(generate_sample_delivery_data())
+    page_size = 15
+    total_pages = max(1, -(-total_rows // page_size))
 
-    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
-
-    if trigger_id == 'top-prev-page' and current_page > 0:
-        return current_page - 1
-    elif trigger_id == 'top-next-page':
-        return current_page + 1
-
-    return current_page
+    return html.Div([
+        dbc.Button("◀ 이전",
+                   id='delivery-prev-page',
+                   size='sm',
+                   color='primary',
+                   className="me-3",
+                   style={'borderRadius': '8px'}
+                   ),
+        html.Span(
+            f"1 / {total_pages}",
+            style={
+                'fontSize': '0.9rem',
+                'fontWeight': 'bold',
+                'color': '#3b82f6',
+                'margin': '0 1rem'
+            }
+        ),
+        dbc.Button("다음 ▶",
+                   id='delivery-next-page',
+                   size='sm',
+                   color='primary',
+                   className="ms-3",
+                   style={'borderRadius': '8px'}
+                   )
+    ], style={
+        'display': 'flex',
+        'justifyContent': 'center',
+        'alignItems': 'center'
+    })
