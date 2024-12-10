@@ -11,7 +11,6 @@ from driver_page import generate_sample_rider_data, rider_layout
 
 
 
-
 # Sample data generation functions
 def generate_sample_delivery_data(n=100):
     statuses = ['배송중', '배송완료', '대기']
