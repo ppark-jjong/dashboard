@@ -1,20 +1,26 @@
-from src.services.pyspark_service import create_spark_session
-from src.services.gcs_service import upload_to_gcs
+from flask import Flask
+from src.routes.dash_routes import init_dash_apps
 
-def main():
-    # PySpark 세션 생성
-    spark = create_spark_session()
+# Flask 애플리케이션 생성
+app = Flask(
+    __name__,
+    static_folder="src/dash_views/static",  # static 폴더 경로 설정
+    static_url_path="/static"              # 정적 파일 URL 경로 설정
+)
 
-    # 데이터 처리 로직 (예제)
-    data = [("Alice", 29), ("Bob", 31), ("Cathy", 25)]
-    columns = ["Name", "Age"]
-    df = spark.createDataFrame(data, columns)
-    df.show()
+# Dash 애플리케이션 초기화
+dash_apps = init_dash_apps(app)
 
-    # 로컬 파일 저장 및 GCS 업로드
-    file_path = "output/example.csv"
-    df.write.csv(file_path)
-    upload_to_gcs(file_path, "example/example.csv")
+@app.route("/")
+def home():
+    return """
+    <h1>Flask와 Dash 통합 테스트</h1>
+    <ul>
+        <li><a href="/main/">메인 페이지</a></li>
+        <li><a href="/delivery/">배송 현황 페이지</a></li>
+        <li><a href="/driver/">기사 현황 페이지</a></li>
+    </ul>
+    """
 
 if __name__ == "__main__":
-    main()
+    app.run(host="0.0.0.0", port=5000, debug=True)

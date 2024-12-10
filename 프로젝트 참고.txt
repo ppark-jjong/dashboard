@@ -107,41 +107,59 @@ uvicorn src.api.main_api:app --host 0.0.0.0 --port 8080
 7. 프로젝트 구조 (파일 및 폴더)
 
 main/
-├── data/
-│   ├── data.json
-│   └── CS_Delivery_Report.csv
-├── docker/
+│
+├── docker/                      # Docker 관련 설정
 │   ├── docker-compose.yaml
 │   ├── Dockerfile
-├── src/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── routes/
+├── src/                         # 소스 코드
+│   ├── data/                        # 데이터 계층 (저장소별 데이터 관리)
+│   │    ├── __init__.py
+│   │    ├── redis_client.py          # Redis 데이터 저장/불러오기
+│   │    ├── bigquery_client.py       # BigQuery 데이터 저장/쿼리
+│   │    ├── gcs_client.py            # GCS 데이터 업로드/다운로드
+│   ├── routes/                  # API 라우팅
 │   │   ├── __init__.py
-│   │   ├── webhook.py
-│   │   ├── dashboard.py
-│   │   └── dash_app.py           # Dash integration
-│   ├── services/
+│   │   ├── gcs_routes.py           # gcs 관련 API
+│   │   ├── vm_routes.py           # computeengine(gcp) 관련 API
+│   │   ├── bigquery_routes.py           # bigquery 관련 API
+│   │   ├── gcp_routes.py           # appengine + 기타 gcp 관련 API
+│   │   ├── dash_routes.py       # Dash 페이지 라우팅 통합
+│   │   ├── api_routes.py       # 기타 api 라우팅 통합 
+│   ├── services/                # 비즈니스 로직 및 데이터 처리
 │   │   ├── __init__.py
-│   │   ├── pubsub.py
-│   │   ├── redis_service.py
-│   │   ├── gcs_service.py
-│   │   └── bigquery_service.py
-│   ├── config/
+│   │   ├── pubsub_service.py    # Pub/Sub 관련 로직
+│   │   ├── redis_service.py     # Redis 데이터 처리
+│   │   ├── gcs_service.py       # GCS 데이터 처리
+│   │   ├── bigquery_service.py  # BigQuery 데이터 처리
+│   │   ├── sheet_service.py   # 구글 시트 관련 로직
+│   │   ├── data_processing.py   # 데이터 전처리 및 변환 (PySpark 포함)
+│   │   └── dash_service.py    # dash 관련 서비스 로직
+│   ├── dash_views/                    # Dash 웹 페이지 (뷰)
 │   │   ├── __init__.py
-│   │   ├── sheet_config.py
-│   │   ├── gcs_config.py
+│   │   ├── static/           # 공통 스타일
+│   │   │   ├── custom.css           # 공통 스타일
+│   │   ├── delivery_page.py     # 배송 현황 페이지
+│   │   ├── driver_page.py       # 기사 현황 페이지
+│   │   └── main_page.py         # 메인 페이지
+│   ├── utils/                   # 공통 유틸리티
+│   │   ├── __init__.py
+│   │   ├── utils_main.py           # 공통 함수
+│   │   ├── error_handling.py    # 에러 처리 및 로깅
+│   │   ├── file_utils.py        # 파일 처리 관련 유틸리티
+│   │   └── validation.py        # 데이터 검증 로직
+│   ├── config/                  # 환경설정
+│   │   ├── __init__.py
 │   │   ├── redis_config.py
-│   │   ├── pyspark_config.py
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── request_model.py
-│   ├── dash/                # For Dash templates
-│   ├── .env                
-├── requirements.txt
-├── app.yaml                           # App Engine configuration
-├── README.md
-├── .gitignore
+│   │   ├── gcp_config.py	   # gcp 관련 설정 집합
+│   │   ├── settings.py          # 공통 설정
+│   ├── main.py                  # 최종 프로젝트 엔트리 포인트
+│   ├── .env                 
+├── requirements.txt             # Python 종속성
+├── README.md                    # 프로젝트 문서
+├── app.yaml                     # App Engine 설정
+├── .gitignore                   # Git 무시 파일
+
+
 
 main
 │── data/
