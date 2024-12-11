@@ -1,26 +1,48 @@
-# driver_page.py
-from dash import html, callback, Output, Input
-from .components import DashComponents
-from .layouts import LayoutManager
-from .data_generate import DataGenerator
+from dash import html, dash_table
+import data_generator as dg
 
 
-def create_driver_layout():
-    """기사 현황 페이지 레이아웃 생성"""
-    df = DataGenerator.generate_rider_data()
-    columns = DataGenerator.get_column_definitions()['rider']['columns']
+def create_driver_page():
+    df = dg.generate_driver_data()
 
-    content = html.Div([
-        # 기존 설정값을 직접 전달하는 방식으로 변경
-        DashComponents.create_search_refresh_section(
-            'rider-search-input',
-            'rider-refresh-button'
-        ),
-        DashComponents.create_data_table(
-            table_id='rider-table',
-            columns=columns,
-            data=df.to_dict('records')
+    return html.Div([
+        html.H2('드라이버 현황', className='mb-4'),
+        html.Button('새로고침', id='driver-refresh', className='btn btn-primary mb-3'),
+        dash_table.DataTable(
+            id='driver-table',
+            data=df.to_dict('records'),
+            columns=[{"name": i, "id": i, "selectable": True} for i in df.columns],
+            filter_action="native",
+            page_action="native",
+            page_current=0,
+            page_size=15,
+            sort_action="native",
+            sort_mode="multi",
+            style_table={'overflowX': 'auto'},
+            style_cell={
+                'minWidth': '100px',
+                'maxWidth': '300px',
+                'whiteSpace': 'normal',
+                'textAlign': 'center',
+                'padding': '10px'
+            },
+            style_header={
+                'backgroundColor': '#f8f9fa',
+                'fontWeight': 'bold',
+                'border': '1px solid #ddd'
+            },
+            style_data={
+                'border': '1px solid #ddd'
+            },
+            style_data_conditional=[
+                {
+                    'if': {'row_index': 'odd'},
+                    'backgroundColor': '#f8f9fa'
+                }
+            ],
+            style_filter={
+                'backgroundColor': '#fff',
+                'border': '1px solid #ddd'
+            }
         )
     ])
-
-    return LayoutManager.create_page_layout(content)

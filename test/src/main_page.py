@@ -1,119 +1,59 @@
-import dash
+from dash import html, dcc
 import dash_bootstrap_components as dbc
-from dash import html, dcc, Input, Output
-from delivery_page import delivery_layout
-from driver_page import rider_layout
+from src.dash_views.data_generate import DataGenerator
+from src.dash_views.components import DashboardComponents, DashboardCharts
+from src.dash_views.styles import StyleManager
 
-# 글로벌 메뉴바 생성 함수
-def create_navbar(active_path):
-    nav_items = [
-        {"label": "대시보드", "href": "/"},
-        {"label": "배송 현황", "href": "/delivery"},
-        {"label": "기사 현황", "href": "/rider"}
-    ]
 
-    nav_links = []
-    for item in nav_items:
-        is_active = active_path == item["href"]
-        nav_links.append(
-            dbc.NavItem(
-                dbc.NavLink(
-                    item["label"],
-                    href=item["href"],
-                    className="text-uppercase",
-                    style={
-                        "fontSize": "1rem",
-                        "fontWeight": "bold",
-                        "color": "#000000" if not is_active else "#FFFFFF",
-                        "padding": "0.75rem 1.25rem",
-                        "textDecoration": "none",
-                        "backgroundColor": "#007BFF" if is_active else "transparent",
-                        "borderRadius": "4px",
-                        "transition": "all 0.2s ease-in-out",
-                    }
-                )
-            )
-        )
-
-    return dbc.Navbar(
-        dbc.Container([
-            dbc.Nav(nav_links, pills=True, className="ml-auto"),
-        ]),
-        color="white",
-        dark=False,
-        style={
-            "height": "60px",
-            "boxShadow": "0 1px 2px rgba(0,0,0,0.1)"
-        }
-    )
-
-# 메인 페이지 레이아웃
 def create_main_dashboard():
+    delivery_metrics = DataGenerator.get_delivery_metrics()
+    rider_metrics = DataGenerator.get_rider_metrics()
+    styles = StyleManager.get_common_styles()
+
     return html.Div([
         dbc.Container([
+            # 메트릭스 카드 섹션
             dbc.Row([
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardHeader("총 배송 건수", className="text-center", style={"backgroundColor": "white", "border": "none"}),
-                        dbc.CardBody([
-                            html.H1("1000+", className="text-center text-primary"),
-                            html.P("현재 배송 중인 전체 건수", className="text-center text-muted")
-                        ])
-                    ], className="mb-4", style={"border": "1px solid #eaeaea", "borderRadius": "8px"})
-                ], width=4),
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardHeader("총 기사 수", className="text-center", style={"backgroundColor": "white", "border": "none"}),
-                        dbc.CardBody([
-                            html.H1("150", className="text-center text-primary"),
-                            html.P("활동 중인 기사", className="text-center text-muted")
-                        ])
-                    ], className="mb-4", style={"border": "1px solid #eaeaea", "borderRadius": "8px"})
-                ], width=4),
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardHeader("완료율", className="text-center", style={"backgroundColor": "white", "border": "none"}),
-                        dbc.CardBody([
-                            html.H1("75%", className="text-center text-success"),
-                            html.P("현재 완료된 배송 비율", className="text-center text-muted")
-                        ])
-                    ], className="mb-4", style={"border": "1px solid #eaeaea", "borderRadius": "8px"})
-                ], width=4)
-            ]),
+                dbc.Col(
+                    DashboardComponents.create_stats_card(
+                        "총 배송건수",
+                        f"{delivery_metrics.total_count:,}건",
+                        "전체 배송 물량"
+                    ), width=12, lg=3
+                ),
+                dbc.Col(
+                    DashboardComponents.create_stats_card(
+                        "완료율",
+                        delivery_metrics.completion_rate,
+                        "배송 완료율"
+                    ), width=12, lg=3
+                ),
+                dbc.Col(
+                    DashboardComponents.create_stats_card(
+                        "활동 기사",
+                        f"{rider_metrics['active_riders']}명",
+                        "현재 배송중"
+                    ), width=12, lg=3
+                ),
+                dbc.Col(
+                    DashboardComponents.create_stats_card(
+                        "평균 배송",
+                        rider_metrics['avg_deliveries'],
+                        "기사당 평균"
+                    ), width=12, lg=3
+                )
+            ], className="mb-4"),
 
-            # 추가적인 섹션 (예: 그래프)
+            # 차트 섹션
             dbc.Row([
-                dbc.Col([
-                    html.Div("추가적인 내용 (그래프나 테이블)", style={"textAlign": "center", "padding": "1rem"})
-                ])
+                dbc.Col(
+                    DashboardCharts.create_delivery_status_pie(),
+                    width=12, lg=6, className="mb-4"
+                ),
+                dbc.Col(
+                    DashboardCharts.create_rider_status_pie(),
+                    width=12, lg=6, className="mb-4"
+                )
             ])
         ], fluid=True)
-    ])
-
-# 애플리케이션 초기화
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-
-# 페이지 레이아웃
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    html.Div(id='navbar', children=create_navbar("/")),
-    html.Div(id='page-content', children=create_main_dashboard(), style={"backgroundColor": "white", "padding": "2rem"})
-])
-
-# 콜백: 메뉴 및 페이지 동적 렌더링
-@app.callback(
-    [Output('navbar', 'children'),
-     Output('page-content', 'children')],
-    [Input('url', 'pathname')]
-)
-def render_page(pathname):
-    navbar = create_navbar(pathname)
-    if pathname == "/delivery":
-        return navbar, delivery_layout
-    elif pathname == "/rider":
-        return navbar, rider_layout
-    else:
-        return navbar, create_main_dashboard()
-
-if __name__ == '__main__':
-    app.run_server(debug=True)
+    ], style=styles['container'])

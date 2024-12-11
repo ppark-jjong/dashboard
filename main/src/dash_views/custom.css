@@ -1,0 +1,56 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.title {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.card-container {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.card {
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    padding: 10px;
+    text-align: center;
+    width: 200px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container {
+    width: 400px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+.search-input {
+    margin-right: 10px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.search-button, .refresh-button {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.search-button:hover, .refresh-button:hover {
+    background-color: #0056b3;
+}

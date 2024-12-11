@@ -1,90 +1,63 @@
 # app.py
-
-import dash
-from dash import html, dcc, Dash
-import dash_bootstrap_components as dbc
+from dash import Dash, html, dcc, dash
 from dash.dependencies import Input, Output
-import logging
-from typing import Optional, Dict, Any
+import delivery_page
+import driver_page
+import main_page
+import data_generator as dg
 
-from src.dash_views.main_page import create_main_dashboard
-from src.dash_views.delivery_page import create_delivery_layout
-from src.dash_views.driver_page import create_driver_layout
-from src.dash_views.layouts import LayoutManager
+app = Dash(__name__,
+    external_stylesheets=[
+        'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css'
+    ]
+)
 
+app.layout = html.Div([
+    html.Nav(
+        className='navbar navbar-expand-lg navbar-dark bg-primary mb-4',
+        children=[
+            html.Div([
+                html.Span('배송 모니터링 시스템', className='navbar-brand'),
+                html.Div([
+                    dcc.Link('대시보드', href='/', className='nav-link text-white'),
+                    dcc.Link('배송현황', href='/delivery', className='nav-link text-white'),
+                    dcc.Link('드라이버현황', href='/driver', className='nav-link text-white'),
+                ], className='navbar-nav')
+            ], className='container')
+        ]
+    ),
+    dcc.Location(id='url', refresh=False),
+    html.Div(id='page-content', className='container')
+])
 
-class DashboardApp:
-    """대시보드 애플리케이션 핵심 클래스"""
+@app.callback(
+    Output('page-content', 'children'),
+    Input('url', 'pathname')
+)
+def display_page(pathname):
+    if pathname == '/delivery':
+        return delivery_page.create_delivery_page()
+    elif pathname == '/driver':
+        return driver_page.create_driver_page()
+    return main_page.create_main_page()
 
-    def __init__(self):
-        """애플리케이션 초기화 및 기본 설정"""
-        self.app = Dash(
-            __name__,
-            external_stylesheets=[dbc.themes.BOOTSTRAP],
-            suppress_callback_exceptions=True
-        )
-        self._init_layout()
-        self._register_callbacks()
+@app.callback(
+    Output('delivery-table', 'data'),
+    Input('delivery-refresh', 'n_clicks')
+)
+def refresh_delivery_data(n_clicks):
+    if n_clicks is None:
+        return dash.no_update
+    return dg.generate_delivery_data().to_dict('records')
 
-    def _init_layout(self):
-        """기본 레이아웃 구성"""
-        self.app.layout = html.Div([
-            dcc.Location(id='url', refresh=False),
-            html.Div(id='navbar'),
-            html.Div(id='page-content')
-        ])
-
-    def _register_callbacks(self):
-        @self.app.callback(
-            [Output('page-content', 'children'),
-             Output('navbar', 'children')],
-            [Input('url', 'pathname')]
-        )
-        def update_page(pathname: str) -> tuple:
-            """
-            페이지 업데이트 콜백 - 직렬화 보장
-            """
-            try:
-                if pathname is None:
-                    pathname = '/'
-
-                # 페이지 컴포넌트 생성
-                page_content = self._get_page_content(pathname)
-                navbar = LayoutManager.create_navbar(pathname)
-
-                # 직렬화 가능성 검증
-                if not isinstance(page_content, (html.Div, dict, str)):
-                    raise ValueError("유효하지 않은 페이지 컴포넌트")
-
-                return page_content, navbar
-
-            except Exception as e:
-                logging.error(f"페이지 업데이트 오류: {str(e)}")
-                return html.Div("오류가 발생했습니다"), LayoutManager.create_navbar('/')
-
-    def run(self, host: str = "0.0.0.0", port: int = 8050, debug: bool = True):
-        """서버 실행"""
-        self.app.run_server(host=host, port=port, debug=debug)
-
-
-def main():
-    """애플리케이션 실행 엔트리포인트"""
-    try:
-        # 로깅 설정
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s [%(levelname)s] %(module)s - %(message)s'
-        )
-
-        # 애플리케이션 실행
-        logging.info("대시보드 서버 시작")
-        app = DashboardApp()
-        app.run()
-
-    except Exception as e:
-        logging.error(f"서버 실행 오류: {str(e)}")
-        raise
-
+@app.callback(
+    Output('driver-table', 'data'),
+    Input('driver-refresh', 'n_clicks')
+)
+def refresh_driver_data(n_clicks):
+    if n_clicks is None:
+        return dash.no_update
+    return dg.generate_driver_data().to_dict('records')
 
 if __name__ == '__main__':
-    main()
+    app.run_server(debug=True)

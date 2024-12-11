@@ -1,105 +1,181 @@
-
-from typing import Optional, Dict, Any, List
+# components.py
 from dash import html, dcc, dash_table
-import dash_bootstrap_components as dbc
-from dataclasses import dataclass
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
-@dataclass
-class SearchRefreshConfig:
-    """검색/새로고침 설정 구조체"""
-    placeholder: str = '검색어를 입력하세요'
-    refresh_text: str = '새로고침'
-    debounce_ms: int = 500
-    min_width: str = '130px'
+def create_stats_card(title, value, icon, color):
+    """
+    엔터프라이즈 통계 카드 컴포넌트
+    """
+    return html.Div(
+        className='card shadow-sm h-100',
+        children=[
+            html.Div(
+                className=f'card-body d-flex align-items-center border-start border-5 border-{color}',
+                children=[
+                    html.I(className=f'{icon} fs-1 text-{color} me-3'),
+                    html.Div([
+                        html.H6(title, className='card-subtitle text-muted'),
+                        html.H4(value, className='card-title mb-0 fw-bold')
+                    ])
+                ]
+            )
+        ]
+    )
 
-
-class DashComponents:
-    """고도화된 대시보드 컴포넌트 시스템"""
-
-    @staticmethod
-    def create_search_refresh_section(
-            search_id: str,
-            refresh_id: str,
-            config: Optional[SearchRefreshConfig] = None
-    ) -> html.Div:
+    def create_navbar():
         """
-        검색 및 새로고침 섹션 생성기
+        모던 네비게이션 바 컴포넌트
+        """
+        return html.Nav(
+            className='navbar navbar-expand-lg navbar-light bg-white shadow-sm',
+            children=[
+                html.Div([
+                    html.Span('🚚 Smart Delivery', className='navbar-brand fw-bold'),
+                    html.Div([
+                        dcc.Link('대시보드', href='/', className='nav-link mx-3'),
+                        dcc.Link('배송현황', href='/delivery', className='nav-link mx-3'),
+                        dcc.Link('드라이버현황', href='/driver', className='nav-link mx-3'),
+                    ], className='navbar-nav ms-auto')
+                ], className='container')
+            ]
+        )
+
+    def create_refresh_button(id_prefix):
+        """
+        새로고침 버튼 컴포넌트
+        """
+        return html.Button(
+            children=[
+                html.I(className='fas fa-sync-alt me-2'),
+                '새로고침'
+            ],
+            id=f'{id_prefix}-refresh',
+            className='btn btn-primary mb-4'
+        )
+
+    def create_data_table(df, id_prefix):
+        """
+        엔터프라이즈급 데이터 테이블 컴포넌트
 
         Args:
-            search_id (str): 검색 입력창 ID
-            refresh_id (str): 새로고침 버튼 ID
-            config (Optional[SearchRefreshConfig]): 커스텀 설정
-
-        Returns:
-            html.Div: 최적화된 검색/새로고침 섹션
+            df (pd.DataFrame): 표시할 데이터프레임
+            id_prefix (str): 테이블 컴포넌트의 고유 식별자
         """
-        if config is None:
-            config = SearchRefreshConfig()
-
-        button_style = {
-            'minWidth': config.min_width,
-            'height': '42px',
-            'fontSize': '14px',
-            'fontWeight': '500',
-            'borderRadius': '8px',
-            'backgroundColor': '#3b82f6',
-            'border': 'none',
-            'boxShadow': '0 2px 4px rgba(0,0,0,0.1)',
-            'color': 'white',
-            'display': 'flex',
-            'alignItems': 'center',
-            'justifyContent': 'center',
-            'gap': '8px',
-            'transition': 'all 0.2s ease',
-            'cursor': 'pointer'
+        # 컬럼별 스타일 정의
+        status_style = {
+            'if': {'column_id': 'Status'},
+            'minWidth': '100px',
+            'width': '100px',
+            'maxWidth': '100px',
+            'textAlign': 'center'
         }
 
-        input_style = {
+        time_columns = ['DepartTime', 'ArrivalTime', 'ETA']
+        time_styles = [
+            {
+                'if': {'column_id': col},
+                'minWidth': '120px',
+                'width': '120px',
+                'maxWidth': '120px',
+                'textAlign': 'center'
+            } for col in time_columns
+        ]
+
+        address_style = {
+            'if': {'column_id': 'Address'},
+            'minWidth': '300px',
             'width': '300px',
-            'height': '42px',
-            'fontSize': '14px',
-            'borderRadius': '8px',
-            'border': '1px solid #e2e8f0',
-            'padding': '0 16px',
-            'boxShadow': '0 1px 3px rgba(0,0,0,0.05)',
-            'transition': 'all 0.2s ease'
+            'maxWidth': '300px'
         }
 
-        container_style = {
-            'display': 'flex',
-            'alignItems': 'center',
-            'gap': '12px',
-            'marginBottom': '20px',
-            'width': '100%'
-        }
+        # 모든 스타일 결합
+        conditional_styles = [status_style] + time_styles + [address_style]
 
         return html.Div([
-            dbc.Button(
-                children=[
-                    html.I(className="fas fa-sync-alt", style={'marginRight': '8px'}),
-                    config.refresh_text
-                ],
-                id=refresh_id,
-                color="primary",
-                style=button_style,
-                className='refresh-button'
-            ),
-            dbc.Input(
-                id=search_id,
-                type="text",
-                placeholder=config.placeholder,
-                style=input_style,
-                className='search-input',
-                debounce=True
-            )
-        ], style=container_style)
+            # 테이블 컨트롤
+            html.Div([
+                html.Button(
+                    children=[
+                        html.I(className='fas fa-sync-alt me-2'),
+                        '새로고침'
+                    ],
+                    id=f'{id_prefix}-refresh',
+                    className='btn btn-primary mb-3'
+                ),
+            ], className='d-flex justify-content-between align-items-center'),
 
-    @staticmethod
-    def create_data_table(
-            table_id: str,
-            columns: List[Dict[str, str]],
-            data: List[Dict[str, Any]]
-    ) -> dash_table.DataTable:
-        """데이터 테이블 생성 (기존 구현 유지)"""
-        return dash_table.DataTable(...)  # 이전 구현 내용 유지
+            # 데이터 테이블
+            dash_table.DataTable(
+                id=f'{id_prefix}-table',
+                data=df.to_dict('records'),
+                columns=[{"name": i, "id": i} for i in df.columns],
+
+                # 페이지네이션 설정
+                page_action='native',
+                page_current=0,
+                page_size=15,
+
+                # 정렬 설정
+                sort_action='native',
+                sort_mode='multi',
+
+                # 테이블 스타일링
+                style_table={
+                    'overflowX': 'auto',
+                    'borderRadius': '8px',
+                    'boxShadow': '0 4px 12px rgba(0,0,0,0.1)',
+                    'border': '1px solid #eee',
+                    'backgroundColor': 'white'
+                },
+
+                # 헤더 스타일링
+                style_header={
+                    'backgroundColor': '#f8f9fa',
+                    'color': '#2c3e50',
+                    'fontWeight': '600',
+                    'textAlign': 'center',
+                    'padding': '15px',
+                    'borderBottom': '2px solid #dee2e6',
+                    'borderTop': 'none',
+                    'borderLeft': 'none',
+                    'borderRight': 'none',
+                    'fontSize': '14px'
+                },
+
+                # 셀 스타일링
+                style_cell={
+                    'textAlign': 'left',
+                    'padding': '15px',
+                    'fontFamily': 'Noto Sans KR, sans-serif',
+                    'fontSize': '14px',
+                    'color': '#2c3e50',
+                    'borderBottom': '1px solid #eee',
+                    'borderLeft': 'none',
+                    'borderRight': 'none'
+                },
+
+                # 데이터 행 스타일링
+                style_data={
+                    'whiteSpace': 'normal',
+                    'height': 'auto',
+                    'lineHeight': '1.5'
+                },
+
+                # 조건부 스타일링
+                style_data_conditional=[
+                    {
+                        'if': {'row_index': 'odd'},
+                        'backgroundColor': '#f8f9fa'
+                    },
+                    {
+                        'if': {'row_index': 'even'},
+                        'backgroundColor': 'white'
+                    }
+                ],
+
+                # 컬럼별 스타일링 적용
+                style_cell_conditional=conditional_styles
+            )
+        ], className='table-container shadow-sm')

@@ -1,98 +1,49 @@
-
-from dash import html, dcc, dash_table
-import dash_bootstrap_components as dbc
-from src.dash_views.components import DashComponents
-from src.dash_views.layouts import LayoutManager
-from src.dash_views.data_generate import DataGenerator
+# delivery_page.py
+from dash import html, dash_table
+import data_generator as dg
 
 
-def create_delivery_layout():
-    """
-    배송 현황 페이지 레이아웃 생성 - 최적화된 버전
+def create_delivery_page():
+    df = dg.generate_delivery_data()
 
-    Returns:
-        html.Div: 직렬화 가능한 Dash 컴포넌트 트리
-    """
-    try:
-        # 데이터 준비
-        df = DataGenerator.generate_delivery_data()
-        columns = DataGenerator.get_column_definitions()['delivery']['columns']
-
-        # 검색 및 새로고침 섹션 스타일
-        search_section_style = {
-            'display': 'flex',
-            'alignItems': 'center',
-            'gap': '12px',
-            'marginBottom': '20px',
-            'padding': '15px'
-        }
-
-        # 버튼 스타일
-        button_style = {
-            'backgroundColor': '#3b82f6',
-            'color': 'white',
-            'border': 'none',
-            'borderRadius': '8px',
-            'padding': '10px 20px',
-            'fontSize': '14px'
-        }
-
-        # 검색 입력 스타일
-        input_style = {
-            'width': '300px',
-            'padding': '10px',
-            'borderRadius': '8px',
-            'border': '1px solid #e2e8f0'
-        }
-
-        # 테이블 스타일
-        table_style = {
-            'overflowX': 'auto',
-            'marginTop': '20px'
-        }
-
-        return html.Div([
-            # 검색 및 필터 섹션
-            html.Div([
-                dbc.Button(
-                    "새로고침",
-                    id='delivery-refresh-button',
-                    color='primary',
-                    style=button_style,
-                    className='me-3'
-                ),
-                dbc.Input(
-                    id='delivery-search-input',
-                    type='text',
-                    placeholder='검색어를 입력하세요',
-                    style=input_style
-                )
-            ], style=search_section_style),
-
-            # 데이터 테이블
-            html.Div([
-                dash_table.DataTable(
-                    id='delivery-table',
-                    columns=columns,
-                    data=df.to_dict('records'),
-                    style_table={'overflowX': 'auto'},
-                    style_cell={
-                        'textAlign': 'left',
-                        'padding': '10px',
-                        'whiteSpace': 'normal'
-                    },
-                    style_header={
-                        'backgroundColor': '#f8f9fa',
-                        'fontWeight': 'bold',
-                        'border': '1px solid #dee2e6'
-                    },
-                    page_size=10,
-                    sort_action='native',
-                    filter_action='native'
-                )
-            ], style=table_style)
-        ])
-
-    except Exception as e:
-        logging.error(f"배송 현황 페이지 생성 오류: {str(e)}")
-        return html.Div("데이터 로딩 중 오류가 발생했습니다.", className="alert alert-danger")
+    return html.Div([
+        html.H2('배송 현황', className='mb-4'),
+        html.Button('새로고침', id='delivery-refresh', className='btn btn-primary mb-3'),
+        dash_table.DataTable(
+            id='delivery-table',
+            data=df.to_dict('records'),
+            columns=[{"name": i, "id": i, "selectable": True} for i in df.columns],
+            filter_action="native",  # 검색 기능 활성화
+            page_action="native",  # 페이징 기능 활성화
+            page_current=0,  # 현재 페이지
+            page_size=15,  # 페이지당 로우 수
+            sort_action="native",  # 정렬 기능 활성화
+            sort_mode="multi",  # 다중 정렬 허용
+            style_table={'overflowX': 'auto'},
+            style_cell={
+                'minWidth': '100px',
+                'maxWidth': '300px',
+                'whiteSpace': 'normal',
+                'textAlign': 'center',
+                'padding': '10px'
+            },
+            style_header={
+                'backgroundColor': '#f8f9fa',
+                'fontWeight': 'bold',
+                'border': '1px solid #ddd'
+            },
+            style_data={
+                'border': '1px solid #ddd'
+            },
+            style_data_conditional=[
+                {
+                    'if': {'row_index': 'odd'},
+                    'backgroundColor': '#f8f9fa'
+                }
+            ],
+            style_filter={
+                'backgroundColor': '#fff',
+                'border': '1px solid #ddd'
+            }
+        )
+    ])
