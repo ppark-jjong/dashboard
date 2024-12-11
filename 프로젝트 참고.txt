@@ -123,8 +123,7 @@ main/
 │   │   ├── vm_routes.py           # computeengine(gcp) 관련 API
 │   │   ├── bigquery_routes.py           # bigquery 관련 API
 │   │   ├── gcp_routes.py           # appengine + 기타 gcp 관련 API
-│   │   ├── dash_routes.py       # Dash 페이지 라우팅 통합
-│   │   ├── api_routes.py       # 기타 api 라우팅 통합 
+│   │   ├── dash_routes.py       # Dash 페이지 api 호출 라우팅 콜백 통합
 │   ├── services/                # 비즈니스 로직 및 데이터 처리
 │   │   ├── __init__.py
 │   │   ├── pubsub_service.py    # Pub/Sub 관련 로직
@@ -136,11 +135,15 @@ main/
 │   │   └── dash_service.py    # dash 관련 서비스 로직
 │   ├── dash_views/                    # Dash 웹 페이지 (뷰)
 │   │   ├── __init__.py
-│   │   ├── static/           # 공통 스타일
-│   │   │   ├── custom.css           # 공통 스타일
+│   │   ├── styles.py        # 공통 스타일
 │   │   ├── delivery_page.py     # 배송 현황 페이지
 │   │   ├── driver_page.py       # 기사 현황 페이지
-│   │   └── main_page.py         # 메인 페이지
+│   │   ├── components.py       # 공통 컴포넌트
+│   │   ├── layouts.py       # 공통 레이아웃
+│   │   ├── main_page.py         # 메인 페이지
+│   │   ├── custom.css 	# 공통 css
+│   │   ├── data_generate.py       # 데이터 생성
+
 │   ├── utils/                   # 공통 유틸리티
 │   │   ├── __init__.py
 │   │   ├── utils_main.py           # 공통 함수
@@ -192,5 +195,23 @@ spark-protobuf_2.12-3.4.1.jar
 spark-sql-kafka-0-10_2.12-3.4.1.jar
 spark-token-provider-kafka-0-10_2.12-3.4.1.jar
 ====================================================================================
-색코드
-#F01818 	회사 로고 색
+delivery 컬럼
+- **OperationType  :** 배송 or 회수
+- **Department :** 부서
+- **Driver**: 배송 기사
+- **DepartTime**: 출발 시간 (HH:mm 형식) 
+- **ArriveTime**: 도착 시간 (HH:mm 형식) 
+- **DeliveryDuration** : 배송 예상 소요시간 (00분 )
+- Status : 배송 상태 (대기, 배송중, 배송완료)
+- **DPS**: 배송 일련번호.
+- **ETA**: 예상 도착 시간 (yyyy-mm-dd HH:mm 형식).
+- **SLA**: 서비스 레벨 계약 정보
+- **Address**: 배송지 주소. (예시 30자 이상 한국주소)
+- **Recipient**: 수령인 이름
+
+driver 컬럼
+- **Name :**
+- **Status :**
+- **ArrivalTime :00분**
+- **VehicleType : 차량 종류**
+- Q’ty:

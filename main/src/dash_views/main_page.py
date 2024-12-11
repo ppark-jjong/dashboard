@@ -1,277 +1,171 @@
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objs as go
-import dash
+# main_page.py
+import logging
+from typing import Dict, Any
+from dash import html, dcc
 import dash_bootstrap_components as dbc
-from dash import html, dcc, callback, Input, Output
-import random
-from datetime import datetime, timedelta
-from delivery_page import generate_sample_delivery_data, delivery_layout
-from driver_page import generate_sample_rider_data, rider_layout
+import plotly.graph_objects as go
+from src.dash_views.components import DashComponents
+from datetime import datetime
+from src.dash_views.data_generate import DataGenerator
 
 
+class DashboardComponents:
+    """대시보드 공통 컴포넌트 관리 클래스"""
 
-# Sample data generation functions
-def generate_sample_delivery_data(n=100):
-    statuses = ['배송중', '배송완료', '대기']
-    weights = [0.3, 0.5, 0.2]  # 30% 배송중, 50% 완료, 20% 대기
-
-    data = {
-        '배송번호': [f'DEL{i:04d}' for i in range(1, n + 1)],
-        '상태': random.choices(statuses, weights=weights, k=n),
-        '시간': [(datetime.now() - timedelta(minutes=random.randint(0, 300))).strftime('%Y-%m-%d %H:%M:%S') for _ in
-               range(n)],
-        '주소': [f'서울시 테스트구 샘플동 {random.randint(1, 100)}번길 {random.randint(1, 100)}' for _ in range(n)]
-    }
-    return pd.DataFrame(data)
-
-
-def generate_sample_rider_data(n=30):
-    statuses = ['배송중', '대기중', '복귀중', '퇴근']
-    weights = [0.4, 0.2, 0.2, 0.2]  # 40% 배송중, 20% 대기중, 20% 복귀중, 20% 퇴근
-
-    data = {
-        '기사번호': [f'RID{i:03d}' for i in range(1, n + 1)],
-        '이름': [f'기사{i}' for i in range(1, n + 1)],
-        '상태': random.choices(statuses, weights=weights, k=n),
-        '배달건수': [random.randint(0, 20) for _ in range(n)]
-    }
-    return pd.DataFrame(data)
-
-
-def create_delivery_status_chart():
-    df = generate_sample_delivery_data()
-    status_counts = df['상태'].value_counts()
-
-    colors = {
-        '배송중': '#3b82f6',
-        '배송완료': '#10b981',
-        '대기': '#f43f5e'
-    }
-
-    # Create donut chart
-    fig = go.Figure(data=[go.Pie(
-        labels=status_counts.index,
-        values=status_counts.values,
-        hole=.7,
-        marker_colors=[colors[status] for status in status_counts.index]
-    )])
-
-    fig.update_layout(
-        title='배송 현황',
-        showlegend=True,
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="center",
-            x=0.5
-        ),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        margin=dict(t=60, l=0, r=0, b=0),
-        height=300
-    )
-
-    fig.add_annotation(
-        text=f'총 {len(df)}건',
-        x=0.5, y=0.5,
-        font=dict(size=20, color='#1f2937'),
-        showarrow=False
-    )
-
-    return fig
-
-
-def create_rider_status_chart():
-    df = generate_sample_rider_data()
-    status_counts = df['상태'].value_counts()
-
-    colors = {
-        '배송중': '#3b82f6',  # 파랑
-        '대기중': '#f59e0b',  # 주황
-        '복귀중': '#8b5cf6',  # 보라
-        '퇴근': '#6b7280'  # 회색
-    }
-
-    # Create donut chart
-    fig = go.Figure(data=[go.Pie(
-        labels=status_counts.index,
-        values=status_counts.values,
-        hole=.7,
-        marker_colors=[colors[status] for status in status_counts.index]
-    )])
-
-    fig.update_layout(
-        title='기사 현황',
-        showlegend=True,
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="center",
-            x=0.5
-        ),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        margin=dict(t=60, l=0, r=0, b=0),
-        height=300
-    )
-
-    fig.add_annotation(
-        text=f'총 {len(df)}명',
-        x=0.5, y=0.5,
-        font=dict(size=20, color='#1f2937'),
-        showarrow=False
-    )
-
-    return fig
-
-
-def create_status_list(data, type_name='배송'):
-    total = len(data)
-    status_counts = data['상태'].value_counts()
-
-    status_colors = {
-        # 배송 현황 색상
-        '배송중': '#3b82f6',
-        '배송완료': '#10b981',
-        '대기': '#f43f5e',
-        # 기사 현황 색상
-        '대기중': '#f59e0b',
-        '복귀중': '#8b5cf6',
-        '퇴근': '#6b7280'
-    }
-
-    return html.Div([
-        *[html.Div([
-            html.Div([
-                html.Div(style={
-                    'width': '12px',
-                    'height': '12px',
-                    'borderRadius': '50%',
-                    'backgroundColor': status_colors[status],
-                    'marginRight': '8px'
-                }),
-                html.Span(status, style={'color': '#4b5563'})
-            ], style={'display': 'flex', 'alignItems': 'center'}),
-            html.Div([
-                html.Span(f"{count:,}건" if type_name == '배송' else f"{count:,}명",
-                          style={'fontWeight': 'bold', 'marginRight': '8px'}),
-                html.Span(f"({count / total * 100:.1f}%)",
-                          style={'color': '#6b7280'})
+    @staticmethod
+    def create_stats_card(title: str, value: str, description: str) -> dbc.Card:
+        """통계 카드 컴포넌트 생성"""
+        return dbc.Card([
+            dbc.CardHeader(
+                title,
+                className="text-center",
+                style={"backgroundColor": "white", "border": "none"}
+            ),
+            dbc.CardBody([
+                html.H1(value, className="text-center text-primary"),
+                html.P(description, className="text-center text-muted")
             ])
-        ], style={
-            'display': 'flex',
-            'justifyContent': 'space-between',
-            'alignItems': 'center',
-            'padding': '12px 0',
-            'borderBottom': '1px solid #e5e7eb'
-        }) for status, count in status_counts.items()]
-    ], style={
-        'backgroundColor': 'white',
-        'padding': '16px',
-        'borderRadius': '8px',
-        'boxShadow': '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
-    })
+        ], className="mb-4", style={"border": "1px solid #eaeaea", "borderRadius": "8px"})
 
 
-def create_dashboard_layout():
-    return html.Div([
-        dbc.Row([
-            # Delivery Status Section
-            dbc.Col([
-                dbc.Card([
-                    dbc.CardHeader(
-                        html.H5("배송 현황", className="mb-0"),
-                        style={'backgroundColor': 'white', 'borderBottom': '1px solid #e5e7eb'}
-                    ),
-                    dbc.CardBody([
-                        dcc.Graph(
-                            id='delivery-status-chart',
-                            figure=create_delivery_status_chart(),
-                            config={'displayModeBar': False}
-                        ),
-                        html.Div(
-                            id='delivery-status-list',
-                            style={'marginTop': '20px'}
-                        )
-                    ])
-                ], style={'marginBottom': '1rem'})
-            ], width=6),
+class DashboardCharts:
+    """향상된 대시보드 차트 생성 클래스"""
 
-            # Rider Status Section
-            dbc.Col([
-                dbc.Card([
-                    dbc.CardHeader(
-                        html.H5("기사 현황", className="mb-0"),
-                        style={'backgroundColor': 'white', 'borderBottom': '1px solid #e5e7eb'}
-                    ),
-                    dbc.CardBody([
-                        dcc.Graph(
-                            id='rider-status-chart',
-                            figure=create_rider_status_chart(),
-                            config={'displayModeBar': False}
-                        ),
-                        html.Div(
-                            id='rider-status-list',
-                            style={'marginTop': '20px'}
-                        )
-                    ])
-                ], style={'marginBottom': '1rem'})
-            ], width=6)
-        ]),
+    @staticmethod
+    def create_delivery_status_pie() -> dcc.Graph:
+        """배송 상태 원그래프 생성"""
+        df = DataGenerator.generate_delivery_data()
+        status_counts = df['상태'].value_counts()
 
-        dcc.Interval(
-            id='interval-component',
-            interval=60 * 1000,  # 1분마다 업데이트
-            n_intervals=0
+        fig = go.Figure(data=[go.Pie(
+            labels=status_counts.index,
+            values=status_counts.values,
+            hole=.3,
+            marker=dict(colors=['#4CAF50', '#2196F3', '#FFC107']),
+            textinfo='percent+label',
+            textposition='inside',
+            hovertemplate="상태: %{label}<br>건수: %{value}<br>비율: %{percent}<extra></extra>"
+        )])
+
+        fig.update_layout(
+            title={
+                'text': '배송 상태 분포',
+                'y': 0.95,
+                'x': 0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'
+            },
+            showlegend=True,
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            ),
+            margin=dict(t=60, l=0, r=0, b=0),
+            height=300,
+            paper_bgcolor='white',
+            plot_bgcolor='white'
         )
-    ])
+
+        return dcc.Graph(figure=fig)
+
+    @staticmethod
+    def create_rider_status_pie() -> dcc.Graph:
+        """기사 상태 원그래프 생성"""
+        df = DataGenerator.generate_rider_data()
+        status_counts = df['상태'].value_counts()
+
+        fig = go.Figure(data=[go.Pie(
+            labels=status_counts.index,
+            values=status_counts.values,
+            hole=.3,
+            marker=dict(colors=['#3F51B5', '#E91E63', '#FF9800']),
+            textinfo='percent+label',
+            textposition='inside',
+            hovertemplate="상태: %{label}<br>인원: %{value}<br>비율: %{percent}<extra></extra>"
+        )])
+
+        fig.update_layout(
+            title={
+                'text': '기사 상태 분포',
+                'y': 0.95,
+                'x': 0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'
+            },
+            showlegend=True,
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            ),
+            margin=dict(t=60, l=0, r=0, b=0),
+            height=300,
+            paper_bgcolor='white',
+            plot_bgcolor='white'
+        )
+
+        return dcc.Graph(figure=fig)
 
 
-@callback(
-    [Output('delivery-status-chart', 'figure'),
-     Output('delivery-status-list', 'children')],
-    [Input('interval-component', 'n_intervals')]
-)
-def update_delivery_section(n):
-    df = generate_sample_delivery_data()
-    return create_delivery_status_chart(), create_status_list(df, '배송')
 
+def create_main_dashboard() -> html.Div:
+    """메인 대시보드 레이아웃 v2.0"""
+    try:
+        delivery_metrics = DataGenerator.get_delivery_metrics()
+        rider_metrics = DataGenerator.get_rider_metrics()
 
-@callback(
-    [Output('rider-status-chart', 'figure'),
-     Output('rider-status-list', 'children')],
-    [Input('interval-component', 'n_intervals')]
-)
-def update_rider_section(n):
-    df = generate_sample_rider_data()
-    return create_rider_status_chart(), create_status_list(df, '기사')
+        return html.Div([
+            dbc.Container([
+                # 메트릭스 카드 섹션
+                dbc.Row([
+                    dbc.Col(
+                        DashComponents.create_stats_card(
+                            "총 배송건수",
+                            str(delivery_metrics.total_count),
+                            "전체 배송 물량"
+                        ), width=12, lg=3
+                    ),
+                    dbc.Col(
+                        DashComponents.create_stats_card(
+                            "완료율",
+                            delivery_metrics.completion_rate,
+                            "배송 완료율"
+                        ), width=12, lg=3
+                    ),
+                    dbc.Col(
+                        DashComponents.create_stats_card(
+                            "활동 기사",
+                            str(rider_metrics['active_riders']),
+                            "현재 배송중"
+                        ), width=12, lg=3
+                    ),
+                    dbc.Col(
+                        DashComponents.create_stats_card(
+                            "평균 배송",
+                            rider_metrics['avg_deliveries'],
+                            "기사당 평균"
+                        ), width=12, lg=3
+                    )
+                ], className="mb-4"),
 
-
-# Main dashboard layout
-dashboard_layout = create_dashboard_layout()
-
-# Initialize the Dash app
-app = dash.Dash(
-    __name__,
-    external_stylesheets=[dbc.themes.BOOTSTRAP],
-    suppress_callback_exceptions=True
-)
-
-# Define the app layout with tabs
-app.layout = dbc.Container([
-    html.H1("배송 관리 대시보드",
-            className="text-center my-4",
-            style={'color': '#1f2937', 'fontWeight': 'bold'}),
-
-    dbc.Tabs([
-        dbc.Tab(dashboard_layout, label="대시보드"),
-        dbc.Tab(delivery_layout, label="배송 현황"),
-        dbc.Tab(rider_layout, label="기사 현황")
-    ], style={'marginBottom': '20px'})
-], fluid=True)
-
-if __name__ == '__main__':
-    app.run_server(debug=True)
+                # 차트 섹션
+                dbc.Row([
+                    dbc.Col(
+                        DashboardCharts.create_delivery_status_pie(),
+                        width=12, lg=6, className="mb-4"
+                    ),
+                    dbc.Col(
+                        DashboardCharts.create_rider_status_pie(),
+                        width=12, lg=6, className="mb-4"
+                    )
+                ])
+            ], fluid=True)
+        ], style={'backgroundColor': 'white', 'padding': '2rem'})
+    except Exception as e:
+        logging.error(f"대시보드 생성 중 오류 발생: {str(e)}")
+        return html.Div("데이터 로딩 중 오류가 발생했습니다.", className="text-danger p-3")
