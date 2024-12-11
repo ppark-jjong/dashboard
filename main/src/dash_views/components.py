@@ -1,181 +1,269 @@
 # components.py
 from dash import html, dcc, dash_table
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+import plotly.express as px
 
 
-def create_stats_card(title, value, icon, color):
-    """
-    엔터프라이즈 통계 카드 컴포넌트
-    """
-    return html.Div(
-        className='card shadow-sm h-100',
-        children=[
-            html.Div(
-                className=f'card-body d-flex align-items-center border-start border-5 border-{color}',
+def create_data_table(df, id_prefix):
+    """고급 데이터 테이블 컴포넌트"""
+    return html.Div([
+        # 컨트롤 바
+        html.Div([
+            html.Button(
                 children=[
-                    html.I(className=f'{icon} fs-1 text-{color} me-3'),
-                    html.Div([
-                        html.H6(title, className='card-subtitle text-muted'),
-                        html.H4(value, className='card-title mb-0 fw-bold')
-                    ])
-                ]
-            )
-        ]
-    )
-
-    def create_navbar():
-        """
-        모던 네비게이션 바 컴포넌트
-        """
-        return html.Nav(
-            className='navbar navbar-expand-lg navbar-light bg-white shadow-sm',
-            children=[
-                html.Div([
-                    html.Span('🚚 Smart Delivery', className='navbar-brand fw-bold'),
-                    html.Div([
-                        dcc.Link('대시보드', href='/', className='nav-link mx-3'),
-                        dcc.Link('배송현황', href='/delivery', className='nav-link mx-3'),
-                        dcc.Link('드라이버현황', href='/driver', className='nav-link mx-3'),
-                    ], className='navbar-nav ms-auto')
-                ], className='container')
-            ]
-        )
-
-    def create_refresh_button(id_prefix):
-        """
-        새로고침 버튼 컴포넌트
-        """
-        return html.Button(
-            children=[
-                html.I(className='fas fa-sync-alt me-2'),
-                '새로고침'
-            ],
-            id=f'{id_prefix}-refresh',
-            className='btn btn-primary mb-4'
-        )
-
-    def create_data_table(df, id_prefix):
-        """
-        엔터프라이즈급 데이터 테이블 컴포넌트
-
-        Args:
-            df (pd.DataFrame): 표시할 데이터프레임
-            id_prefix (str): 테이블 컴포넌트의 고유 식별자
-        """
-        # 컬럼별 스타일 정의
-        status_style = {
-            'if': {'column_id': 'Status'},
-            'minWidth': '100px',
-            'width': '100px',
-            'maxWidth': '100px',
-            'textAlign': 'center'
-        }
-
-        time_columns = ['DepartTime', 'ArrivalTime', 'ETA']
-        time_styles = [
-            {
-                'if': {'column_id': col},
-                'minWidth': '120px',
-                'width': '120px',
-                'maxWidth': '120px',
-                'textAlign': 'center'
-            } for col in time_columns
-        ]
-
-        address_style = {
-            'if': {'column_id': 'Address'},
-            'minWidth': '300px',
-            'width': '300px',
-            'maxWidth': '300px'
-        }
-
-        # 모든 스타일 결합
-        conditional_styles = [status_style] + time_styles + [address_style]
-
-        return html.Div([
-            # 테이블 컨트롤
+                    html.I(className='fas fa-sync-alt me-2'),
+                    '새로고침'
+                ],
+                id=f'{id_prefix}-refresh',
+                className='btn btn-primary'
+            ),
             html.Div([
-                html.Button(
-                    children=[
-                        html.I(className='fas fa-sync-alt me-2'),
-                        '새로고침'
-                    ],
-                    id=f'{id_prefix}-refresh',
-                    className='btn btn-primary mb-3'
+                dcc.Input(
+                    id=f'{id_prefix}-search',
+                    type='text',
+                    placeholder='검색어를 입력하세요',
+                    className='form-control me-2',
+                    n_submit=0,
+                    style={'width': '300px'}
                 ),
-            ], className='d-flex justify-content-between align-items-center'),
+                html.Button(
+                    html.I(className='fas fa-search'),
+                    id=f'{id_prefix}-search-btn',
+                    className='btn btn-outline-primary'
+                )
+            ], className='d-flex')
+        ], className='d-flex justify-content-between align-items-center mb-4'),
 
-            # 데이터 테이블
+        # 데이터 테이블
+        html.Div([
             dash_table.DataTable(
                 id=f'{id_prefix}-table',
                 data=df.to_dict('records'),
-                columns=[{"name": i, "id": i} for i in df.columns],
+                columns=[
+                    {"name": "OperationType", "id": "OperationType"},
+                    {"name": "Department", "id": "Department"},
+                    {"name": "DPS", "id": "DPS"},
+                    {"name": "SLA", "id": "SLA"},
+                    {"name": "ETA", "id": "ETA"},
+                    {"name": "Address", "id": "Address"},
+                    {"name": "Status", "id": "Status"},
+                    {"name": "DepartTime", "id": "DepartTime"},
+                    {"name": "Driver", "id": "Driver"},
+                    {"name": "Recipient", "id": "Recipient"}
+                ],
 
                 # 페이지네이션 설정
                 page_action='native',
                 page_current=0,
                 page_size=15,
 
-                # 정렬 설정
+                # 정렬
                 sort_action='native',
                 sort_mode='multi',
 
-                # 테이블 스타일링
+                # 테이블 기본 스타일
                 style_table={
-                    'overflowX': 'auto',
+                    'width': '100%',
+                    'border': '1px solid #e2e8f0',
                     'borderRadius': '8px',
-                    'boxShadow': '0 4px 12px rgba(0,0,0,0.1)',
-                    'border': '1px solid #eee',
-                    'backgroundColor': 'white'
+                    'overflow': 'hidden',
                 },
 
-                # 헤더 스타일링
+                # 헤더 스타일
                 style_header={
-                    'backgroundColor': '#f8f9fa',
-                    'color': '#2c3e50',
+                    'backgroundColor': '#f1f5f9',
+                    'color': '#334155',
                     'fontWeight': '600',
-                    'textAlign': 'center',
-                    'padding': '15px',
-                    'borderBottom': '2px solid #dee2e6',
-                    'borderTop': 'none',
-                    'borderLeft': 'none',
-                    'borderRight': 'none',
-                    'fontSize': '14px'
-                },
-
-                # 셀 스타일링
-                style_cell={
-                    'textAlign': 'left',
-                    'padding': '15px',
-                    'fontFamily': 'Noto Sans KR, sans-serif',
+                    'textAlign': 'center',  # 헤더 중앙 정렬
+                    'padding': '12px 16px',
+                    'borderBottom': '2px solid #e2e8f0',
+                    'borderRight': '1px solid #e2e8f0',
                     'fontSize': '14px',
-                    'color': '#2c3e50',
-                    'borderBottom': '1px solid #eee',
-                    'borderLeft': 'none',
-                    'borderRight': 'none'
                 },
 
-                # 데이터 행 스타일링
+                # 셀 기본 스타일
+                style_cell={
+                    'textAlign': 'center',  # 모든 셀 중앙 정렬
+                    'padding': '12px 16px',
+                    'fontSize': '14px',
+                    'fontFamily': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    'borderRight': '1px solid #e2e8f0',
+                    'borderBottom': '1px solid #e2e8f0',
+                },
+
+                # 데이터 셀 스타일
                 style_data={
-                    'whiteSpace': 'normal',
+                    'whiteSpace': 'nowrap',
                     'height': 'auto',
-                    'lineHeight': '1.5'
+                    'lineHeight': '1.5',
+                    'color': '#475569',
+                    'backgroundColor': 'white',
+                    'overflow': 'hidden',
+                    'textOverflow': 'ellipsis',
                 },
 
-                # 조건부 스타일링
+                # 조건부 셀 스타일
+                style_cell_conditional=[
+                    {'if': {'column_id': 'OperationType'}, 'width': '100px'},
+                    {'if': {'column_id': 'Department'}, 'width': '120px'},
+                    {'if': {'column_id': 'DPS'}, 'width': '120px'},
+                    {'if': {'column_id': 'SLA'}, 'width': '100px'},
+                    {'if': {'column_id': 'ETA'}, 'width': '150px'},
+                    {'if': {'column_id': 'Address'}, 'width': '400px', 'maxWidth': '400px'},
+                    {'if': {'column_id': 'Status'}, 'width': '100px'},
+                    {'if': {'column_id': 'DepartTime'}, 'width': '120px'},
+                    {'if': {'column_id': 'Driver'}, 'width': '120px'},
+                    {'if': {'column_id': 'Recipient'}, 'width': '120px'},
+                ],
+
+                # 조건부 데이터 스타일
                 style_data_conditional=[
                     {
                         'if': {'row_index': 'odd'},
-                        'backgroundColor': '#f8f9fa'
+                        'backgroundColor': '#f8fafc',
                     },
                     {
-                        'if': {'row_index': 'even'},
-                        'backgroundColor': 'white'
+                        'if': {'state': 'selected'},
+                        'backgroundColor': '#e2e8f0',
+                        'border': '1px solid #cbd5e1',
+                    },
+                    {
+                        'if': {'state': 'active'},
+                        'backgroundColor': '#e2e8f0',
+                        'border': '1px solid #cbd5e1',
                     }
                 ],
 
-                # 컬럼별 스타일링 적용
-                style_cell_conditional=conditional_styles
+                # CSS를 통한 페이지네이션 스타일링
+                css=[{
+                    'selector': '.dash-spreadsheet td div',
+                    'rule': '''
+                display: block !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                text-align: center !important;
+                margin: 0 auto !important;
+            '''
+                }],
             )
-        ], className='table-container shadow-sm')
+        ], className='table-responsive shadow-sm')
+    ], className='data-table-container bg-white rounded-3 p-4')
+
+
+def create_stats_card(title, value, icon=None, color='primary'):
+    """통계 카드 컴포넌트"""
+    colors = {
+        'primary': '#FFB3B3',  # 파스텔 빨간색
+        'secondary': '#B3D9FF',  # 파스텔 파란색
+        'warning': '#FFE5B3',  # 파스텔 노란색
+        'success': '#B3FFB3'  # 파스텔 초록색
+    }
+
+    return html.Div(
+        className=f'stats-card p-4 rounded-3 shadow-sm',
+        style={'backgroundColor': colors.get(color, colors['primary'])},
+        children=[
+            html.Div([
+                html.I(className=f'{icon} fa-2x mb-2', style={'color': '#4a5568'}) if icon else None,
+                html.H6(title, className='text-muted mb-2', style={'color': '#4a5568'}),
+                html.H4(value, className='mb-0 fw-bold', style={'color': '#2d3748'})
+            ], className='text-center')
+        ]
+    )
+
+
+def create_pie_chart(df, column, title):
+    """파이 차트 컴포넌트"""
+    status_counts = df[column].value_counts().reset_index()
+    status_counts.columns = ['상태', '건수']
+
+    colors = ['#FFB3B3', '#B3D9FF', '#FFE5B3', '#B3FFB3']  # 파스텔톤 색상
+
+    fig = px.pie(
+        status_counts,
+        values='건수',
+        names='상태',
+        title=title,
+        hole=0.4,
+        color_discrete_sequence=colors
+    )
+
+    fig.update_traces(
+        textposition='inside',
+        textinfo='percent+label',
+        hovertemplate="상태: %{label}<br>건수: %{value}<br>비율: %{percent}<extra></extra>"
+    )
+
+    fig.update_layout(
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        title={
+            'x': 0.5,
+            'xanchor': 'center',
+            'y': 0.95,
+            'yanchor': 'top',
+            'font': {
+                'size': 16,
+                'color': '#2d3748'
+            }
+        },
+        margin=dict(t=60, b=20, l=20, r=20),
+        showlegend=True,
+        legend={
+            'orientation': 'h',
+            'yanchor': 'bottom',
+            'y': -0.2,
+            'xanchor': 'center',
+            'x': 0.5
+        }
+    )
+
+    return html.Div([
+        dcc.Graph(
+            figure=fig,
+            config={
+                'displayModeBar': False,
+                'responsive': True
+            }
+        )
+    ], className='chart-container bg-white rounded-3 p-3 shadow-sm')
+
+
+def create_navbar():
+    """네비게이션 바 컴포넌트"""
+    return html.Nav(
+        className='navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top',
+        children=[
+            html.Div([
+                html.Span([
+                    html.I(className='fas fa-truck me-2'),
+                    'Smart Delivery'
+                ], className='navbar-brand fw-bold'),
+                html.Div([
+                    dcc.Link(
+                        html.Div([
+                            html.I(className='fas fa-chart-line me-2'),
+                            '대시보드'
+                        ]),
+                        href='/',
+                        className='nav-link mx-3 hover-effect'
+                    ),
+                    dcc.Link(
+                        html.Div([
+                            html.I(className='fas fa-box me-2'),
+                            '배송현황'
+                        ]),
+                        href='/delivery',
+                        className='nav-link mx-3 hover-effect'
+                    ),
+                    dcc.Link(
+                        html.Div([
+                            html.I(className='fas fa-users me-2'),
+                            '드라이버현황'
+                        ]),
+                        href='/driver',
+                        className='nav-link mx-3 hover-effect'
+                    ),
+                ], className='navbar-nav ms-auto')
+            ], className='container-fluid px-4')
+        ]
+    )
