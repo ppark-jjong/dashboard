@@ -5,60 +5,124 @@ from datetime import datetime, timedelta
 import random
 
 
-def search_dataframe(df, search_term):
-    """데이터프레임 검색 함수"""
-    if not search_term:
-        return df
-    return df[df.astype(str).apply(lambda x: x.str.contains(search_term, case=False)).any(axis=1)]
-
-
-def generate_delivery_data(n_rows=100):
-    current_time = datetime.now()
-    departments = ['물류1팀', '물류2팀', '물류3팀', '특송팀']
-    addresses = [
-        '서울특별시 강남구 테헤란로 123길 45 삼성물산빌딩 지하 1층 물류센터',
-        '경기도 성남시 분당구 판교역로 235번길 32 카카오엔터프라이즈 3층 창고',
-        '서울특별시 송파구 올림픽로 300 롯데월드몰 지하 2층 배송센터',
-        '인천광역시 연수구 컨벤시아대로 165 포스코타워 송도 지하 1층 창고',
-        '서울특별시 영등포구 여의대로 108 파크원타워 지하 3층 배송센터'
+def get_test_addresses():
+    """테스트용 주소 목록"""
+    return [
+        '서울시 강남구 테헤란로 123 강남빌딩 2층',
+        '서울시 송파구 올림픽로 300 롯데월드몰 지하 2층',
+        '경기도 성남시 분당구 판교역로 235 에이치스퀘어 N동 8층',
+        '서울시 영등포구 여의대로 108 파크원타워 3층',
+        '서울시 마포구 양화로 45 메세나폴리스 10층',
+        '경기도 하남시 미사대로 750 스타필드 하남 1층',
+        '인천시 연수구 센트럴로 123 상생프라자 5층',
+        '서울시 서초구 반포대로 235 반포쇼핑몰 B1',
+        '경기도 고양시 일산동구 호수로 731 웨스턴돔 3층',
+        '서울시 종로구 종로 33 그랑서울 2층'
     ]
 
-    # ETA를 현재 시각 기준으로 생성
-    eta_times = [current_time + timedelta(minutes=random.randint(10, 1440)) for _ in range(n_rows)]
-    eta_strings = [eta.strftime('%Y-%m-%d %H:%M') for eta in eta_times]
 
-    df = pd.DataFrame({
-        'OperationType': np.random.choice(['배송', '회수'], size=n_rows),
-        'Department': np.random.choice(departments, size=n_rows),
-        'DPS': [f'DPS{i:06d}' for i in range(1, n_rows + 1)],
-        'SLA': np.random.choice(['일반', '프리미엄', '익일'], size=n_rows),
-        'ETA': eta_strings,
-        'Address': np.random.choice(addresses, size=n_rows),
-        'Status': np.random.choice(['대기', '배송중', '배송완료'], size=n_rows),
-        'DepartTime': [(current_time + timedelta(minutes=random.randint(30, 180))).strftime('%H:%M') for _ in
-                       range(n_rows)],
-        'Driver': [f'드라이버_{i:03d}' for i in range(1, n_rows + 1)],
-        'Recipient': [f'수령인_{i:03d}' for i in range(1, n_rows + 1)]
-    })
-
-    # ETA를 datetime으로 변환하여 정렬에 사용
-    df['ETA_datetime'] = pd.to_datetime(df['ETA'])
-    df = df.sort_values('ETA_datetime')
-    df = df.drop('ETA_datetime', axis=1)
-
-    return df
+def get_test_recipients():
+    """테스트용 수령인 목록"""
+    return [
+        {'name': '김철수', 'contact': '010-1234-5678'},
+        {'name': '이영희', 'contact': '010-2345-6789'},
+        {'name': '박지성', 'contact': '010-3456-7890'},
+        {'name': '최민수', 'contact': '010-4567-8901'},
+        {'name': '정수연', 'contact': '010-5678-9012'},
+        {'name': '강민희', 'contact': '010-6789-0123'},
+        {'name': '윤서준', 'contact': '010-7890-1234'},
+        {'name': '임현주', 'contact': '010-8901-2345'},
+        {'name': '신동욱', 'contact': '010-9012-3456'},
+        {'name': '한미영', 'contact': '010-0123-4567'}
+    ]
 
 
-def generate_driver_data(n_rows=100):
+def get_available_drivers():
+    """테스트용 기사 목록"""
+    return [
+        {'id': 'DRV001', 'name': '김기사', 'status': '대기중'},
+        {'id': 'DRV002', 'name': '이기사', 'status': '운행중'},
+        {'id': 'DRV003', 'name': '박기사', 'status': '대기중'},
+        {'id': 'DRV004', 'name': '최기사', 'status': '운행중'},
+        {'id': 'DRV005', 'name': '정기사', 'status': '휴식중'}
+    ]
+
+
+def generate_delivery_data(n_rows=20):  # 기본값을 20개로 변경
+    """배송 데이터 생성"""
     current_time = datetime.now()
-    vehicle_types = ['1톤 트럭', '2.5톤 트럭', '오토바이', '다마스']
+    addresses = get_test_addresses()
+    recipients = get_test_recipients()
+    drivers = get_available_drivers()
+    departments = ['물류1팀', '물류2팀', '물류3팀', '특송팀']
+    status_options = ['대기', '배송중', '배송완료']
+    sla_options = ['일반', '프리미엄', '익일']
 
-    df = pd.DataFrame({
-        'Name': [f'드라이버_{i:03d}' for i in range(1, n_rows + 1)],
-        'Status': np.random.choice(['운행중', '대기중', '휴식', '수리중'], size=n_rows),
-        'ArrivalTime': [(current_time + timedelta(minutes=random.randint(10, 120))).strftime('%H:%M') for _ in
-                        range(n_rows)],
-        'VehicleType': np.random.choice(vehicle_types, size=n_rows),
-        'Qty': np.random.randint(1, 100, size=n_rows)
-    })
-    return df
+    data = []
+    for i in range(n_rows):
+        # 랜덤 시간 생성 (현재 시간 기준 ±6시간)
+        random_hours = random.uniform(-6, 6)
+        eta = current_time + timedelta(hours=random_hours)
+        depart_time = eta - timedelta(minutes=random.randint(30, 180))
+
+        recipient = random.choice(recipients)
+        driver = random.choice(drivers)
+
+        delivery = {
+            'DeliveryID': f'DEL{i + 1:04d}',
+            'OperationType': random.choice(['배송', '회수']),
+            'Department': random.choice(departments),
+            'DPS': f'DPS{i + 1:06d}',
+            'SLA': random.choice(sla_options),
+            'ETA': eta.strftime('%Y-%m-%d %H:%M'),
+            'Address': random.choice(addresses),
+            'Status': random.choice(status_options),
+            'DepartTime': depart_time.strftime('%H:%M'),
+            'Driver': driver['id'] if random.random() > 0.3 else None,  # 30% 확률로 미배정
+            'Recipient': recipient['name'],
+            'ContactNumber': recipient['contact']
+        }
+        data.append(delivery)
+
+    return pd.DataFrame(data)
+
+
+def search_dataframe(df, search_term, filters=None):
+    """데이터프레임 검색 및 필터링"""
+    if filters is None:
+        filters = {}
+
+    result_df = df.copy()
+
+    # 검색어 필터링
+    if search_term:
+        mask = pd.Series(False, index=df.index)
+        for col in df.columns:
+            mask |= df[col].astype(str).str.contains(str(search_term), case=False, na=False)
+        result_df = result_df[mask]
+
+    # ETA 필터
+    if filters.get('eta'):
+        hours = int(filters['eta'])
+        current_time = datetime.now()
+        result_df['ETA_datetime'] = pd.to_datetime(result_df['ETA'])
+        result_df = result_df[result_df['ETA_datetime'] <= (current_time + timedelta(hours=hours))]
+        result_df = result_df.drop('ETA_datetime', axis=1)
+
+    # 기타 필터 적용
+    for key in ['driver', 'sla', 'department']:
+        if filters.get(key):
+            result_df = result_df[result_df[key.title()] == filters[key]]
+
+    return result_df
+
+
+def save_delivery_data(data):
+    """배송 데이터 저장 (메모리에 임시 저장)"""
+    global current_delivery_data
+    current_delivery_data = data
+    return True
+
+
+# 전역 변수로 현재 데이터 저장
+current_delivery_data = None
