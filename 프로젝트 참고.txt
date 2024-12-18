@@ -128,7 +128,6 @@ main/
 │   │   ├── __init__.py
 │   │   ├── pubsub_service.py    # Pub/Sub 관련 로직
 │   │   ├── redis_service.py     # Redis 데이터 처리
-│   │   ├── gcs_service.py       # GCS 데이터 처리
 │   │   ├── bigquery_service.py  # BigQuery 데이터 처리
 │   │   ├── sheet_service.py   # 구글 시트 관련 로직
 │   │   ├── data_processing.py   # 데이터 전처리 및 변환 (PySpark 포함)
