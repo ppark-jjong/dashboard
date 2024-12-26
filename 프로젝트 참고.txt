@@ -81,6 +81,10 @@ gcloud auth configure-docker asia-northeast3-docker.pkg.dev  # Artifact Registry
 gcloud run deploy SERVICE_NAME --image=asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwah-data/${IMAGE_NAME}:latest --region=asia-northeast3  # 수동 배포
 
 
+pub/sub local test
+gcloud beta emulators pubsub start --host-port=localhost:8085
+$env:PUBSUB_EMULATOR_HOST = "localhost:8085"
+
 
 
 ====================================================================================
