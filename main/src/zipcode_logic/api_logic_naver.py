@@ -23,22 +23,20 @@ def get_naver_coordinates(address, client_id, client_secret):
     return None, None
 
 
-# 네이버 Direction5 API를 사용하여 모든 가능한 경로의 거리를 구합니다.
 def get_route_distances(start_x, start_y, end_x, end_y, client_id, client_secret):
     route_distances = {
         "실시간빠른길": None,
         "편한길": None,
         "최적경로": None,
         "무료우선": None,
-        "자동차전용제외": None
+        "second_highest": None  # 두 번째로 높은 값을 저장할 컬럼
     }
 
     options = [
         ("trafast", "실시간빠른길"),
         ("tracomfort", "편한길"),
         ("traoptimal", "최적경로"),
-        ("traavoidtoll", "무료우선"),
-        ("traavoidcaronly", "자동차전용제외")
+        ("traavoidtoll", "무료우선")
     ]
 
     url = "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving"
@@ -63,7 +61,7 @@ def get_route_distances(start_x, start_y, end_x, end_y, client_id, client_secret
                     distance = result["route"][option_code][0]["summary"]["distance"] / 1000
                     distance = round(distance, 2)
                     route_distances[option_name] = distance
-                    distances.append((distance, option_name))
+                    distances.append(distance)
                     print(f"- {option_name}: {distance}km")
 
             time.sleep(0.3)  # API 호출 간격
@@ -71,18 +69,10 @@ def get_route_distances(start_x, start_y, end_x, end_y, client_id, client_secret
         except Exception as e:
             print(f"경로 계산 중 오류 발생 ({option_name}): {str(e)}")
 
-    if distances:
-        min_route = min(distances, key=lambda x: x[0])
-        max_route = max(distances, key=lambda x: x[0])
-        route_distances['최단경로'] = min_route[0]
-        route_distances['최단경로_타입'] = min_route[1]
-        route_distances['최장경로'] = max_route[0]
-        route_distances['최장경로_타입'] = max_route[1]
-    else:
-        route_distances['최단경로'] = None
-        route_distances['최단경로_타입'] = None
-        route_distances['최장경로'] = None
-        route_distances['최장경로_타입'] = None
+    # 두 번째로 높은 값 계산
+    if len(distances) >= 2:
+        sorted_distances = sorted(distances, reverse=True)  # 내림차순 정렬
+        route_distances['second_highest'] = sorted_distances[1]  # 두 번째로 높은 값
 
     return route_distances
 
@@ -95,27 +85,25 @@ def process_new_rows(csv_file, start_address, client_id, client_secret,
     - max_rows: 최대 처리할 행의 수 (기본값: 6000)
     """
 
-    # (1) 원본 CSV 읽기
+    # (1) 원본 CSV 읽기 - index 컬럼 필수 확인
     df_original = pd.read_csv(csv_file)
     if 'index' not in df_original.columns:
-        print("[원본] 'index' 컬럼이 없어 새로 생성합니다.")
-        df_original.insert(0, 'index', range(len(df_original)))
-    df_original.set_index('index', inplace=True)
+        raise ValueError("CSV 파일에 'index' 컬럼이 없습니다. 데이터에 index 컬럼이 필요합니다.")
 
+    df_original.set_index('index', inplace=True)
     print(f"원본 CSV 로드 완료! 총 행 수: {len(df_original)}")
 
     # (2) 결과 CSV가 이미 존재한다면 불러옴
     if os.path.exists(output_file):
         df_result = pd.read_csv(output_file)
         if 'index' not in df_result.columns:
-            print("[결과] 'index' 컬럼이 없어 새로 생성합니다.")
-            df_result.insert(0, 'index', range(len(df_result)))
+            raise ValueError("결과 파일에 'index' 컬럼이 없습니다.")
         df_result.set_index('index', inplace=True)
         print(f"기존 결과 CSV 로드: {output_file}, shape={df_result.shape}")
     else:
+        # 변경된 컬럼 구성
         df_result = pd.DataFrame(columns=df_original.columns.tolist() + [
-            "실시간빠른길", "편한길", "최적경로", "무료우선", "자동차전용제외",
-            "최단경로", "최단경로_타입", "최장경로", "최장경로_타입"
+            "실시간빠른길", "편한길", "최적경로", "무료우선", "second_highest"
         ])
         df_result.index.name = 'index'
         print(f"결과 CSV가 없어 새로 생성 예정: {output_file}")
@@ -164,11 +152,7 @@ def process_new_rows(csv_file, start_address, client_id, client_secret,
                 "편한길": None,
                 "최적경로": None,
                 "무료우선": None,
-                "자동차전용제외": None,
-                "최단경로": None,
-                "최단경로_타입": None,
-                "최장경로": None,
-                "최장경로_타입": None
+                "second_highest": None
             }
 
         data = row.to_dict()
@@ -176,9 +160,8 @@ def process_new_rows(csv_file, start_address, client_id, client_secret,
         data['index'] = idx
         new_results.append(data)
 
-        # 중간 저장 로직 추가 (매 100행마다)
+        # 중간 저장 로직 (매 100행마다)
         if count % 100 == 0:
-            # 임시 DataFrame 생성 및 저장
             df_temp = pd.DataFrame(new_results)
             df_temp.set_index('index', inplace=True)
             df_interim = pd.concat([df_result, df_temp], axis=0)
@@ -214,7 +197,7 @@ if __name__ == "__main__":
             client_id=NAVER_CLIENT_ID,
             client_secret=NAVER_CLIENT_SECRET,
             output_file="../../data/zipcode_address_result.csv",
-            max_rows=6000  # 최대 6000행만 처리
+            max_rows=6000
         )
         print("\n🎉 실행 완료!")
         print(df_final.tail(5))
