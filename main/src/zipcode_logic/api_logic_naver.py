@@ -88,19 +88,18 @@ def get_route_distances(start_x, start_y, end_x, end_y, client_id, client_secret
 
 
 def process_new_rows(csv_file, start_address, client_id, client_secret,
-                     output_file="../../data/zipcode_address_result.csv"):
+                     output_file="../../data/zipcode_address_result.csv", max_rows=6000):
     """
     - 이미 완료된 행들은 다시 계산하지 않고, 새로 들어온 행만 계산.
     - 새 행 결과는 기존 result 파일(있다면)에 '추가(append)'.
+    - max_rows: 최대 처리할 행의 수 (기본값: 6000)
     """
 
     # (1) 원본 CSV 읽기
     df_original = pd.read_csv(csv_file)
-    # 'index' 컬럼이 없다면 직접 만들어줌
     if 'index' not in df_original.columns:
         print("[원본] 'index' 컬럼이 없어 새로 생성합니다.")
         df_original.insert(0, 'index', range(len(df_original)))
-    # 'index'를 실제 DataFrame 인덱스로 설정
     df_original.set_index('index', inplace=True)
 
     print(f"원본 CSV 로드 완료! 총 행 수: {len(df_original)}")
@@ -108,14 +107,12 @@ def process_new_rows(csv_file, start_address, client_id, client_secret,
     # (2) 결과 CSV가 이미 존재한다면 불러옴
     if os.path.exists(output_file):
         df_result = pd.read_csv(output_file)
-        # 기존 result에 'index'가 없다면 만들어줌
         if 'index' not in df_result.columns:
             print("[결과] 'index' 컬럼이 없어 새로 생성합니다.")
             df_result.insert(0, 'index', range(len(df_result)))
         df_result.set_index('index', inplace=True)
         print(f"기존 결과 CSV 로드: {output_file}, shape={df_result.shape}")
     else:
-        # 없다면 빈 DataFrame 준비 (컬럼만 미리 세팅)
         df_result = pd.DataFrame(columns=df_original.columns.tolist() + [
             "실시간빠른길", "편한길", "최적경로", "무료우선", "자동차전용제외",
             "최단경로", "최단경로_타입", "최장경로", "최장경로_타입"
@@ -123,11 +120,11 @@ def process_new_rows(csv_file, start_address, client_id, client_secret,
         df_result.index.name = 'index'
         print(f"결과 CSV가 없어 새로 생성 예정: {output_file}")
 
-    # (3) 기존 결과 CSV에서 가장 큰 인덱스를 확인 => 그보다 큰 인덱스를 새로 계산
+    # (3) 기존 결과 CSV에서 가장 큰 인덱스를 확인
     if len(df_result) > 0:
         max_index_done = df_result.index.max()
     else:
-        max_index_done = -1  # 아무 것도 없으면 -1로 해서 0 이상부터 처리
+        max_index_done = -1
     print(f"이미 완료된 행의 최대 index: {max_index_done}")
 
     # (4) 새로 계산해야 할 행만 필터링
@@ -135,6 +132,11 @@ def process_new_rows(csv_file, start_address, client_id, client_secret,
     if len(df_new) == 0:
         print("새로 계산할 행이 없습니다. (이미 모든 행이 계산됨)")
         return df_result
+
+    # 최대 처리 행수 제한 적용
+    if len(df_new) > max_rows:
+        print(f"⚠️ {len(df_new)}개 행 중 {max_rows}개만 처리합니다.")
+        df_new = df_new.iloc[:max_rows]
 
     print(f"새로 계산할 행 수: {len(df_new)}")
 
@@ -169,18 +171,25 @@ def process_new_rows(csv_file, start_address, client_id, client_secret,
                 "최장경로_타입": None
             }
 
-        # row + 계산결과 합치기
         data = row.to_dict()
         data.update(routes)
-        data['index'] = idx  # 인덱스 번호도 넣어줌
+        data['index'] = idx
         new_results.append(data)
+
+        # 중간 저장 로직 추가 (매 100행마다)
+        if count % 100 == 0:
+            # 임시 DataFrame 생성 및 저장
+            df_temp = pd.DataFrame(new_results)
+            df_temp.set_index('index', inplace=True)
+            df_interim = pd.concat([df_result, df_temp], axis=0)
+            df_interim.to_csv(output_file, index=True, encoding='utf-8-sig')
+            print(f"✓ 중간 저장 완료 (처리된 행: {count}/{len(df_new)})")
 
     # (7) 새로 계산한 행들 => DataFrame으로 만들기
     df_new_result = pd.DataFrame(new_results)
     df_new_result.set_index('index', inplace=True)
 
     # (8) 기존 df_result에 수직 결합(append)
-    #     => 이미 있는 index와 겹치지 않으므로 단순 concat이면 됨
     df_result = pd.concat([df_result, df_new_result], axis=0)
     print(f"\n✅ {len(df_new_result)}건의 행을 결과에 추가했습니다. 총 결과 shape={df_result.shape}")
 
@@ -193,7 +202,7 @@ def process_new_rows(csv_file, start_address, client_id, client_secret,
 
 if __name__ == "__main__":
     # 설정
-    CSV_FILE = "../../data/zipcode_address.csv"  # 원본 CSV (새 주소 포함)
+    CSV_FILE = "../../data/zipcode_address.csv"
     START_ADDRESS = "서울 구로구 부광로 96-5"
     NAVER_CLIENT_ID = "2qxc1i2ijz"
     NAVER_CLIENT_SECRET = "J9UWJv3QUeIPgwFNGOPMLqgcfatqh83uPTf8vXmG"
@@ -204,9 +213,10 @@ if __name__ == "__main__":
             start_address=START_ADDRESS,
             client_id=NAVER_CLIENT_ID,
             client_secret=NAVER_CLIENT_SECRET,
-            output_file="../../data/zipcode_address_result.csv"
+            output_file="../../data/zipcode_address_result.csv",
+            max_rows=6000  # 최대 6000행만 처리
         )
         print("\n🎉 실행 완료!")
-        print(df_final.tail(5))  # 마지막 5행만 미리보기
+        print(df_final.tail(5))
     except Exception as e:
         print(f"❌ 오류 발생: {str(e)}")
