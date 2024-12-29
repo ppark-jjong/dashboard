@@ -49,7 +49,7 @@ redis-server.exe
 redis-server.exe --port 6380
 
 포트번호로 포트 점유 확인
-netstat -ano | findstr :6379
+
 
 PID를 통해 프로세스 애플리케이션 확인
 tasklist | findstr 8444
@@ -80,10 +80,6 @@ docker push asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwahkr-artifactregis
 gcloud auth configure-docker asia-northeast3-docker.pkg.dev  # Artifact Registry Docker 인증
 gcloud run deploy SERVICE_NAME --image=asia-northeast3-docker.pkg.dev/${PROJECT_ID}/teckwah-data/${IMAGE_NAME}:latest --region=asia-northeast3  # 수동 배포
 
-
-pub/sub local test
-gcloud beta emulators pubsub start --host-port=localhost:8085
-$env:PUBSUB_EMULATOR_HOST = "localhost:8085"
 
 
 
