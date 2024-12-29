@@ -38,7 +38,7 @@ def get_route_distances(start_x, start_y, end_x, end_y, client_id, client_secret
         ("traoptimal", "최적경로"),
         ("traavoidtoll", "무료우선")
     ]
-
+  
     url = "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving"
     headers = {
         "X-NCP-APIGW-API-KEY-ID": client_id,
