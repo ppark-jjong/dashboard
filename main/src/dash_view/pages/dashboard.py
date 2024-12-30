@@ -3,32 +3,7 @@ import dash_bootstrap_components as dbc
 from .callbacks.dashboard_callbacks import *
 from .mock_data import generate_sample_data
 
-
 register_page(__name__, path='/dashboard')
-
-
-def create_pagination():
-    return html.Div([
-        dbc.Row([
-            dbc.Col(
-                html.Div([
-                    dbc.Pagination(
-                        id="table-pagination",
-                        max_value=10,
-                        first_last=True,
-                        previous_next=True,
-                        active_page=1,
-                        size="sm"
-                    ),
-                    html.Span(
-                        id="pagination-info",
-                        className="ms-2 text-muted"
-                    )
-                ], className="d-flex align-items-center justify-content-center")
-            )
-        ])
-    ], className="mt-3")
-
 
 def create_filter_controls():
     return html.Div([
@@ -105,7 +80,7 @@ def create_filter_controls():
                 ], className="d-flex justify-content-end align-items-end h-100")
             ], width=4),
         ]),
-    ], className="mb-4")
+    ], className="mb-4 bg-white p-4 rounded shadow-sm")
 
 
 def layout():
@@ -140,48 +115,93 @@ def layout():
             style={"position": "fixed", "top": 66, "right": 10, "width": 350},
         ),
 
-        dash_table.DataTable(
-            id='delivery-table',
-            columns=[
-                {'name': '부서', 'id': 'department'},
-                {'name': '작업타입', 'id': 'type'},
-                {'name': '배송기사', 'id': 'driver'},
-                {'name': 'DPS', 'id': 'dps'},
-                {'name': 'SLA', 'id': 'sla'},
-                {'name': 'ETA', 'id': 'eta'},
-                {'name': '상태', 'id': 'status'},
-                {'name': '주소', 'id': 'address'},
-                {'name': '수령인', 'id': 'recipient'}
-            ],
-            data=data,
-            style_table={
-                'overflowX': 'auto',
-                'borderRadius': '8px',
-                'boxShadow': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-            },
-            style_cell={
-                'textAlign': 'left',
-                'padding': '16px',
-                'fontFamily': '"Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-                'fontSize': '14px',
-                'color': '#1f2937',
-                'border': 'none'
-            },
-            style_header={
-                'backgroundColor': '#f8fafc',
-                'fontWeight': '600',
-                'padding': '16px',
-                'color': '#475569',
-                'border': 'none',
-                'borderBottom': '2px solid #e2e8f0'
-            },
-            page_size=15,
-            row_selectable='multi',
-            selected_rows=[],
-            page_action='native',
-            sort_action='native',
-            sort_mode='multi',
-        ),
+        html.Div([
+            dash_table.DataTable(
+                id='delivery-table',
+                columns=[
+                    {'name': '부서', 'id': 'department'},
+                    {'name': '작업타입', 'id': 'type'},
+                    {'name': '배송기사', 'id': 'driver'},
+                    {'name': 'DPS', 'id': 'dps'},
+                    {'name': 'SLA', 'id': 'sla'},
+                    {'name': 'ETA', 'id': 'eta'},
+                    {'name': '상태', 'id': 'status', 'presentation': 'markdown'},
+                    {'name': '주소', 'id': 'address'},
+                    {'name': '수령인', 'id': 'recipient'}
+                ],
+                data=data,
+                style_table={
+                    'overflowX': 'auto',
+                    'borderRadius': '8px',
+                    'boxShadow': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                },
+                style_cell={
+                    'textAlign': 'left',
+                    'padding': '16px',
+                    'fontFamily': '"Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+                    'fontSize': '14px',
+                    'color': '#1f2937',
+                    'border': 'none',
+                    'maxWidth': '400px',
+                    'overflow': 'hidden',
+                    'textOverflow': 'ellipsis'
+                },
+                style_header={
+                    'backgroundColor': '#f8fafc',
+                    'fontWeight': '600',
+                    'padding': '16px',
+                    'color': '#475569',
+                    'border': 'none',
+                    'borderBottom': '2px solid #e2e8f0'
+                },
+                style_data={
+                    'whiteSpace': 'normal',
+                    'height': 'auto',
+                },
+                style_data_conditional=[
+                    {
+                        'if': {'row_index': 'odd'},
+                        'backgroundColor': '#f8fafc',
+                    },
+                    {
+                        'if': {'state': 'selected'},
+                        'backgroundColor': '#e8f2ff',
+                        'border': '1px solid #2563eb',
+                    }
+                ],
+                css=[{
+                    'selector': '.dash-table-pagination',
+                    'rule': '''
+                        padding: 16px;
+                        background-color: #f8fafc;
+                        border-top: 1px solid #e2e8f0;
+                    '''
+                }, {
+                    'selector': '.dash-table-pagination .previous-next-container button',
+                    'rule': '''
+                        margin: 0 4px;
+                        padding: 4px 8px;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 4px;
+                        background-color: white;
+                        color: #1f2937;
+                    '''
+                }, {
+                    'selector': '.dash-table-pagination .previous-next-container button:hover',
+                    'rule': '''
+                        background-color: #f1f5f9;
+                        color: #2563eb;
+                    '''
+                }],
+                page_size=15,
+                page_current=0,
+                row_selectable='multi',
+                selected_rows=[],
+                page_action='native',
+                sort_action='native',
+                sort_mode='multi',
+            )
+        ], className="bg-white rounded shadow-sm p-4"),
 
         dbc.Modal([
             dbc.ModalHeader(dbc.ModalTitle("배송 상세 정보")),

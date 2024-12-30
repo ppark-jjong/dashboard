@@ -54,12 +54,12 @@ def create_navbar():
                 dbc.NavItem(dbc.NavLink("Dashboard", href="/dashboard")),
                 dbc.NavItem(dbc.NavLink("KPI", href="/kpi")),
             ], className="ms-auto me-3"),
-            # 알림 드롭다운
+            # 알림 드롭다운 부분 수정
             dbc.Nav([
                 dbc.DropdownMenu(
                     children=notification_items,
                     label=html.Span([
-                        html.I(className="fas fa-bell"),
+                        html.I(className="fas fa-bell", style={"color": "white"}),  # 색상을 하얀색으로 변경
                         dbc.Badge(
                             "3",
                             color="danger",
@@ -68,12 +68,11 @@ def create_navbar():
                         ),
                     ], className="position-relative"),
                     align_end=True,
-                    className="me-2",
-                    toggle_style={"color": "#475569"}
+                    className="me-2"
                 ),
             ], navbar=True)
         ], fluid=True),
-        color="light",
+        dark=True,  # 어두운 테마 적용으로 하얀색 아이콘이 잘 보이도록
         className="mb-4 shadow-sm"
     )
 

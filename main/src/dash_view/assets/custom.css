@@ -218,3 +218,26 @@ h2 {
     color: var(--text-primary);
     background-color: var(--bg-white);
 }
+
+.pagination-bar .page-item .page-link {
+    border-radius: 4px;
+    margin: 0 2px;
+    color: #1e293b;
+    border: 1px solid #e2e8f0;
+}
+
+.pagination-bar .page-item.active .page-link {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    color: white;
+}
+
+.pagination-bar .page-item .page-link:hover {
+    background-color: #f1f5f9;
+    color: #2563eb;
+}
+
+.pagination-bar .page-item.disabled .page-link {
+    color: #94a3b8;
+    background-color: #f8fafc;
+}

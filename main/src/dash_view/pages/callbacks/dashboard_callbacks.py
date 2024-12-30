@@ -1,3 +1,4 @@
+#dashboard_callbacks.py
 from dash import callback, Output, Input, State, no_update, ctx, html
 from datetime import datetime, timedelta
 import dash_bootstrap_components as dbc
@@ -94,14 +95,21 @@ def filter_and_sort_table_data(dept_filter, status_filter, driver_filter, search
 @callback(
     [Output('table-pagination', 'max_value'),
      Output('pagination-info', 'children')],
-    [Input('delivery-table', 'data')]
+    [Input('delivery-table', 'data'),
+     Input('delivery-table', 'page_current')]
 )
-def update_pagination(data):
+def update_pagination(data, current_page):
     if not data:
         return 1, ""
+
     page_size = 15
-    total_pages = (len(data) + page_size - 1) // page_size
-    return total_pages, f"총 {len(data)}건"
+    total = len(data)
+    current_page = current_page or 0
+    start = (current_page) * page_size + 1
+    end = min((current_page + 1) * page_size, total)
+    total_pages = (total + page_size - 1) // page_size
+
+    return total_pages, f"{start:,}-{end:,} / 총 {total:,}건"
 
 
 @callback(
