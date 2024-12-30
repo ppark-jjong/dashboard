@@ -78,7 +78,7 @@ def get_route_distances(start_x, start_y, end_x, end_y, client_id, client_secret
 
 
 def process_new_rows(csv_file, start_address, client_id, client_secret,
-                     output_file="../../data/zipcode_address_result.csv", max_rows=6000):
+                     output_file="C:/MyMain/dashboard/main/data/zipcode_address_result.csv", max_rows=6000):
     """
     - 이미 완료된 행들은 다시 계산하지 않고, 새로 들어온 행만 계산.
     - 새 행 결과는 기존 result 파일(있다면)에 '추가(append)'.
@@ -185,7 +185,7 @@ def process_new_rows(csv_file, start_address, client_id, client_secret,
 
 if __name__ == "__main__":
     # 설정
-    CSV_FILE = "../../data/zipcode_address.csv"
+    CSV_FILE = "C:/MyMain/dashboard/main/data/zipcode_address.csv"
     START_ADDRESS = "서울 구로구 부광로 96-5"
     NAVER_CLIENT_ID = "2qxc1i2ijz"
     NAVER_CLIENT_SECRET = "J9UWJv3QUeIPgwFNGOPMLqgcfatqh83uPTf8vXmG"
@@ -196,7 +196,7 @@ if __name__ == "__main__":
             start_address=START_ADDRESS,
             client_id=NAVER_CLIENT_ID,
             client_secret=NAVER_CLIENT_SECRET,
-            output_file="../../data/zipcode_address_result.csv",
+            output_file="C:/MyMain/dashboard/main/data/zipcode_address_result.csv",
             max_rows=6000
         )
         print("\n🎉 실행 완료!")
