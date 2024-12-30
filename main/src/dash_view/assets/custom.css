@@ -1,0 +1,220 @@
+/* assets/custom.css */
+:root {
+    /* Colors */
+    --primary-blue: #0f172a;
+    --secondary-blue: #1e293b;
+    --accent-blue: #2563eb;
+    --hover-blue: #3b82f6;
+    
+    /* Text Colors */
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --text-light: #94a3b8;
+    
+    /* Background Colors */
+    --bg-white: #ffffff;
+    --bg-light: #f8fafc;
+    --bg-lighter: #f1f5f9;
+    
+    /* Border Colors */
+    --border-light: #e2e8f0;
+    --border-lighter: #f1f5f9;
+    
+    /* Status Colors */
+    --status-wait-bg: #fef9c3;
+    --status-wait-text: #854d0e;
+    --status-progress-bg: #dbeafe;
+    --status-progress-text: #1e40af;
+    --status-complete-bg: #dcfce7;
+    --status-complete-text: #166534;
+    --status-issue-bg: #fee2e2;
+    --status-issue-text: #991b1b;
+}
+
+/* Typography */
+body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    color: var(--text-primary);
+    line-height: 1.5;
+    background-color: var(--bg-light);
+}
+
+h1 {
+    font-size: 1.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Navbar Styles */
+.navbar {
+    background-color: var(--bg-white);
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid var(--border-light);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-brand {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-blue) !important;
+}
+
+.nav-link {
+    font-size: 0.938rem;
+    font-weight: 500;
+    color: var(--text-secondary) !important;
+    padding: 0.75rem 1rem !important;
+    margin: 0 0.25rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    color: var(--accent-blue) !important;
+    background-color: var(--bg-lighter);
+}
+
+.nav-link.active {
+    color: var(--accent-blue) !important;
+    background-color: var(--bg-lighter);
+    font-weight: 600;
+}
+
+/* Table Styles */
+.custom-table th {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 1rem;
+    background-color: var(--bg-light);
+}
+
+.custom-table td {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    padding: 1rem;
+}
+
+/* Search Input */
+.search-input {
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-light);
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Buttons */
+.btn {
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.625rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--accent-blue);
+    border-color: var(--accent-blue);
+}
+
+.btn-primary:hover {
+    background-color: var(--hover-blue);
+    border-color: var(--hover-blue);
+}
+
+/* Modal Styles */
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.modal-body label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+/* Status Badge Styles */
+.status-badge {
+    font-size: 0.813rem;
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+}
+
+/* Pagination */
+.pagination {
+    margin: 0;
+}
+
+.pagination .page-link {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    color: var(--text-secondary);
+    border-color: var(--border-light);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: white;
+}
+
+.pagination .page-link:hover {
+    background-color: var(--bg-lighter);
+    color: var(--accent-blue);
+    border-color: var(--border-light);
+}
+
+/* Table Controls */
+.table-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Custom Select */
+.form-select {
+    font-size: 0.875rem;
+    padding: 0.625rem 2.5rem 0.625rem 0.75rem;
+    border-radius: 0.5rem;
+    border-color: var(--border-light);
+}
+
+.form-select:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Toast Messages */
+.toast {
+    font-size: 0.875rem;
+    background-color: var(--bg-white);
+    border: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.toast-header {
+    font-size: 0.938rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background-color: var(--bg-white);
+}

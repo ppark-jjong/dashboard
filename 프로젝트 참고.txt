@@ -124,29 +124,6 @@ main/
 ├── .gitignore                   # Git 무시 파일
 
 
-
-main
-│── data/
-│   ├── data1.json
-│   ├── data2.json
-│   ├── data3.json
-│   ├── data4.json
-│   ├── data5.json
-│── docker/
-│   ├── DockerFile	
-│   ├── docker-compose.yaml	
-│── src/
-│   ├──apitest.py
-│   ├── dashboard.py
-│   ├── test-servicetest.py
-│   │── main.py
-│── static/
-│   ├──dashboard.css
-│   ├── dashsboard.js
-│── template/
-│   ├──dashboard.html
-
-
 ====================================================================================
 8. 추가 JAR 파일 목록
 
