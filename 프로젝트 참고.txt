@@ -133,21 +133,10 @@ spark-protobuf_2.12-3.4.1.jar
 spark-sql-kafka-0-10_2.12-3.4.1.jar
 spark-token-provider-kafka-0-10_2.12-3.4.1.jar
 ====================================================================================
-delivery 컬럼
-- **OperationType  :** 배송 or 회수
-- **Department :** 부서
-- **DPS**: 배송 일련번호.
-- **SLA**: 서비스 레벨 계약 정보
-- **ETA**: 예상 도착 시간 (yyyy-mm-dd HH:mm 형식).
-- **Address**: 배송지 주소. (예시 30자 이상 한국주소)
-- Status : 배송 상태 (대기, 배송중, 배송완료)
-- **DepartTime**: 출발 시간 (HH:mm 형식) 
-- **Driver**: 배송 기사
-- **Recipient**: 수령인 이름
 
-driver 컬럼
-- **Name :**
-- **Status :**
-- **ArrivalTime :00분**
-- **VehicleType : 차량 종류**
-- Qty:
+
+0 = new / allocated
+1 = dispatch
+2 = pod / received
+3 = cancel / unfulfilled
+
