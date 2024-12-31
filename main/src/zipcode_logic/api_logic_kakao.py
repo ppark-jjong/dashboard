@@ -74,7 +74,7 @@ def get_kakao_route_distances(start_x, start_y, end_x, end_y, rest_api_key):
             resp = requests.get(base_url, headers=headers, params=params)
             if resp.status_code == 200:
                 data = resp.json()
-                routes = data.get("routes")
+                routes = data.get("api")
                 if routes and len(routes) > 0:
                     distance_m = routes[0]["summary"]["distance"]  # 미터 단위
                     distance_km = round(distance_m / 1000, 2)

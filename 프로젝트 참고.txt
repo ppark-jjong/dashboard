@@ -108,21 +108,70 @@ uvicorn src.api.main_api:app --host 0.0.0.0 --port 8080
 
 main/
 │
-├── src/                         # 소스 코드
-│   ├── model/                        # 데이터 계층 (저장소별 데이터 관리)
-│   │    ├── mysql_model.py
-│   ├── routes/                  # API 라우팅
-│   ├── services/                # 비즈니스 로직 및 데이터 처리
-│   ├── dash_views/                    # Dash 웹 페이지 (뷰)
-│   │   ├── dash_main.py
-│   ├── config/                  # 환경설정
-│   │   ├── __init__.py
-│   ├── main.py                  # 최종 프로젝트 엔트리 포인트
-│   ├── .env                 
-├── requirements.txt             # Python 종속성
 ├── README.md                    # 프로젝트 문서
-├── .gitignore                   # Git 무시 파일
-
+├── requirements.txt             # 파이썬 패키지 의존성
+├── Dockerfile                   # 컨테이너화
+├── docker-compose.yml           # 로컬 개발 환경 설정
+├── .env			            # 환경 변수 템플릿
+├── .gitignore
+│
+├── src/                         # 메인 애플리케이션 패키지
+│   ├── __init__.py
+│   ├── main.py                 # Flask/Dash 앱 초기화
+│   │
+│   ├── config/                   # 핵심 설정 및 유틸리티
+│   │   ├── __init__.py
+│   │   ├── config_app.py          # 앱 설정
+│   │   ├── security.py        # 인증/인가
+│   │   └── logging.py         # 로깅 설정
+│   │
+│   ├── models/                 # SQLAlchemy 모델
+│   │   ├── __init__.py
+│   │   ├── delivery.py
+│   │   └── return.py
+│   │
+│   ├── schemas/               # Pydantic 스키마
+│   │   ├── __init__.py
+│   │   ├── delivery.py
+│   │   └── driver.py
+│   │
+│   ├── storage/               # 데이터 저장소 관련
+│   │   ├── __init__.py
+│   │   ├── cloud_sql.py      # Cloud SQL 연결
+│   │   ├── redis.py   		# Redis 연결
+│   │   └── bigquery.py       # BigQuery 클라이언트
+│   │
+│   ├── services/              # 비즈니스 로직
+│   │   ├── __init__.py
+│   │   ├── delivery.py       # 배송 서비스
+│   │   ├── analytics.py      # 분석 서비스
+│   │   └── pubsub.py        # Pub/Sub 메시지 처리
+│   │
+│   ├── data_processing/      # 데이터 처리
+│   │   ├── __init__.py
+│   │   ├── delivery_analytics.py      # PySpark 작업
+│   │   └── data_pipline.py		# ETL 파이프라인
+│   │
+│   ├── api/                 # REST API
+│   │   ├── __init__.py
+│   │   ├── __init__.py
+│   │   ├── delivery.py
+│   │
+│   ├── dash_app/           # Dash 애플리케이션
+│   │   ├── __init__.py
+│   │   ├── index.py      	# dash main 실행점
+│   │   ├── main.py		# main 페이지
+│   │   ├── dashboard.py	# dashboard 페이지
+│   │   ├── kpi.py		# kpi 페이지
+│   │   ├── navbar.py		# navbar 공통 컴포넌트
+│   │   ├── callbacks/    # Dash 콜백
+│   │       ├── __init__.py
+│   │       ├── dashboard_callbacks.py
+│   │       ├── kpi_callbacks.py
+│   │       └── main_callbacks.py
+│   │   ├── assets/    # css
+│   │       ├── __init__.py
+│   │       ├── custom.css
 
 ====================================================================================
 8. 추가 JAR 파일 목록

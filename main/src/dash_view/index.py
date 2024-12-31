@@ -1,6 +1,6 @@
-from dash import Dash, html, dcc, page_container
+from dash import Dash, html, page_container
 import dash_bootstrap_components as dbc
-from pages.navbar import create_navbar
+from src.dash_view.pages import create_navbar
 from flask import Flask
 
 server = Flask(__name__)

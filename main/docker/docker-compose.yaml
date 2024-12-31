@@ -14,14 +14,14 @@ services:
       - "4040:4040"
     volumes:
       - ../src:/app/src
-      - ../model:/app/model
+      - ../models:/app/models
       - ../output:/app/output
-#  teckwah-model-service:
+#  teckwah-models-service:
 #    build:
 #      context: ..
 #      dockerfile: docker/Dockerfile
-#    image: teckwah-model:latest
-#    container_name: teckwah-model-service
+#    image: teckwah-models:latest
+#    container_name: teckwah-models-service
 #    environment:
 #      - GOOGLE_APPLICATION_CREDENTIALS="/app/secrets/google/credentials.json"#    ports:
 #      - "8080:8080"

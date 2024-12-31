@@ -78,11 +78,10 @@ def get_route_distances(start_x, start_y, end_x, end_y, client_id, client_secret
 
 
 def process_new_rows(csv_file, start_address, client_id, client_secret,
-                     output_file="C:/MyMain/dashboard/main/data/zipcode_address_result.csv", max_rows=6000):
+                     output_file="C:/MyMain/dashboard/main/data/zipcode_address_result.csv", max_rows=1500):
     """
     - 이미 완료된 행들은 다시 계산하지 않고, 새로 들어온 행만 계산.
     - 새 행 결과는 기존 result 파일(있다면)에 '추가(append)'.
-    - max_rows: 최대 처리할 행의 수 (기본값: 6000)
     """
 
     # (1) 원본 CSV 읽기 - index 컬럼 필수 확인
