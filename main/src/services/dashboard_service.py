@@ -2,16 +2,16 @@ from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from datetime import datetime
 
-from ..models.delivery_model import Delivery
+from ..models.db_model import Delivery
 from ..schemas.delivery_schema import DashboardDelivery, StatusUpdate, DriverAssignment
 from ..storage.cloud_sql import get_db
-from ..storage.redis_client import Redis
+from ..storage.redis_client import RedisClient
 
 
 class DashboardService:
     def __init__(self):
         self.db: Session = next(get_db())
-        self.redis_client = Redis()
+        self.redis_client = RedisClient()
 
     def get_dashboard_data(self) -> List[Dict[str, Any]]:
         """Redis에서 대시보드 데이터 조회"""
