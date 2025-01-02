@@ -1,0 +1,44 @@
+{
+    "namespace": "delivery.system.db",
+    "type": "record",
+    "name": "delivery",
+    "fields": [
+        {"name": "dashboard_id", "type": ["null", "int"], "default": null},
+        {"name": "department", "type": "string"},
+        {"name": "warehouse", "type": ["null", "string"], "default": null},
+        {"name": "dps", "type": "string"},
+        {"name": "sla", "type": "string"},
+        {"name": "eta", "type": ["null", {"type": "long", "logicalType": "timestamp-millis"}], "default": null},
+        {"name": "status", "type": ["null", "string"], "default": null},
+        {"name": "dispatch_time", "type": ["null", {"type": "long", "logicalType": "timestamp-millis"}], "default": null},
+        {"name": "depart_time", "type": ["null", {"type": "long", "logicalType": "timestamp-millis"}], "default": null},
+        {"name": "completed_time", "type": ["null", {"type": "long", "logicalType": "timestamp-millis"}], "default": null},
+        {"name": "postal_code", "type": ["null", "string"], "default": null},
+        {"name": "address", "type": ["null", "string"], "default": null},
+        {"name": "customer", "type": ["null", "string"], "default": null},
+        {"name": "contact", "type": ["null", "string"], "default": null},
+        {"name": "remark", "type": ["null", "string"], "default": null},
+        {"name": "driver", "type": ["null", "int"], "default": null}
+    ]
+}
+
+{
+    "namespace": "delivery.system.db",
+    "type": "record",
+    "name": "return",
+    "fields": [
+        {"name": "department", "type": "string"},
+        {"name": "dps", "type": "string"},
+        {"name": "eta", "type": {"type": "int", "logicalType": "date"}},
+        {"name": "package_type", "type": "string"},
+        {"name": "qty", "type": "int"},
+        {"name": "address", "type": "string"},
+        {"name": "recipient", "type": "string"},
+        {"name": "contact", "type": "string"},
+        {"name": "remark", "type": ["null", "string"], "default": null},
+        {"name": "dispatch_date", "type": ["null", {"type": "int", "logicalType": "date"}], "default": null},
+        {"name": "status", "type": ["null", "string"], "default": null},
+        {"name": "dashboard_id", "type": ["null", "int"], "default": null},
+        {"name": "driver", "type": ["null", "int"], "default": null}
+    ]
+}

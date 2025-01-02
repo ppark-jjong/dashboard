@@ -4,8 +4,8 @@ from datetime import datetime
 
 from ..models.db_model import Delivery
 from ..schemas.delivery_schema import DashboardDelivery, StatusUpdate, DriverAssignment
-from ..storage.cloud_sql import get_db
-from ..storage.redis_client import RedisClient
+from src.config.cloud_sql import get_db
+from src.config.redis_client import RedisClient
 
 
 class DashboardService:

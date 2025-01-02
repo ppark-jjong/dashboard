@@ -1,0 +1,24 @@
+
+{
+    "namespace": "delivery.system.redis",
+    "type": "record",
+    "name": "dashboard",
+    "fields": [
+        {"name": "department", "type": "string"},
+        {"name": "delivery_type", "type": {"type": "enum", "name": "DeliveryType", "symbols": ["delivery", "return"]}},
+        {"name": "dashboard_id", "type": ["null", "int"], "default": null},
+        {"name": "warehouse", "type": ["null", "string"], "default": null},
+        {"name": "driver", "type": ["null", "int"], "default": null},
+        {"name": "dps", "type": "string"},
+        {"name": "sla", "type": ["null", "string"], "default": null},
+        {"name": "eta", "type": ["null", {"type": "long", "logicalType": "timestamp-millis"}], "default": null},
+        {"name": "status", "type": ["null", "string"], "default": null},
+        {"name": "address", "type": ["null", "string"], "default": null},
+        {"name": "recipient", "type": ["null", "string"], "default": null},
+        {"name": "contact", "type": ["null", "string"], "default": null},
+        {"name": "remark", "type": ["null", "string"], "default": null},
+        {"name": "cache_timestamp", "type": {"type": "long", "logicalType": "timestamp-millis"}},
+        {"name": "data_source", "type": {"type": "enum", "name": "DataSource", "symbols": ["mysql", "api", "system"]}},
+        {"name": "version", "type": "int", "default": 1}
+    ]
+}

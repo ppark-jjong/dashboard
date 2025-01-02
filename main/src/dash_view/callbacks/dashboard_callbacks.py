@@ -1,8 +1,7 @@
-from dash import callback, Output, Input, State, no_update, ctx, html
+from dash import callback, Output, Input, State, no_update, html
 from datetime import datetime
-import dash_bootstrap_components as dbc
 
-from ...services.dashboard_service import DashboardService
+from src.service.dashboard_service import DashboardService
 from ...schemas.delivery_schema import StatusUpdate, DriverAssignment
 
 # 상태 매핑 (UI 표시용)
