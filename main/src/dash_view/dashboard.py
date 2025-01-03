@@ -1,10 +1,14 @@
-# dashboard.py
+# src/dash_view/dashboard.py
 from dash import html, dcc, dash_table
 import dash_bootstrap_components as dbc
 
 
 def create_filter_controls():
+    """필터 컨트롤 생성"""
     return html.Div([
+        # 디버그 출력을 위한 div 추가
+        html.Div(id="debug-output", className="mb-2"),
+
         dbc.Row([
             dbc.Col([
                 dbc.InputGroup([
@@ -52,17 +56,25 @@ def create_filter_controls():
             dbc.Col([
                 html.Div([
                     dbc.Button(
-                        [html.I(className="fas fa-sync-alt me-2"), "새로고침"],
+                        children=[
+                            html.I(className="fas fa-sync-alt me-2"),
+                            "새로고침"
+                        ],
                         id="refresh-btn",
                         color="light",
-                        className="me-2 shadow-sm"
+                        className="me-2 shadow-sm",
+                        n_clicks=0
                     ),
                     dbc.Button(
-                        [html.I(className="fas fa-user me-2"), "기사 할당"],
+                        children=[
+                            html.I(className="fas fa-user me-2"),
+                            "기사 할당"
+                        ],
                         id="assign-btn",
                         color="primary",
                         className="shadow-sm",
-                        disabled=True
+                        disabled=True,
+                        n_clicks=0
                     ),
                 ], className="d-flex justify-content-end align-items-end h-100")
             ], width=4),
@@ -71,15 +83,21 @@ def create_filter_controls():
 
 
 def layout():
+    """대시보드 레이아웃"""
     return html.Div([
-        dcc.Store(id='table-data'),
+        # 상태 저장소
+        dcc.Store(id='table-data', data=[]),
         dcc.Store(id='filtered-indices', data=[]),
         dcc.Store(id='current-page', data=1),
         dcc.Interval(id='interval-component', interval=60 * 1000, n_intervals=0),
 
+        # 메인 제목
         html.H1("배송 대시보드", className="dashboard-title mb-4"),
+
+        # 필터 컨트롤
         create_filter_controls(),
 
+        # 토스트 메시지
         dbc.Toast(
             id="status-toast",
             header="알림",
@@ -100,6 +118,7 @@ def layout():
             style={"position": "fixed", "top": 66, "right": 10, "width": 350},
         ),
 
+        # 데이터 테이블
         html.Div([
             dash_table.DataTable(
                 id='delivery-table',
@@ -141,6 +160,7 @@ def layout():
             )
         ], className="bg-white rounded shadow-sm p-4"),
 
+        # 상세 정보 모달
         dbc.Modal([
             dbc.ModalHeader(dbc.ModalTitle("배송 상세 정보")),
             dbc.ModalBody([
@@ -167,6 +187,7 @@ def layout():
             ])
         ], id="detail-modal", size="lg"),
 
+        # 기사 할당 모달
         dbc.Modal([
             dbc.ModalHeader(dbc.ModalTitle("기사 할당")),
             dbc.ModalBody([
@@ -175,7 +196,7 @@ def layout():
                     dbc.Col([
                         dbc.Label("배정할 기사"),
                         dbc.Select(
-                            id="assign-driver-select",  # ID 변경
+                            id="assign-driver-select",
                             options=[]
                         )
                     ])
@@ -186,4 +207,5 @@ def layout():
                 dbc.Button("할당", id="confirm-assign", color="primary", className="me-2"),
                 dbc.Button("닫기", id="close-assign-modal")
             ])
-        ], id="assign-modal", size="lg"), ])
+        ], id="assign-modal", size="lg"),
+    ])
