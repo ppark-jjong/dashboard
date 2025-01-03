@@ -2,7 +2,7 @@
 from dash import callback, Output, Input, State, no_update
 import requests
 
-API_BASE_URL = "http://localhost:5000/api"
+API_BASE_URL = "http://localhost:5000/"
 
 # 상태 매핑 (UI 표시용)
 STATUS_MAP = {
@@ -11,6 +11,21 @@ STATUS_MAP = {
     "COMPLETED": "완료",
     "ISSUE": "이슈"
 }
+
+
+@callback(
+    Output('table-data', 'data'),
+    Input('refresh-btn', 'n_clicks'),
+    prevent_initial_call=True
+)
+def fetch_delivery_data(n_clicks):
+    """Redis에서 배송 데이터 가져오기"""
+    response = requests.get(f"{API_BASE_URL}/sync")
+    if response.status_code == 200:
+        return response.json().get('data', [])
+    print("API 호출 실패:", response.status_code)
+    return no_update
+
 
 @callback(
     Output('delivery-table', 'data'),
@@ -30,6 +45,7 @@ def filter_table(search_value, department, status, table_data):
     if status != 'all':
         filtered_data = [row for row in filtered_data if row['status'] == status]
     return filtered_data
+
 
 @callback(
     Output('status-toast', 'is_open'),
@@ -53,6 +69,7 @@ def assign_driver_to_deliveries(n_clicks, selected_rows, driver_id, table_data):
         return True
     return no_update
 
+
 @callback(
     Output('table-data', 'data'),
     Input('confirm-status-change', 'n_clicks'),
@@ -75,6 +92,7 @@ def update_delivery_status(n_clicks, new_status, active_cell, table_data):
         row['status'] = new_status
         return table_data
     return no_update
+
 
 @callback(
     [Output('driver-filter', 'options'),  # 변경된 ID

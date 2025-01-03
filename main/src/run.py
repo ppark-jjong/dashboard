@@ -27,15 +27,23 @@ def create_app():
 
         # API 라우트 등록
         api_routes = init_routes(service)
-        server.register_blueprint(api_routes, url_prefix='/api/dashboard')
+        server.register_blueprint(api_routes, url_prefix='/')
 
         # Dash 앱 초기화
         app = init_dash(server)
 
-        # 헬스체크 라우트
         @server.route('/health')
         def health():
-            return {'status': 'healthy'}
+            try:
+                redis_status = redis_client.ping()
+                mysql_status = mysql_client.ping()
+                return {
+                    'status': 'healthy',
+                    'redis': redis_status,
+                    'mysql': mysql_status
+                }
+            except Exception as e:
+                return {'status': 'unhealthy', 'error': str(e)}, 500
 
         return server
 

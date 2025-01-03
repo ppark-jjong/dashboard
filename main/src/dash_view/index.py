@@ -5,11 +5,13 @@ from flask import Flask
 from .main_navbar import create_navbar
 from .dashboard import layout as dashboard_layout
 
+
 def init_dash(server: Flask):
     """Dash 앱 초기화"""
     app = Dash(
         __name__,
         server=server,
+        assets_folder="src/dash_view/assets",
         use_pages=False,
         external_stylesheets=[
             dbc.themes.BOOTSTRAP,

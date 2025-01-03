@@ -45,10 +45,27 @@ def create_filter_controls():
                     ], width=4),
                     dbc.Col([
                         dbc.Label("배송기사"),
-                        dbc.Select(id="driver-filter", options=[], value="all")  # ID 변경
+                        dbc.Select(id="driver-filter", options=[], value="all")
                     ], width=4)
                 ])
             ], width=8),
+            dbc.Col([
+                html.Div([
+                    dbc.Button(
+                        [html.I(className="fas fa-sync-alt me-2"), "새로고침"],
+                        id="refresh-btn",
+                        color="light",
+                        className="me-2 shadow-sm"
+                    ),
+                    dbc.Button(
+                        [html.I(className="fas fa-user me-2"), "기사 할당"],
+                        id="assign-btn",
+                        color="primary",
+                        className="shadow-sm",
+                        disabled=True
+                    ),
+                ], className="d-flex justify-content-end align-items-end h-100")
+            ], width=4),
         ]),
     ], className="mb-4 bg-white p-4 rounded shadow-sm")
 

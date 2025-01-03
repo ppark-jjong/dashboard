@@ -60,63 +60,48 @@ class DashboardService:
             logger.error(f"Traceback: {traceback.format_exc()}")
             raise
 
-    async def sync_data(self):
-        """Redis와 MySQL 데이터 동기화"""
-        logger.info("Starting data synchronization")
-        try:
-            # MySQL에서 데이터 조회
-            logger.info("Fetching data from MySQL")
-            deliveries = await self.mysql_client.get_deliveries()
-            returns = await self.mysql_client.get_returns()
-            logger.info(f"Retrieved {len(deliveries)} deliveries and {len(returns)} returns from MySQL")
+    async def sync_data_to_mysql(self):
+        """Redis 데이터를 MySQL로 동기화"""
+        logger.info("Starting data synchronization from Redis to MySQL")
 
-            # 배송 데이터 동기화
+        try:
+            # Redis에서 모든 배송 데이터 가져오기
+            delivery_keys = await self.redis_client.get_keys("dashboard:deliveries:*")
+            deliveries = [
+                await self.redis_client.get_dashboard_data(key)
+                for key in delivery_keys
+            ]
+
+            logger.info(f"Retrieved {len(deliveries)} deliveries from Redis")
+
+            # Redis 데이터를 MySQL에 저장
             for delivery in deliveries:
                 try:
-                    # 배송 데이터 검증 및 변환
-                    if self.delivery_processor.validate_db_data(delivery, 'delivery'):
-                        avro_data = self.delivery_processor.from_db_format(delivery, 'delivery')
-                        redis_data = self.redis_processor.to_redis_hash(avro_data)
-                        redis_key = f"dashboard:deliveries:{delivery['dps']}"
-                        success = await self.redis_client.set_dashboard_data(redis_key, redis_data)
-                        if success:
-                            logger.debug(f"Successfully synced delivery data. DPS: {delivery['dps']}")
-                        else:
-                            logger.warning(f"Failed to sync delivery data. DPS: {delivery['dps']}")
+                    # 데이터 검증 및 변환
+                    if not self.delivery_processor.validate_redis_data(delivery, 'delivery'):
+                        logger.warning(f"Invalid Redis delivery data: {delivery.get('dps')}")
+                        continue
+
+                    db_data = self.delivery_processor.to_db_format(delivery, 'delivery')
+
+                    # MySQL 업데이트
+                    success = await self.mysql_client.upsert_delivery(db_data)
+                    if success:
+                        logger.info(f"Successfully synchronized delivery: {delivery['dps']}")
                     else:
-                        logger.warning(f"Invalid delivery data format. DPS: {delivery.get('dps')}")
+                        logger.warning(f"Failed to synchronize delivery: {delivery['dps']}")
+
                 except Exception as e:
-                    logger.error(f"Error syncing delivery data. DPS: {delivery.get('dps')}")
-                    logger.error(f"Error details: {str(e)}")
+                    logger.error(f"Error synchronizing delivery data: {delivery.get('dps')}")
+                    logger.error(f"Details: {str(e)}")
                     continue
 
-            # 회수 데이터 동기화
-            for return_data in returns:
-                try:
-                    # 회수 데이터 검증 및 변환
-                    if self.return_processor.validate_db_data(return_data, 'return'):
-                        avro_data = self.return_processor.from_db_format(return_data, 'return')
-                        redis_data = self.redis_processor.to_redis_hash(avro_data)
-                        redis_key = f"dashboard:returns:{return_data['dps']}"
-                        success = await self.redis_client.set_dashboard_data(redis_key, redis_data)
-                        if success:
-                            logger.debug(f"Successfully synced return data. DPS: {return_data['dps']}")
-                        else:
-                            logger.warning(f"Failed to sync return data. DPS: {return_data['dps']}")
-                    else:
-                        logger.warning(f"Invalid return data format. DPS: {return_data.get('dps')}")
-                except Exception as e:
-                    logger.error(f"Error syncing return data. DPS: {return_data.get('dps')}")
-                    logger.error(f"Error details: {str(e)}")
-                    continue
-
-            logger.info("Data synchronization completed successfully")
+            logger.info("Data synchronization from Redis to MySQL completed")
             return True
 
         except Exception as e:
-            logger.error("Failed to complete data synchronization")
+            logger.error("Failed to synchronize data from Redis to MySQL")
             logger.error(f"Error details: {str(e)}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
             return False
 
     async def get_dashboard_data(self) -> List[Dict]:

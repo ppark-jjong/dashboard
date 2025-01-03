@@ -5,7 +5,7 @@ from werkzeug.exceptions import BadRequest
 def init_routes(service: DashboardService):
     routes = Blueprint('dash_routes', __name__)
 
-    @routes.route('/api/sync', methods=['POST'])
+    @routes.route('/sync', methods=['POST'])
     def sync_data():
         """데이터 동기화 API - 새로고침 버튼 클릭 시 호출"""
         try:
@@ -16,7 +16,7 @@ def init_routes(service: DashboardService):
         except Exception as e:
             return jsonify({'status': 'error', 'message': f"Sync failed: {str(e)}"}), 500
 
-    @routes.route('/api/status', methods=['PUT'])
+    @routes.route('/status', methods=['PUT'])
     def update_status():
         """배송 상태 업데이트 API - Redis만 업데이트"""
         data = request.get_json()
@@ -31,7 +31,7 @@ def init_routes(service: DashboardService):
         except Exception as e:
             return jsonify({'status': 'error', 'message': f"Update failed: {str(e)}"}), 500
 
-    @routes.route('/api/driver/assign', methods=['POST'])
+    @routes.route('/driver/assign', methods=['POST'])
     def assign_driver():
         """기사 할당 API - Redis만 업데이트"""
         data = request.get_json()
