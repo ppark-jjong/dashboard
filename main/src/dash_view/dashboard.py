@@ -1,9 +1,7 @@
-from dash import html, dcc, register_page, callback, Output, Input, State, no_update, ctx, dash_table
+# dashboard.py
+from dash import html, dcc, dash_table
 import dash_bootstrap_components as dbc
-from .callbacks.dashboard_callbacks import *
-from .mock_data import generate_sample_data
 
-register_page(__name__, path='/dashboard')
 
 def create_filter_controls():
     return html.Div([
@@ -37,57 +35,27 @@ def create_filter_controls():
                             id="status-filter",
                             options=[
                                 {"label": "전체", "value": "all"},
-                                {"label": "대기", "value": "0"},
-                                {"label": "진행", "value": "1"},
-                                {"label": "완료", "value": "2"},
-                                {"label": "이슈", "value": "3"}
+                                {"label": "대기", "value": "WAITING"},
+                                {"label": "진행", "value": "IN_PROGRESS"},
+                                {"label": "완료", "value": "COMPLETED"},
+                                {"label": "이슈", "value": "ISSUE"}
                             ],
                             value="all"
                         )
                     ], width=4),
                     dbc.Col([
                         dbc.Label("배송기사"),
-                        dbc.Select(
-                            id="driver-filter",
-                            options=[
-                                {"label": "전체", "value": "all"},
-                                {"label": "김운송", "value": "김운송"},
-                                {"label": "이배달", "value": "이배달"},
-                                {"label": "박퀵서비스", "value": "박퀵서비스"},
-                                {"label": "최배송", "value": "최배송"},
-                                {"label": "정기사", "value": "정기사"}
-                            ],
-                            value="all"
-                        )
+                        dbc.Select(id="driver-filter", options=[], value="all")  # ID 변경
                     ], width=4)
                 ])
             ], width=8),
-            dbc.Col([
-                html.Div([
-                    dbc.Button(
-                        [html.I(className="fas fa-sync-alt me-2"), "새로고침"],
-                        id="refresh-btn",
-                        color="light",
-                        className="me-2 shadow-sm"
-                    ),
-                    dbc.Button(
-                        [html.I(className="fas fa-user me-2"), "기사 할당"],
-                        id="assign-btn",
-                        color="primary",
-                        className="shadow-sm",
-                        disabled=True
-                    ),
-                ], className="d-flex justify-content-end align-items-end h-100")
-            ], width=4),
         ]),
     ], className="mb-4 bg-white p-4 rounded shadow-sm")
 
 
 def layout():
-    data = generate_sample_data(100)
-
     return html.Div([
-        dcc.Store(id='table-data', data=data),
+        dcc.Store(id='table-data'),
         dcc.Store(id='filtered-indices', data=[]),
         dcc.Store(id='current-page', data=1),
         dcc.Interval(id='interval-component', interval=60 * 1000, n_intervals=0),
@@ -129,7 +97,7 @@ def layout():
                     {'name': '주소', 'id': 'address'},
                     {'name': '수령인', 'id': 'recipient'}
                 ],
-                data=data,
+                data=[],
                 style_table={
                     'overflowX': 'auto',
                     'borderRadius': '8px',
@@ -146,53 +114,6 @@ def layout():
                     'overflow': 'hidden',
                     'textOverflow': 'ellipsis'
                 },
-                style_header={
-                    'backgroundColor': '#f8fafc',
-                    'fontWeight': '600',
-                    'padding': '16px',
-                    'color': '#475569',
-                    'border': 'none',
-                    'borderBottom': '2px solid #e2e8f0'
-                },
-                style_data={
-                    'whiteSpace': 'normal',
-                    'height': 'auto',
-                },
-                style_data_conditional=[
-                    {
-                        'if': {'row_index': 'odd'},
-                        'backgroundColor': '#f8fafc',
-                    },
-                    {
-                        'if': {'state': 'selected'},
-                        'backgroundColor': '#e8f2ff',
-                        'border': '1px solid #2563eb',
-                    }
-                ],
-                css=[{
-                    'selector': '.dash-table-pagination',
-                    'rule': '''
-                        padding: 16px;
-                        background-color: #f8fafc;
-                        border-top: 1px solid #e2e8f0;
-                    '''
-                }, {
-                    'selector': '.dash-table-pagination .previous-next-container button',
-                    'rule': '''
-                        margin: 0 4px;
-                        padding: 4px 8px;
-                        border: 1px solid #e2e8f0;
-                        border-radius: 4px;
-                        background-color: white;
-                        color: #1f2937;
-                    '''
-                }, {
-                    'selector': '.dash-table-pagination .previous-next-container button:hover',
-                    'rule': '''
-                        background-color: #f1f5f9;
-                        color: #2563eb;
-                    '''
-                }],
                 page_size=15,
                 page_current=0,
                 row_selectable='multi',
@@ -212,12 +133,12 @@ def layout():
                         dbc.Select(
                             id="status-select",
                             options=[
-                                {"label": "대기", "value": "0"},
-                                {"label": "진행", "value": "1"},
-                                {"label": "완료", "value": "2"},
-                                {"label": "이슈", "value": "3"}
+                                {"label": "대기", "value": "WAITING"},
+                                {"label": "진행", "value": "IN_PROGRESS"},
+                                {"label": "완료", "value": "COMPLETED"},
+                                {"label": "이슈", "value": "ISSUE"}
                             ],
-                            value="0"
+                            value="WAITING"
                         ),
                     ], width=6)
                 ], className="mb-4"),
@@ -237,14 +158,8 @@ def layout():
                     dbc.Col([
                         dbc.Label("배정할 기사"),
                         dbc.Select(
-                            id="driver-select",
-                            options=[
-                                {"label": "김운송", "value": "김운송"},
-                                {"label": "이배달", "value": "이배달"},
-                                {"label": "박퀵서비스", "value": "박퀵서비스"},
-                                {"label": "최배송", "value": "최배송"},
-                                {"label": "정기사", "value": "정기사"}
-                            ]
+                            id="assign-driver-select",  # ID 변경
+                            options=[]
                         )
                     ])
                 ]),
@@ -254,5 +169,4 @@ def layout():
                 dbc.Button("할당", id="confirm-assign", color="primary", className="me-2"),
                 dbc.Button("닫기", id="close-assign-modal")
             ])
-        ], id="assign-modal", size="lg"),
-    ])
+        ], id="assign-modal", size="lg"), ])

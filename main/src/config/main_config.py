@@ -1,19 +1,45 @@
+from dataclasses import dataclass
+from typing import Optional
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
-class Config:
-    # Flask
-    SECRET_KEY = os.getenv('SECRET_KEY', 'dev_key')
+@dataclass
+class RedisConfig:
+    host: str = os.getenv('REDIS_HOST', 'localhost')
+    port: int = int(os.getenv('REDIS_PORT', 6379))
+    db: int = int(os.getenv('REDIS_DB', 0))
+    password: Optional[str] = os.getenv('REDIS_PASSWORD')
+    ssl: bool = os.getenv('REDIS_SSL', 'False').lower() == 'true'
 
-    # MySQL
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        'MYSQL',
-        'mysql+mysqlconnector://teckwahkr-db:1234@mysql:3306/delivery_system'
-    )
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    def to_dict(self):
+        return {
+            'host': self.host,
+            'port': self.port,
+            'db': self.db,
+            'password': self.password,
+            'ssl': self.ssl,
+            'decode_responses': True  # Redis 클라이언트 설정
+        }
 
-    # Redis
-    REDIS_URL = os.getenv('REDIS_URL', 'redis://redis:6379/0')
+
+@dataclass
+class MySQLConfig:
+    host: str = os.getenv('MYSQL_HOST', 'localhost')
+    port: int = int(os.getenv('MYSQL_PORT', 3306))
+    user: str = os.getenv('MYSQL_USER', 'root')
+    password: str = os.getenv('MYSQL_PASSWORD', '')
+    database: str = os.getenv('MYSQL_DATABASE', 'delivery_system')
+    charset: str = os.getenv('MYSQL_CHARSET', 'utf8mb4')
+
+    def to_dict(self):
+        return {
+            'host': self.host,
+            'port': self.port,
+            'user': self.user,
+            'password': self.password,
+            'db': self.database,
+            'charset': self.charset
+        }

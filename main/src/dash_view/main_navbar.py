@@ -50,11 +50,8 @@ def create_navbar():
             ),
             # 네비게이션 링크
             dbc.Nav([
-                dbc.NavItem(dbc.NavLink("Main", href="/")),
                 dbc.NavItem(dbc.NavLink("Dashboard", href="/dashboard")),
-                dbc.NavItem(dbc.NavLink("KPI", href="/kpi")),
             ], className="ms-auto me-3"),
-            # 알림 드롭다운 부분 수정
             dbc.Nav([
                 dbc.DropdownMenu(
                     children=notification_items,
@@ -72,7 +69,7 @@ def create_navbar():
                 ),
             ], navbar=True)
         ], fluid=True),
-        dark=True,  # 어두운 테마 적용으로 하얀색 아이콘이 잘 보이도록
+        dark=True,
         className="mb-4 shadow-sm"
     )
 

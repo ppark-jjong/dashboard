@@ -1,3 +1,4 @@
+# src/models/avro_base.py
 import os
 from datetime import datetime, date
 from typing import Dict, Optional
@@ -14,6 +15,7 @@ class AvroProcessor:
 
     @staticmethod
     def load_schema(schema_path: str) -> avro.schema.Schema:
+        """스키마 파일 로드"""
         with open(schema_path, 'r') as f:
             return avro.schema.parse(f.read())
 

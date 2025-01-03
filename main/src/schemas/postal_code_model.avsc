@@ -1,0 +1,11 @@
+
+{
+    "namespace": "delivery.system.db",
+    "type": "record",
+    "name": "postal_code",
+    "fields": [
+        {"name": "postal_code", "type": "string"},
+        {"name": "duration_time", "type": ["null", "int"], "default": null},
+        {"name": "distance", "type": ["null", "int"], "default": null}
+    ]
+}
