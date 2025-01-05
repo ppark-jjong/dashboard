@@ -30,9 +30,8 @@ class MySQLConfig:
     host: str = os.getenv('MYSQL_HOST', 'localhost')
     port: int = int(os.getenv('MYSQL_PORT', 3306))
     user: str = os.getenv('MYSQL_USER', 'root')
-    password: str = os.getenv('MYSQL_PASSWORD', '')
+    password: str = os.getenv('MYSQL_PASSWORD', '1234')
     database: str = os.getenv('MYSQL_DATABASE', 'delivery_system')
-    charset: str = os.getenv('MYSQL_CHARSET', 'utf8mb4')
 
     def to_dict(self):
         return {
@@ -41,5 +40,4 @@ class MySQLConfig:
             'user': self.user,
             'password': self.password,
             'db': self.database,
-            'charset': self.charset
         }

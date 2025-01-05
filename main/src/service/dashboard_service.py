@@ -19,9 +19,6 @@ logger.setLevel(logging.INFO)
 
 class DashboardService:
     def __init__(self, redis_client: Optional[RedisClient] = None, mysql_client: Optional[MySQLClient] = None):
-        """
-        DashboardService 초기화
-        """
         logger.info("Initializing DashboardService")
         try:
             self.redis_client = redis_client or RedisClient()
