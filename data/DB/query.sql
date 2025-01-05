@@ -83,22 +83,27 @@ COLLATE = utf8mb4_0900_ai_ci;
 CREATE TABLE IF NOT EXISTS `delivery_system`.`return` (
   `department` VARCHAR(45) NOT NULL,
   `dps` VARCHAR(50) NOT NULL,
-  `eta` DATE NOT NULL,
-  `package_type` VARCHAR(10) NOT NULL,
-  `qty` INT NOT NULL,
+  `eta` DATE NULL DEFAULT NULL,
+  `package_type` VARCHAR(10) NULL DEFAULT NULL,
+  `qty` INT NULL DEFAULT NULL,
   `address` VARCHAR(255) NOT NULL,
-  `recipient` VARCHAR(100) NOT NULL,
-  `contact` VARCHAR(20) NOT NULL,
+  `customer` VARCHAR(100) NOT NULL,
+  `contact` VARCHAR(20) NULL DEFAULT NULL,
   `remark` TEXT NULL DEFAULT NULL,
   `dispatch_date` DATE NULL DEFAULT NULL,
   `status` VARCHAR(20) NULL DEFAULT NULL,
   `dashboard_id` INT NULL DEFAULT NULL,
   `driver` INT NULL DEFAULT NULL,
+  `postal_code` VARCHAR(10) NULL DEFAULT NULL,
   PRIMARY KEY (`dps`),
   INDEX `fk_return_driver_idx` (`driver` ASC) VISIBLE,
+  INDEX `fk_return_postal_code1_idx` (`postal_code` ASC) VISIBLE,
   CONSTRAINT `fk_return_driver`
     FOREIGN KEY (`driver`)
-    REFERENCES `delivery_system`.`driver` (`driver`))
+    REFERENCES `delivery_system`.`driver` (`driver`),
+  CONSTRAINT `fk_return_postal_code1`
+    FOREIGN KEY (`postal_code`)
+    REFERENCES `delivery_system`.`postal_code` (`postal_code`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
