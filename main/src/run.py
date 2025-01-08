@@ -1,68 +1,86 @@
 # src/run.py
 from flask import Flask, jsonify
-from src.config.main_config import RedisConfig, MySQLConfig
-from src.repository.redis_repository import RedisClient
-from src.repository.mysql_repository import MySQLClient
+from src.repository.mysql_repository import MySQLRepository
 from src.service.dashboard_service import DashboardService
 from src.api.dash_routes import init_routes
 from src.dash_view.index import init_dash
 import logging
+from dotenv import load_dotenv
 
-logging.basicConfig(level=logging.INFO)
+# 환경 변수 로드
+load_dotenv()
+
+# 로깅 설정
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 
 def create_app():
-    server = Flask(__name__)
-
-    # DB 클라이언트 초기화
-    redis_client = None
-    mysql_client = None
-
+    """Flask 애플리케이션 생성 및 설정"""
     try:
-        redis_client = RedisClient()
-        logger.info("Redis connection successful")
-    except Exception as e:
-        logger.error(f"Redis connection failed: {str(e)}")
+        # Flask 서버 초기화
+        server = Flask(__name__)
 
-    try:
-        mysql_client = MySQLClient()
-        logger.info("MySQL connection successful")
-    except Exception as e:
-        logger.error(f"MySQL connection failed: {str(e)}")
+        # MySQL 리포지토리 초기화
+        logger.info("Initializing MySQL repository...")
+        mysql_repository = MySQLRepository()
 
-    try:
-        # DB 연결 여부와 관계없이 서비스 초기화
-        service = DashboardService(redis_client, mysql_client)
+        # 서비스 계층 초기화
+        logger.info("Initializing Dashboard service...")
+        service = DashboardService()
 
-        # REST API 엔드포인트 등록
+        # API 라우트 등록
+        logger.info("Registering API routes...")
         api_routes = init_routes(service)
-        server.register_blueprint(api_routes, url_prefix='/api/dashboard')  # API 경로 변경
+        server.register_blueprint(api_routes)
 
         # 시스템 상태 확인용 엔드포인트
         @server.route('/api/dashboard/health')
         def health():
+            try:
+                # MySQL 연결 테스트
+                with mysql_repository.get_connection() as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("SELECT 1")
+                        mysql_status = True
+            except Exception as e:
+                logger.error(f"MySQL health check failed: {e}")
+                mysql_status = False
+
             return jsonify({
                 'status': 'active',
-                'redis': redis_client is not None,
-                'mysql': mysql_client is not None
-            })
+                'mysql_connected': mysql_status
+            }), 200 if mysql_status else 500
 
-        # Dash 앱 초기화 (마지막에 실행)
+        # Dash 앱 초기화
         logger.info("Initializing Dash app...")
-        app = init_dash(server)
+        dash_app = init_dash(server)
         logger.info("Dash app initialized successfully")
 
-    except Exception as e:
-        logger.error(f"Service initialization warning: {str(e)}")
+        return server
 
-    return server
+    except Exception as e:
+        logger.error(f"Application initialization failed: {str(e)}")
+        raise
+
+
+def main():
+    """애플리케이션 실행"""
+    try:
+        app = create_app()
+        logger.info("Starting the application...")
+        app.run(
+            host='0.0.0.0',
+            port=5000,
+            debug=True
+        )
+    except Exception as e:
+        logger.error(f"Application startup failed: {str(e)}")
+        raise
 
 
 if __name__ == '__main__':
-    app = create_app()
-    app.run(
-        host='0.0.0.0',
-        port=5000,
-        debug=True
-    )
+    main()

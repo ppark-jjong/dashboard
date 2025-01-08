@@ -1,134 +1,66 @@
-import aiomysql
+# src/repository/mysql_repository.py
 import pymysql
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any, Optional
 import os
 from dotenv import load_dotenv
-from contextlib import asynccontextmanager
-from ..config.main_config import MySQLConfig
+from contextlib import contextmanager
+import logging
+
+# 로깅 설정
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 load_dotenv()
 
 
-class MySQLClient:
-    def __init__(self, config: Optional[MySQLConfig] = None):
-        self.config = config or MySQLConfig()
+class MySQLRepository:
+    def __init__(self):
+        self.config = {
+            'host': os.getenv('MYSQL_HOST', 'localhost'),
+            'port': int(os.getenv('MYSQL_PORT', 3306)),
+            'user': os.getenv('MYSQL_USER', 'root'),
+            'password': os.getenv('MYSQL_PASSWORD', '1234'),
+            'db': os.getenv('MYSQL_DATABASE', 'delivery_system'),
+            'charset': 'utf8mb4',
+            'cursorclass': pymysql.cursors.DictCursor
+        }
 
-    @asynccontextmanager
-    async def get_async_connection(self):
-        """MySQL 비동기 연결 관리"""
+    @contextmanager
+    def get_connection(self):
+        """MySQL 연결 관리"""
+        connection = pymysql.connect(**self.config)
         try:
-            # MySQL 연결 풀 생성
-            pool = await aiomysql.create_pool(**self.config.to_dict(), minsize=1, maxsize=10)
-            async with pool.acquire() as conn:
-                async with conn.cursor(aiomysql.DictCursor) as cursor:
-                    yield cursor
-                await conn.commit()
-            pool.close()
-            await pool.wait_closed()
-        except Exception as e:
-            print(f"MySQL 연결 실패: {e}")
-            raise
+            yield connection
+        finally:
+            connection.close()
 
-    async def get_deliveries(self) -> List[Dict[str, Any]]:
-        """배송 데이터 조회"""
-        async with self.get_async_connection() as cursor:
-            await cursor.execute("""
-                SELECT d.*, p.duration_time
-                FROM delivery d
-                LEFT JOIN postal_code p ON d.postal_code = p.postal_code
-                ORDER BY d.eta ASC
-            """)
-            return await cursor.fetchall()
+    def get_dashboard_data(self) -> List[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            with conn.cursor() as cursor:
+                # Delivery 데이터 조회
+                delivery_query = """
+                    SELECT 
+                        d.department, 'delivery' as type, d.warehouse,
+                        dr.driver_name, d.dps, d.sla, d.eta, d.status,
+                        p.district, d.contact, d.address, d.customer,
+                        d.remark, d.depart_time, p.duration_time
+                    FROM delivery d
+                    LEFT JOIN drivers dr ON d.driver_name = dr.driver_name
+                    LEFT JOIN postal_code p ON d.postal_code = p.postal_code
+                """
 
-    async def upsert_delivery(self, data: Dict[str, Any]) -> bool:
-        """배송 데이터를 UPSERT"""
-        try:
-            async with self.get_async_connection() as cursor:
-                await cursor.execute("""
-                    INSERT INTO delivery (dps, department, status, eta)
-                    VALUES (%(dps)s, %(department)s, %(status)s, %(eta)s)
-                    ON DUPLICATE KEY UPDATE
-                    department = VALUES(department),
-                    status = VALUES(status),
-                    eta = VALUES(eta)
-                """, data)
-                return True
-        except Exception as e:
-            print(f"MySQL upsert error: {e}")
-            return False
+                # Return 데이터 조회
+                return_query = """
+                    SELECT 
+                        r.department, 'return' as type, '' as warehouse,
+                        dr.driver_name, r.dps, '' as sla, r.eta, r.status,
+                        p.district, r.contact, r.address, r.customer,
+                        r.remark, r.dispatch_date as depart_time, p.duration_time
+                    FROM return r
+                    LEFT JOIN drivers dr ON r.driver_name = dr.driver_name
+                    LEFT JOIN postal_code p ON r.postal_code = p.postal_code
+                """
 
-    async def get_returns(self) -> List[Dict[str, Any]]:
-        """회수 데이터 조회"""
-        async with self.get_async_connection() as cursor:
-            await cursor.execute("""
-                SELECT *
-                FROM return
-                ORDER BY eta ASC
-            """)
-            return await cursor.fetchall()
-
-    async def update_delivery_status(self, dps: int, status: str) -> bool:
-        """배송 상태 업데이트"""
-        try:
-            async with self.get_async_connection() as cursor:
-                await cursor.execute("""
-                    UPDATE delivery
-                    SET status = %s,
-                        last_updated = NOW()
-                    WHERE dps = %s
-                """, (status, dps))
-                return True
-        except Exception as e:
-            print(f"MySQL update delivery status error: {e}")
-            return False
-
-    async def update_return_status(self, dps: int, status: str) -> bool:
-        """회수 상태 업데이트"""
-        try:
-            async with self.get_async_connection() as cursor:
-                await cursor.execute("""
-                    UPDATE return
-                    SET status = %s,
-                        last_updated = NOW()
-                    WHERE dps = %s
-                """, (status, dps))
-                return True
-        except Exception as e:
-            print(f"MySQL update return status error: {e}")
-            return False
-
-    async def update_delivery(self, dps: int, updates: Dict[str, Any]) -> bool:
-        """배송 정보 업데이트"""
-        try:
-            set_clause = ", ".join(f"{k} = %s" for k in updates.keys())
-            values = list(updates.values()) + [dps]
-
-            async with self.get_async_connection() as cursor:
-                await cursor.execute(f"""
-                    UPDATE delivery
-                    SET {set_clause},
-                        last_updated = NOW()
-                    WHERE dps = %s
-                """, values)
-                return True
-        except Exception as e:
-            print(f"MySQL update delivery error: {e}")
-            return False
-
-    async def update_return(self, dps: int, updates: Dict[str, Any]) -> bool:
-        """회수 정보 업데이트"""
-        try:
-            set_clause = ", ".join(f"{k} = %s" for k in updates.keys())
-            values = list(updates.values()) + [dps]
-
-            async with self.get_async_connection() as cursor:
-                await cursor.execute(f"""
-                    UPDATE return
-                    SET {set_clause},
-                        last_updated = NOW()
-                    WHERE dps = %s
-                """, values)
-                return True
-        except Exception as e:
-            print(f"MySQL update return error: {e}")
-            return False
+                # UNION ALL로 두 쿼리 결합
+                cursor.execute(f"{delivery_query} UNION ALL {return_query}")
+                return cursor.fetchall()

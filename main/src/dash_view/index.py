@@ -26,7 +26,7 @@ def init_dash(server: Flask):
         logger.info("Assets 폴더가 이미 존재합니다.")
 
     # CSS 파일 경로
-    css_file = os.path.join(assets_path, 'styles.css')
+    css_file = os.path.join(assets_path, 'custom.css')
 
     # CSS 파일 확인 및 생성
     if not os.path.exists(css_file):

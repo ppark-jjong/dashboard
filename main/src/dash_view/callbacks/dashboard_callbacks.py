@@ -1,141 +1,108 @@
-# dashboard_callbacks.py
-from dash import callback, Output, Input, State, no_update
-import requests
-import logging
+# src/dash_view/callbacks.py
+from pydoc import html
 
-# 로깅 설정
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from src.service.dashboard_service import DashboardService
+from dash import Input, Output, State, callback, html
+import dash_bootstrap_components as dbc
+# 서비스 인스턴스 생성
+service = DashboardService()
+def create_detail_content(detail_data):
+    """상세 정보 모달의 내용을 생성하는 함수"""
+    return html.Div([
+        dbc.Row([
+            dbc.Col([
+                create_detail_field("부서", detail_data.get('department', '-')),
+                create_detail_field("유형", detail_data.get('type', '-')),
+                create_detail_field("창고", detail_data.get('warehouse', '-')),
+                create_detail_field("기사명", detail_data.get('driver_name', '-')),
+                create_detail_field("DPS", detail_data.get('dps', '-')),
+                create_detail_field("SLA", detail_data.get('sla', '-')),
+                create_detail_field("ETA", detail_data.get('eta', '-')),
+            ], width=6),
+            dbc.Col([
+                create_detail_field("상태", detail_data.get('status', '-')),
+                create_detail_field("주소", detail_data.get('address', '-')),
+                create_detail_field("고객명", detail_data.get('customer', '-')),
+                create_detail_field("연락처", detail_data.get('contact', '-')),
+                create_detail_field("비고", detail_data.get('remark', '-')),
+                create_detail_field("출발시간", detail_data.get('depart_time', '-')),
+                create_detail_field("소요시간", f"{detail_data.get('duration_time', 0)}분"),
+            ], width=6),
+        ])
+    ])
 
-API_BASE_URL = "http://127.0.0.1:5000/api/dashboard"
+def create_detail_field(label, value):
+    """상세 정보의 각 필드를 생성하는 헬퍼 함수"""
+    return html.Div([
+        html.Label(label, className="fw-bold mb-1"),
+        html.Div(value, className="mb-3")
+    ])
 
-# 상태 매핑 (UI 표시용)
-STATUS_MAP = {
-    "WAITING": "대기",
-    "IN_PROGRESS": "진행",
-    "COMPLETED": "완료",
-    "ISSUE": "이슈"
-}
-
-
-# 디버깅을 위한 콜백 추가
+# 데이터 로딩 콜백
 @callback(
-    Output("debug-output", "children"),
-    Input("refresh-btn", "n_clicks"),
-    prevent_initial_call=True
+    Output('dashboard-table', 'data'),
+    [Input('refresh-interval', 'n_intervals'),
+     Input('department-filter', 'value'),
+     Input('status-filter', 'value'),
+     Input('driver-filter', 'value'),
+     Input('search-input', 'value')]
 )
-def debug_button_click(n_clicks):
-    logger.info(f"디버그 콜백 호출됨: n_clicks = {n_clicks}")
-    return f"버튼 클릭 횟수: {n_clicks}"
-
-
-@callback(
-    [Output('table-data', 'data'),
-     Output('status-toast', 'is_open'),
-     Output('status-toast', 'header'),
-     Output('status-toast', 'children')],
-    Input('refresh-btn', 'n_clicks'),
-    prevent_initial_call=True
-)
-def fetch_delivery_data(n_clicks):
-    """데이터 새로고침"""
-    logger.info(f"fetch_delivery_data 콜백 실행: n_clicks = {n_clicks}")
-
-    if n_clicks is None:
-        logger.info("n_clicks가 None입니다.")
-        return no_update, no_update, no_update, no_update
-
+def update_table(n_intervals, department, status, driver, search):
     try:
-        logger.info("API 호출 시도")
-        response = requests.get(f"{API_BASE_URL}/sync")
-        logger.info(f"API 응답 상태 코드: {response.status_code}")
-
-        if response.status_code == 200:
-            data = response.json().get('data', [])
-            logger.info(f"데이터 수신 성공: {len(data)} 건")
-            return data, True, "성공", "데이터가 성공적으로 새로고침되었습니다."
-
-        logger.error(f"API 호출 실패: {response.status_code}")
-        return no_update, True, "오류", f"데이터 새로고침 실패: {response.status_code}"
-
+        data = service.get_dashboard_data()
+        return data['table_data']
     except Exception as e:
-        logger.error(f"예외 발생: {str(e)}")
-        return no_update, True, "오류", f"데이터 새로고침 중 오류 발생: {str(e)}"
+        print(f"Error loading data: {e}")
+        return []
 
 
+# 상세 정보 모달 콜백
 @callback(
-    Output('status-toast', 'is_open'),
-    Input('confirm-assign', 'n_clicks'),
-    State('delivery-table', 'selected_rows'),
-    State('driver-select', 'value'),
-    State('delivery-table', 'data'),
-    prevent_initial_call=True
+    [Output('detail-modal', 'is_open'),
+     Output('modal-content', 'children')],
+    [Input('dashboard-table', 'active_cell')],
+    [State('dashboard-table', 'data')]
 )
-def assign_driver_to_deliveries(n_clicks, selected_rows, driver_id, table_data):
-    """기사 할당 로직"""
-    if not selected_rows or not driver_id:
-        return no_update
-
-    try:
-        delivery_ids = [table_data[i]['dps'] for i in selected_rows]
-        response = requests.post(
-            f"{API_BASE_URL}/driver/assign",
-            json={'delivery_ids': delivery_ids, 'driver_id': driver_id}
-        )
-        if response.status_code == 200:
-            return True
-        logger.error(f"Driver assignment failed: {response.text}")
-        return no_update
-    except Exception as e:
-        logger.error(f"Error in driver assignment: {str(e)}")
-        return no_update
+def show_details(active_cell, data):
+    if active_cell:
+        row = data[active_cell['row']]
+        detail_data = service.get_detail_data(row['dps'])
+        return True, create_detail_content(detail_data)
+    return False, None
 
 
+# 상태 업데이트 콜백
 @callback(
-    Output('table-data', 'data'),
-    Input('confirm-status-change', 'n_clicks'),
-    State('status-select', 'value'),
-    State('delivery-table', 'active_cell'),
-    State('table-data', 'data'),
-    prevent_initial_call=True
+    [Output('notification-toast', 'is_open'),
+     Output('notification-toast', 'children')],
+    [Input('confirm-status-change', 'n_clicks')],
+    [State('status-select', 'value'),
+     State('dashboard-table', 'selected_rows'),
+     State('dashboard-table', 'data')]
 )
-def update_delivery_status(n_clicks, new_status, active_cell, table_data):
-    """배송 상태 업데이트 로직"""
-    if not active_cell or not new_status:
-        return no_update
-
-    try:
-        row = table_data[active_cell['row']]
-        response = requests.put(
-            f"{API_BASE_URL}/status",
-            json={'delivery_id': row['dps'], 'new_status': new_status}
-        )
-        if response.status_code == 200:
-            row['status'] = new_status
-            return table_data
-        logger.error(f"Status update failed: {response.text}")
-        return no_update
-    except Exception as e:
-        logger.error(f"Error in status update: {str(e)}")
-        return no_update
+def update_status(n_clicks, new_status, selected_rows, data):
+    if n_clicks and selected_rows:
+        try:
+            for idx in selected_rows:
+                dps = data[idx]['dps']
+                service.update_delivery_status(dps, new_status)
+            return True, "상태가 성공적으로 업데이트되었습니다."
+        except Exception as e:
+            return True, f"상태 업데이트 실패: {str(e)}"
+    return False, ""
 
 
+# 기사 필터 옵션 로딩 콜백
 @callback(
-    [Output('driver-filter', 'options'),
-     Output('assign-driver-select', 'options')],
-    Input('refresh-btn', 'n_clicks'),
-    prevent_initial_call=True
+    Output('driver-filter', 'options'),
+    [Input('refresh-interval', 'n_intervals')]
 )
-def fetch_driver_list(n_clicks):
-    """기사 목록 가져오기"""
+def update_driver_options(n_intervals):
     try:
-        response = requests.get(f"{API_BASE_URL}/drivers")
-        if response.status_code == 200:
-            drivers = response.json().get('drivers', [])
-            options = [{"label": driver['name'], "value": driver['id']} for driver in drivers]
-            return options, options
-        logger.error(f"Failed to fetch driver list: {response.text}")
-        return no_update, no_update
+        drivers = service.get_drivers()
+        options = [{"label": "전체", "value": "all"}]
+        options.extend([{"label": d['driver_name'], "value": d['driver_name']} for d in drivers])
+        return options
     except Exception as e:
-        logger.error(f"Error fetching driver list: {str(e)}")
-        return no_update, no_update
+        print(f"Error loading drivers: {e}")
+        return [{"label": "전체", "value": "all"}]

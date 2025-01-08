@@ -3,22 +3,54 @@ from dash import html, dcc, dash_table
 import dash_bootstrap_components as dbc
 
 
-def create_filter_controls():
-    """필터 컨트롤 생성"""
-    return html.Div([
-        # 디버그 출력을 위한 div 추가
-        html.Div(id="debug-output", className="mb-2"),
+def create_data_table():
+    """기본 데이터 테이블 생성"""
+    return dash_table.DataTable(
+        id='dashboard-table',
+        columns=[
+            {'name': '부서', 'id': 'department'},
+            {'name': '유형', 'id': 'type'},  # delivery/return 구분
+            {'name': '창고', 'id': 'warehouse'},
+            {'name': '기사명', 'id': 'driver_name'},
+            {'name': 'DPS', 'id': 'dps'},
+            {'name': 'SLA', 'id': 'sla'},
+            {'name': 'ETA', 'id': 'eta'},
+            {'name': '상태', 'id': 'status', 'presentation': 'markdown'},
+            {'name': '구역', 'id': 'district'},
+            {'name': '연락처', 'id': 'contact'}
+        ],
+        data=[],
+        style_table={
+            'overflowX': 'auto',
+            'borderRadius': '8px',
+            'boxShadow': '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        },
+        style_cell={
+            'textAlign': 'left',
+            'padding': '12px',
+            'fontFamily': '"Pretendard", sans-serif',
+            'fontSize': '14px',
+            'color': '#1f2937'
+        },
+        page_size=15,
+        page_current=0,
+        row_selectable='multi',
+        selected_rows=[],
+        page_action='native',
+        sort_action='native',
+        sort_mode='multi',
+    )
 
+
+def create_filter_controls():
+    """필터링 컨트롤 생성"""
+    return html.Div([
         dbc.Row([
             dbc.Col([
                 dbc.InputGroup([
                     dbc.InputGroupText(html.I(className="fas fa-search")),
-                    dbc.Input(
-                        id="search-input",
-                        placeholder="DPS 검색",
-                        className="search-input"
-                    ),
-                ], size="lg", className="mb-3"),
+                    dbc.Input(id="search-input", placeholder="DPS 검색"),
+                ], className="mb-3"),
                 dbc.Row([
                     dbc.Col([
                         dbc.Label("부서"),
@@ -27,8 +59,7 @@ def create_filter_controls():
                             options=[
                                 {"label": "전체", "value": "all"},
                                 {"label": "CS", "value": "CS"},
-                                {"label": "HES", "value": "HES"},
-                                {"label": "Lenovo", "value": "Lenovo"}
+                                {"label": "HES", "value": "HES"}
                             ],
                             value="all"
                         )
@@ -39,16 +70,15 @@ def create_filter_controls():
                             id="status-filter",
                             options=[
                                 {"label": "전체", "value": "all"},
-                                {"label": "대기", "value": "WAITING"},
-                                {"label": "진행", "value": "IN_PROGRESS"},
-                                {"label": "완료", "value": "COMPLETED"},
-                                {"label": "이슈", "value": "ISSUE"}
+                                {"label": "대기", "value": "대기"},
+                                {"label": "진행", "value": "진행"},
+                                {"label": "완료", "value": "완료"}
                             ],
                             value="all"
                         )
                     ], width=4),
                     dbc.Col([
-                        dbc.Label("배송기사"),
+                        dbc.Label("기사"),
                         dbc.Select(id="driver-filter", options=[], value="all")
                     ], width=4)
                 ])
@@ -56,23 +86,16 @@ def create_filter_controls():
             dbc.Col([
                 html.Div([
                     dbc.Button(
-                        children=[
-                            html.I(className="fas fa-sync-alt me-2"),
-                            "새로고침"
-                        ],
+                        [html.I(className="fas fa-sync-alt me-2"), "새로고침"],
                         id="refresh-btn",
                         color="light",
-                        className="me-2 shadow-sm",
+                        className="me-2",
                         n_clicks=0
                     ),
                     dbc.Button(
-                        children=[
-                            html.I(className="fas fa-user me-2"),
-                            "기사 할당"
-                        ],
+                        [html.I(className="fas fa-user me-2"), "기사 할당"],
                         id="assign-btn",
                         color="primary",
-                        className="shadow-sm",
                         disabled=True,
                         n_clicks=0
                     ),
@@ -82,130 +105,76 @@ def create_filter_controls():
     ], className="mb-4 bg-white p-4 rounded shadow-sm")
 
 
-def layout():
-    """대시보드 레이아웃"""
+def create_detail_modal():
+    """상세정보 모달 생성"""
+    return dbc.Modal([
+        dbc.ModalHeader("상세 정보"),
+        dbc.ModalBody([
+            dbc.Row([
+                dbc.Col([field_group("부서", "department")], width=6),
+                dbc.Col([field_group("유형", "type")], width=6),
+            ]),
+            dbc.Row([
+                dbc.Col([field_group("창고", "warehouse")], width=6),
+                dbc.Col([field_group("기사명", "driver_name")], width=6),
+            ]),
+            dbc.Row([
+                dbc.Col([field_group("DPS", "dps")], width=6),
+                dbc.Col([field_group("SLA", "sla")], width=6),
+            ]),
+            dbc.Row([
+                dbc.Col([field_group("상태", "status")], width=6),
+                dbc.Col([field_group("ETA", "eta")], width=6),
+            ]),
+            dbc.Row([
+                dbc.Col([field_group("주소", "address")], width=12),
+            ]),
+            dbc.Row([
+                dbc.Col([field_group("고객명", "customer")], width=6),
+                dbc.Col([field_group("연락처", "contact")], width=6),
+            ]),
+            dbc.Row([
+                dbc.Col([field_group("비고", "remark")], width=12),
+            ]),
+            dbc.Row([
+                dbc.Col([field_group("출발시간", "depart_time")], width=6),
+                dbc.Col([field_group("소요시간", "duration_time")], width=6),
+            ]),
+        ]),
+        dbc.ModalFooter(
+            dbc.Button("닫기", id="close-modal", className="ms-auto")
+        )
+    ], id="detail-modal", size="lg")
+
+
+def field_group(label, field_id):
+    """상세정보 필드 그룹 생성"""
     return html.Div([
-        # 상태 저장소
+        html.Label(label, className="fw-bold"),
+        html.Div(id=f"detail-{field_id}", className="mt-1")
+    ], className="mb-3")
+
+
+def layout():
+    """대시보드 레이아웃 구성"""
+    return html.Div([
+        # 데이터 저장소
         dcc.Store(id='table-data', data=[]),
-        dcc.Store(id='filtered-indices', data=[]),
-        dcc.Store(id='current-page', data=1),
-        dcc.Interval(id='interval-component', interval=60 * 1000, n_intervals=0),
+        dcc.Store(id='detail-data', data={}),
+        dcc.Interval(id='refresh-interval', interval=60 * 1000, n_intervals=0),
 
-        # 메인 제목
-        html.H1("배송 대시보드", className="dashboard-title mb-4"),
-
-        # 필터 컨트롤
+        # 메인 컨텐츠
+        html.H1("배송/회수 대시보드", className="mb-4"),
         create_filter_controls(),
+        html.Div([create_data_table()], className="bg-white rounded shadow-sm p-4"),
+        create_detail_modal(),
 
-        # 토스트 메시지
+        # 알림 토스트
         dbc.Toast(
-            id="status-toast",
+            id="notification-toast",
             header="알림",
             is_open=False,
-            dismissable=True,
             duration=3000,
-            icon="success",
             style={"position": "fixed", "top": 66, "right": 10, "width": 350},
-        ),
-
-        dbc.Toast(
-            id="error-toast",
-            header="오류",
-            is_open=False,
-            dismissable=True,
-            duration=3000,
-            icon="danger",
-            style={"position": "fixed", "top": 66, "right": 10, "width": 350},
-        ),
-
-        # 데이터 테이블
-        html.Div([
-            dash_table.DataTable(
-                id='delivery-table',
-                columns=[
-                    {'name': '부서', 'id': 'department'},
-                    {'name': '작업타입', 'id': 'type'},
-                    {'name': '배송기사', 'id': 'driver'},
-                    {'name': 'DPS', 'id': 'dps'},
-                    {'name': 'SLA', 'id': 'sla'},
-                    {'name': 'ETA', 'id': 'eta'},
-                    {'name': '상태', 'id': 'status', 'presentation': 'markdown'},
-                    {'name': '주소', 'id': 'address'},
-                    {'name': '수령인', 'id': 'recipient'}
-                ],
-                data=[],
-                style_table={
-                    'overflowX': 'auto',
-                    'borderRadius': '8px',
-                    'boxShadow': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-                },
-                style_cell={
-                    'textAlign': 'left',
-                    'padding': '16px',
-                    'fontFamily': '"Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-                    'fontSize': '14px',
-                    'color': '#1f2937',
-                    'border': 'none',
-                    'maxWidth': '400px',
-                    'overflow': 'hidden',
-                    'textOverflow': 'ellipsis'
-                },
-                page_size=15,
-                page_current=0,
-                row_selectable='multi',
-                selected_rows=[],
-                page_action='native',
-                sort_action='native',
-                sort_mode='multi',
-            )
-        ], className="bg-white rounded shadow-sm p-4"),
-
-        # 상세 정보 모달
-        dbc.Modal([
-            dbc.ModalHeader(dbc.ModalTitle("배송 상세 정보")),
-            dbc.ModalBody([
-                dbc.Row([
-                    dbc.Col([
-                        dbc.Label("현재 상태"),
-                        dbc.Select(
-                            id="status-select",
-                            options=[
-                                {"label": "대기", "value": "WAITING"},
-                                {"label": "진행", "value": "IN_PROGRESS"},
-                                {"label": "완료", "value": "COMPLETED"},
-                                {"label": "이슈", "value": "ISSUE"}
-                            ],
-                            value="WAITING"
-                        ),
-                    ], width=6)
-                ], className="mb-4"),
-                html.Div(id="modal-content")
-            ]),
-            dbc.ModalFooter([
-                dbc.Button("확인", id="confirm-status-change", color="primary", className="me-2"),
-                dbc.Button("닫기", id="close-detail-modal")
-            ])
-        ], id="detail-modal", size="lg"),
-
-        # 기사 할당 모달
-        dbc.Modal([
-            dbc.ModalHeader(dbc.ModalTitle("기사 할당")),
-            dbc.ModalBody([
-                dbc.Alert(id="selected-count-alert", color="info", className="mb-3"),
-                dbc.Row([
-                    dbc.Col([
-                        dbc.Label("배정할 기사"),
-                        dbc.Select(
-                            id="assign-driver-select",
-                            options=[]
-                        )
-                    ])
-                ]),
-                html.Div(id="selected-orders-list", className="mt-3")
-            ]),
-            dbc.ModalFooter([
-                dbc.Button("할당", id="confirm-assign", color="primary", className="me-2"),
-                dbc.Button("닫기", id="close-assign-modal")
-            ])
-        ], id="assign-modal", size="lg"),
+        )
     ])
