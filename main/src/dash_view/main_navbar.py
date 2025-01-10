@@ -1,7 +1,6 @@
 from dash import html
 import dash_bootstrap_components as dbc
 
-
 def create_navbar():
     notifications = [
         {
@@ -56,7 +55,7 @@ def create_navbar():
                 dbc.DropdownMenu(
                     children=notification_items,
                     label=html.Span([
-                        html.I(className="fas fa-bell", style={"color": "white"}),  # 색상을 하얀색으로 변경
+                        html.I(className="fas fa-bell"),
                         dbc.Badge(
                             "3",
                             color="danger",
@@ -70,7 +69,7 @@ def create_navbar():
             ], navbar=True)
         ], fluid=True),
         dark=True,
-        className="mb-4 shadow-sm"
+        className="navbar-dark mb-4 shadow-sm"  # navbar-dark 클래스 추가
     )
 
 
