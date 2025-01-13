@@ -3,7 +3,7 @@ import mysql.connector
 from mysql.connector import Error
 
 # 1. 엑셀 데이터 읽기
-file_path = "../../data/customer_kpi.xlsx"  # 엑셀 파일 경로
+file_path = "../../data/customer_kpi_unique_updated.xlsx"  # 엑셀 파일 경로
 sheet_name = "report"
 data = pd.read_excel(file_path, sheet_name=sheet_name)
 

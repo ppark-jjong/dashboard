@@ -21,9 +21,10 @@ USE `delivery_system` ;
 -- Table `delivery_system`.`driver`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `delivery_system`.`driver` (
-  `driver` INT NOT NULL,
-  `driver_name` VARCHAR(45) NULL DEFAULT NULL,
-  `driver_contact` VARCHAR(20) NULL DEFAULT NULL,
+  `driver` INT NOT NULL AUTO_INCREMENT,
+  `driver_name` VARCHAR(45) NOT NULL,
+  `driver_contact` VARCHAR(20) NOT NULL,
+  `driver_region` VARCHAR(20) NOT NULL,
   PRIMARY KEY (`driver`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
@@ -37,7 +38,44 @@ CREATE TABLE IF NOT EXISTS `delivery_system`.`postal_code` (
   `postal_code` VARCHAR(10) NOT NULL,
   `duration_time` INT NULL DEFAULT NULL,
   `distance` INT NULL DEFAULT NULL,
+  `city` VARCHAR(45) NULL DEFAULT NULL,
+  `district` VARCHAR(45) NULL DEFAULT NULL,
   PRIMARY KEY (`postal_code`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `delivery_system`.`dashboard`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `delivery_system`.`dashboard` (
+  `id` INT NOT NULL AUTO_INCREMENT COMMENT '대시보드 ID',
+  `type` ENUM('delivery', 'return') NOT NULL COMMENT '작업 유형 (배송 또는 반품)',
+  `dps` VARCHAR(50) NOT NULL COMMENT '배송/반품 ID',
+  `status` ENUM('대기', '진행', '완료', '이슈') NOT NULL DEFAULT '대기' COMMENT '배송 상태',
+  `driver` INT NULL DEFAULT NULL COMMENT '배정된 드라이버',
+  `postal_code` VARCHAR(10) NOT NULL COMMENT '우편번호',
+  `address` VARCHAR(255) NOT NULL COMMENT '배송지 주소',
+  `customer` VARCHAR(100) NOT NULL COMMENT '고객명',
+  `contact` VARCHAR(20) NULL DEFAULT NULL COMMENT '고객 연락처',
+  `remark` TEXT NULL DEFAULT NULL COMMENT '비고',
+  `depart_time` DATETIME NULL DEFAULT NULL COMMENT '배차 시간',
+  `completed_time` DATETIME NULL DEFAULT NULL COMMENT '완료 시간',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `unique_dps` (`dps` ASC) VISIBLE,
+  INDEX `idx_driver` (`driver` ASC) VISIBLE,
+  INDEX `idx_postal_code` (`postal_code` ASC) VISIBLE,
+  CONSTRAINT `fk_dashboard_driver`
+    FOREIGN KEY (`driver`)
+    REFERENCES `delivery_system`.`driver` (`driver`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_dashboard_postal_code`
+    FOREIGN KEY (`postal_code`)
+    REFERENCES `delivery_system`.`postal_code` (`postal_code`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -47,25 +85,31 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- Table `delivery_system`.`delivery`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `delivery_system`.`delivery` (
-  `dashboard_id` INT NULL DEFAULT NULL,
   `department` VARCHAR(100) NOT NULL,
   `warehouse` VARCHAR(45) NULL DEFAULT NULL,
   `dps` VARCHAR(50) NOT NULL,
   `sla` VARCHAR(20) NOT NULL,
   `eta` DATETIME NULL DEFAULT NULL,
-  `status` VARCHAR(20) NULL DEFAULT NULL,
+  `status` ENUM('대기', '진행', '완료', '이슈') NOT NULL DEFAULT '대기',
   `dispatch_time` DATETIME NULL DEFAULT NULL,
   `depart_time` DATETIME NULL DEFAULT NULL,
   `completed_time` DATETIME NULL DEFAULT NULL,
   `postal_code` VARCHAR(10) NULL DEFAULT NULL,
-  `address` VARCHAR(255) NULL DEFAULT NULL,
-  `customer` VARCHAR(100) NULL DEFAULT NULL,
+  `address` VARCHAR(255) NOT NULL,
+  `customer` VARCHAR(100) NOT NULL,
   `contact` VARCHAR(20) NULL DEFAULT NULL,
   `remark` TEXT NULL DEFAULT NULL,
   `driver` INT NULL DEFAULT NULL,
+  `dashboard_id` INT NULL DEFAULT NULL COMMENT '대시보드 ID',
   PRIMARY KEY (`dps`),
-  INDEX `fk_delivery_postal_code_idx` (`postal_code` ASC) VISIBLE,
-  INDEX `fk_delivery_driver_idx` (`driver` ASC) VISIBLE,
+  INDEX `idx_driver` (`driver` ASC) VISIBLE,
+  INDEX `idx_postal_code` (`postal_code` ASC) VISIBLE,
+  INDEX `idx_dashboard_id` (`dashboard_id` ASC) VISIBLE,
+  CONSTRAINT `fk_delivery_dashboard`
+    FOREIGN KEY (`dashboard_id`)
+    REFERENCES `delivery_system`.`dashboard` (`id`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_delivery_driver`
     FOREIGN KEY (`driver`)
     REFERENCES `delivery_system`.`driver` (`driver`),
@@ -83,25 +127,31 @@ COLLATE = utf8mb4_0900_ai_ci;
 CREATE TABLE IF NOT EXISTS `delivery_system`.`return` (
   `department` VARCHAR(45) NOT NULL,
   `dps` VARCHAR(50) NOT NULL,
-  `eta` DATE NULL DEFAULT NULL,
+  `eta` DATETIME NULL DEFAULT NULL,
   `package_type` VARCHAR(10) NULL DEFAULT NULL,
   `qty` INT NULL DEFAULT NULL,
+  `status` ENUM('대기', '진행', '완료', '이슈') NOT NULL DEFAULT '대기',
   `address` VARCHAR(255) NOT NULL,
   `customer` VARCHAR(100) NOT NULL,
   `contact` VARCHAR(20) NULL DEFAULT NULL,
   `remark` TEXT NULL DEFAULT NULL,
   `dispatch_date` DATE NULL DEFAULT NULL,
-  `status` VARCHAR(20) NULL DEFAULT NULL,
-  `dashboard_id` INT NULL DEFAULT NULL,
   `driver` INT NULL DEFAULT NULL,
   `postal_code` VARCHAR(10) NULL DEFAULT NULL,
+  `dashboard_id` INT NULL DEFAULT NULL COMMENT '대시보드 ID',
   PRIMARY KEY (`dps`),
-  INDEX `fk_return_driver_idx` (`driver` ASC) VISIBLE,
-  INDEX `fk_return_postal_code1_idx` (`postal_code` ASC) VISIBLE,
+  INDEX `idx_driver` (`driver` ASC) VISIBLE,
+  INDEX `idx_postal_code` (`postal_code` ASC) VISIBLE,
+  INDEX `idx_dashboard_id` (`dashboard_id` ASC) VISIBLE,
+  CONSTRAINT `fk_return_dashboard`
+    FOREIGN KEY (`dashboard_id`)
+    REFERENCES `delivery_system`.`dashboard` (`id`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_return_driver`
     FOREIGN KEY (`driver`)
     REFERENCES `delivery_system`.`driver` (`driver`),
-  CONSTRAINT `fk_return_postal_code1`
+  CONSTRAINT `fk_return_postal_code`
     FOREIGN KEY (`postal_code`)
     REFERENCES `delivery_system`.`postal_code` (`postal_code`))
 ENGINE = InnoDB

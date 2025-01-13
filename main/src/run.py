@@ -1,83 +1,85 @@
-# src/run.py
 from flask import Flask, jsonify
 from src.repository.mysql_repository import MySQLRepository
-from src.repository.redis_repository import RedisRepository
 from src.service.dashboard_service import DashboardService
 from src.api.dash_routes import init_routes
 from src.dash_view.index import init_dash
+from src.model.main_model import Base  # SQLAlchemy Base 클래스
+from sqlalchemy import MetaData, create_engine, text
 import logging
 from dotenv import load_dotenv
+from sqlalchemy.exc import SQLAlchemyError
 
 # 환경 변수 로드
 load_dotenv()
 
-# 로깅 설정 개선 - 콘솔 출력만 하도록 수정
+# 로깅 설정
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler()  # 콘솔 출력용 핸들러만 사용
-    ]
+    handlers=[logging.StreamHandler()]
 )
 logger = logging.getLogger(__name__)
+
+
+def initialize_database():
+    """데이터베이스 초기화 및 메타데이터 반영"""
+    try:
+        logger.info("Initializing database metadata...")
+        db_config = MySQLRepository().engine
+
+        # 메타데이터 객체 생성 및 데이터베이스 상태 반영
+        metadata = MetaData()
+        metadata.reflect(bind=db_config)
+
+        # 기존 테이블이 이미 있으면 생성하지 않음 (checkfirst=True)
+        Base.metadata.create_all(bind=db_config, checkfirst=True)
+        logger.info("Database metadata initialized successfully.")
+    except SQLAlchemyError as e:
+        logger.error(f"Error initializing database metadata: {e}")
+        raise
 
 
 def create_app():
     """Flask 애플리케이션 생성 및 설정"""
     try:
-        # Flask 서버 초기화
         server = Flask(__name__)
-
-        # 디버그 모드 설정
         server.config['DEBUG'] = True
 
-        # MySQL 리포지토리 초기화
         logger.info("Initializing MySQL repository...")
         mysql_repository = MySQLRepository()
+        verify_mysql_connection(mysql_repository)
 
-        # Redis 리포지토리 초기화
-        logger.info("Initializing Redis repository...")
-        redis_repository = RedisRepository()
+        # 데이터베이스 초기화
+        initialize_database()
 
-        # 서비스 계층 초기화
         logger.info("Initializing Dashboard service...")
-        service = DashboardService(
-            mysql_repo=mysql_repository,
-            cache_repo=redis_repository
-        )
-        # API 라우트 등록
+        service = DashboardService(mysql_repo=mysql_repository)
+
         logger.info("Registering API routes...")
         api_routes = init_routes(service)
         server.register_blueprint(api_routes)
 
-        # 시스템 상태 확인용 엔드포인트
-        @server.route('/health')
-        def health():
-            try:
-                # MySQL 연결 테스트
-                with mysql_repository.get_connection() as conn:
-                    with conn.cursor() as cursor:
-                        cursor.execute("SELECT 1")
-                        mysql_status = True
-                        logger.info("Health check successful")
-            except Exception as e:
-                logger.error(f"MySQL health check failed: {e}")
-                mysql_status = False
-
-            return jsonify({
-                'status': 'active',
-                'mysql_connected': mysql_status
-            }), 200 if mysql_status else 500
-
-        # Dash 앱 초기화
         logger.info("Initializing Dash app...")
-        dash_app = init_dash(server)
-        logger.info("Dash app initialized successfully")
+        init_dash(server)
+
+        # 디버그용: 등록된 라우트 확인
+        for rule in server.url_map.iter_rules():
+            logger.info(f"Registered route: {rule}")
 
         return server
-
     except Exception as e:
-        logger.error(f"Application initialization failed: {str(e)}")
+        logger.error(f"Application initialization failed: {e}")
+        raise
+
+
+def verify_mysql_connection(repository):
+    """데이터베이스 연결 테스트"""
+    try:
+        with repository.get_session() as session:
+            session.execute(text("SELECT 1"))  # text로 쿼리 래핑
+            logger.info("MySQL connection successful.")
+    except Exception as e:
+        logger.error(f"MySQL connection failed: {e}")
         raise
 
 
@@ -86,13 +88,9 @@ def main():
     try:
         app = create_app()
         logger.info("Starting the application...")
-        app.run(
-            host='0.0.0.0',
-            port=5000,
-            debug=True
-        )
+        app.run(host='0.0.0.0', port=5000, debug=True)
     except Exception as e:
-        logger.error(f"Application startup failed: {str(e)}")
+        logger.error(f"Application startup failed: {e}")
         raise
 
 

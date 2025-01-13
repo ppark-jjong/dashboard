@@ -21,7 +21,8 @@ def create_data_table():
                 'presentation': 'dropdown'
             },
             {'name': '도착지역', 'id': 'district'},
-            {'name': '연락처', 'id': 'contact'}
+            {'name': '연락처', 'id': 'contact'},
+            {'name': '소요시간', 'id': 'duration_time'}
         ],
         data=[],
         page_action='custom',
@@ -31,39 +32,31 @@ def create_data_table():
         row_selectable='multi',
         selected_rows=[],
 
-        # 기본 스타일 설정
-        style_table={
-            'width': '100%',
-        },
+        style_table={'width': '100%'},
+        style_cell={'textAlign': 'left'},
 
-        style_cell={
-            'textAlign': 'left',
-        },
-
-        # 상태 컬럼 조건부 스타일
         style_data_conditional=[
             {
                 'if': {'column_id': 'status', 'filter_query': '{status} eq "대기"'},
-                'className': 'status-wait status-pill'
+                'backgroundColor': '#FFF3E0',
+                'color': '#E65100'
             },
             {
                 'if': {'column_id': 'status', 'filter_query': '{status} eq "진행"'},
-                'className': 'status-progress status-pill'
+                'backgroundColor': '#E3F2FD',
+                'color': '#1565C0'
             },
             {
                 'if': {'column_id': 'status', 'filter_query': '{status} eq "완료"'},
-                'className': 'status-complete status-pill'
+                'backgroundColor': '#E8F5E9',
+                'color': '#2E7D32'
             },
             {
-                'if': {'column_id': 'status', 'filter_query': '{status} eq "취소"'},
-                'className': 'status-cancel status-pill'
+                'if': {'column_id': 'status', 'filter_query': '{status} eq "이슈"'},
+                'backgroundColor': '#FFEBEE',
+                'color': '#C62828'
             }
         ],
-
-        css=[{
-            'selector': '.dash-table-container',
-            'rule': 'margin: 0; padding: 0;'
-        }]
     )
 
 
@@ -75,7 +68,7 @@ def create_filter_controls():
             dbc.Col(
                 dbc.Input(
                     id="search-input",
-                    placeholder="검색어를 입력하세요",
+                    placeholder="DPS 또는 고객명으로 검색",
                     className="form-control"
                 ),
                 width=3,
@@ -102,7 +95,8 @@ def create_filter_controls():
                         {"label": "전체 상태", "value": "all"},
                         {"label": "대기", "value": "대기"},
                         {"label": "진행", "value": "진행"},
-                        {"label": "완료", "value": "완료"}
+                        {"label": "완료", "value": "완료"},
+                        {"label": "이슈", "value": "이슈"}
                     ],
                     value="all",
                     className="form-select"
@@ -112,7 +106,7 @@ def create_filter_controls():
             dbc.Col(
                 dbc.Select(
                     id="driver-filter",
-                    options=[],
+                    options=[],  # 동적으로 로드됨
                     placeholder="기사 선택",
                     value="all",
                     className="form-select"
@@ -138,102 +132,74 @@ def create_filter_controls():
                 ], className="d-flex justify-content-end"),
                 width=3,
             ),
-        ],
-            className="g-3 align-items-center"
-        ),
+        ], className="g-3 align-items-center"),
     ], className="filter-controls bg-white p-3 rounded shadow-sm mb-3")
 
 
 def create_detail_modal():
+    """상세 정보 모달"""
     return dbc.Modal([
-        dbc.ModalHeader("상세 정보", className="modal-header"),
+        dbc.ModalHeader("상세 정보"),
         dbc.ModalBody([
             dbc.Row([
-                dbc.Col([field_group("부서", "department")], width=6),
-                dbc.Col([field_group("유형", "type")], width=6),
-            ], className="mb-3"),
-            dbc.Row([
-                dbc.Col([field_group("창고", "warehouse")], width=6),
-                dbc.Col([field_group("기사명", "driver_name")], width=6),
-            ], className="mb-3"),
-            dbc.Row([
-                dbc.Col([field_group("DPS", "dps")], width=6),
-                dbc.Col([field_group("SLA", "sla")], width=6),
-            ], className="mb-3"),
-            dbc.Row([
                 dbc.Col([
-                    html.Label("상태", className="modal-label"),
+                    html.Strong("DPS: "),
+                    html.Span(id="modal-dps"),
+                ], width=6),
+                dbc.Col([
+                    html.Strong("상태: "),
                     dbc.Select(
                         id="status-select",
                         options=[
                             {"label": "대기", "value": "대기"},
                             {"label": "진행", "value": "진행"},
                             {"label": "완료", "value": "완료"},
-                            {"label": "취소", "value": "취소"}
+                            {"label": "이슈", "value": "이슈"}
                         ],
-                        className="status-select"
                     ),
                     dbc.Button(
                         "상태 변경",
                         id="status-update-btn",
                         color="primary",
-                        className="status-update-btn"
+                        className="ms-2"
                     )
                 ], width=6),
-                dbc.Col([field_group("ETA", "eta")], width=6),
             ], className="mb-3"),
-            dbc.Row([
-                dbc.Col([field_group("주소", "address")], width=12),
-            ], className="mb-3"),
-            # 추가된 필드들
-            dbc.Row([
-                dbc.Col([field_group("고객명", "customer")], width=6),
-                dbc.Col([field_group("연락처", "contact")], width=6),
-            ], className="mb-3"),
-            dbc.Row([
-                dbc.Col([field_group("비고", "remark")], width=6),
-                dbc.Col([field_group("출발 시간", "depart_time")], width=6),
-            ], className="mb-3"),
-            dbc.Row([
-                dbc.Col([field_group("소요 시간", "duration_time")], width=12),
-            ], className="mb-3"),
-        ], className="modal-content-body"),
+            # 기타 상세 정보 필드들...
+        ]),
         dbc.ModalFooter(
-            dbc.Button("닫기", id="close-modal", className="btn-close-modal")
+            dbc.Button("닫기", id="close-modal", className="ms-auto")
         )
-    ], id="detail-modal", size="lg")
-def field_group(label, field_id):
-    return html.Div([
-        html.Label(label, className="field-label"),
-        html.Div(id=f"modal-{field_id}", className="field-content")
-    ], className="field-group")
+    ], id="detail-modal")
 
 
 def layout():
     """대시보드 레이아웃"""
     return html.Div([
-        dcc.Store(id='table-data', data=[]),
-        dcc.Store(id='detail-data', data={}),
+        dcc.Store(id='table-data'),
 
-        html.H1("배송/회수 대시보드", className="dashboard-title"),
+        html.H1("배송/회수 대시보드", className="mb-4"),
 
         create_filter_controls(),
 
         dcc.Loading(
-            id="loading-indicator",
+            id="loading-table",
             children=[
-                html.Div([create_data_table()], className="table-container")
+                create_data_table()
             ],
             type="circle",
         ),
 
         create_detail_modal(),
 
+        # 토스트 메시지
         dbc.Toast(
-            id="status-update-toast",
-            header="상태 업데이트",
+            id="notification-toast",
+            header="알림",
             is_open=False,
-            duration=3000,
-            className="status-toast"
-        )
-    ], className="dashboard-layout")
+            dismissable=True,
+            duration=4000,
+            style={"position": "fixed", "top": 66, "right": 10, "width": 350},
+        ),
+
+    ], className="container-fluid py-4")
