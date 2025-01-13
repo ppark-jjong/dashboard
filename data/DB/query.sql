@@ -51,9 +51,9 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `delivery_system`.`dashboard` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT '대시보드 ID',
-  `type` ENUM('delivery', 'return') NOT NULL COMMENT '작업 유형 (배송 또는 반품)',
+  `type` VARCHAR(10) NOT NULL COMMENT '작업 유형 (배송 또는 반품)',
   `dps` VARCHAR(50) NOT NULL COMMENT '배송/반품 ID',
-  `status` ENUM('대기', '진행', '완료', '이슈') NOT NULL DEFAULT '대기' COMMENT '배송 상태',
+  `status` VARCHAR(10) NOT NULL DEFAULT '대기' COMMENT '배송 상태',
   `driver` INT NULL DEFAULT NULL COMMENT '배정된 드라이버',
   `postal_code` VARCHAR(10) NOT NULL COMMENT '우편번호',
   `address` VARCHAR(255) NOT NULL COMMENT '배송지 주소',
@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS `delivery_system`.`dashboard` (
   `remark` TEXT NULL DEFAULT NULL COMMENT '비고',
   `depart_time` DATETIME NULL DEFAULT NULL COMMENT '배차 시간',
   `completed_time` DATETIME NULL DEFAULT NULL COMMENT '완료 시간',
+  `eta` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `unique_dps` (`dps` ASC) VISIBLE,
   INDEX `idx_driver` (`driver` ASC) VISIBLE,
@@ -77,6 +78,7 @@ CREATE TABLE IF NOT EXISTS `delivery_system`.`dashboard` (
     ON DELETE RESTRICT
     ON UPDATE CASCADE)
 ENGINE = InnoDB
+AUTO_INCREMENT = 82
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -90,7 +92,7 @@ CREATE TABLE IF NOT EXISTS `delivery_system`.`delivery` (
   `dps` VARCHAR(50) NOT NULL,
   `sla` VARCHAR(20) NOT NULL,
   `eta` DATETIME NULL DEFAULT NULL,
-  `status` ENUM('대기', '진행', '완료', '이슈') NOT NULL DEFAULT '대기',
+  `status` VARCHAR(10) NOT NULL DEFAULT '대기',
   `dispatch_time` DATETIME NULL DEFAULT NULL,
   `depart_time` DATETIME NULL DEFAULT NULL,
   `completed_time` DATETIME NULL DEFAULT NULL,
@@ -130,7 +132,7 @@ CREATE TABLE IF NOT EXISTS `delivery_system`.`return` (
   `eta` DATETIME NULL DEFAULT NULL,
   `package_type` VARCHAR(10) NULL DEFAULT NULL,
   `qty` INT NULL DEFAULT NULL,
-  `status` ENUM('대기', '진행', '완료', '이슈') NOT NULL DEFAULT '대기',
+  `status` VARCHAR(10) NOT NULL DEFAULT '대기',
   `address` VARCHAR(255) NOT NULL,
   `customer` VARCHAR(100) NOT NULL,
   `contact` VARCHAR(20) NULL DEFAULT NULL,
