@@ -1,36 +1,41 @@
-# src/model/mysql_repository.py
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, func
-from sqlalchemy.exc import SQLAlchemyError
+# src/repository/mysql_repository.py
 from contextlib import contextmanager
-import logging
-from datetime import datetime, timedelta
 
-from src.model.main_model import Driver, Dashboard, Delivery, Return
+from sqlalchemy import create_engine, and_, or_, func
+from sqlalchemy.orm import sessionmaker, joinedload
+from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime, timedelta
+from typing import Tuple, List, Dict, Optional
+import logging
+
 from src.config.base_config import DBConfig
+from src.model.main_model import Driver, Dashboard, Delivery, Return, PostalCode
 
 logger = logging.getLogger(__name__)
 
 
 class MySQLRepository:
     def __init__(self):
-        """MySQL 데이터베이스 연결 초기화"""
-        db_config = DBConfig()
-        self.engine = create_engine(
-            f"mysql+pymysql://{db_config.user}:{db_config.password}@{db_config.host}:{db_config.port}/{db_config.database}",
-            pool_size=10,
-            max_overflow=20,
-            pool_pre_ping=True,
-            echo=True
-        )
-        self.Session = sessionmaker(bind=self.engine)
+        try:
+            db_config = DBConfig()
+            self.engine = create_engine(
+                f"mysql+pymysql://{db_config.user}:{db_config.password}@{db_config.host}:{db_config.port}/{db_config.database}",
+                pool_size=10,
+                max_overflow=20,
+                pool_pre_ping=True
+            )
+            self.Session = sessionmaker(bind=self.engine)
+            logger.info("MySQL repository initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize MySQL repository: {e}")
+            raise
 
     @contextmanager
     def get_session(self):
-        """동기 세션 컨텍스트 관리자"""
         session = self.Session()
         try:
             yield session
+            session.commit()
         except SQLAlchemyError as e:
             logger.error(f"Database session error: {e}")
             session.rollback()
@@ -38,162 +43,106 @@ class MySQLRepository:
         finally:
             session.close()
 
-    def update_dashboard_data(self):
+    def sync_dashboard_data(self) -> bool:
         """대시보드 데이터 동기화"""
-        with self.get_session() as session:
-            try:
-                today = datetime.now()
-                seven_days_later = today + timedelta(days=7)
+        try:
+            with self.get_session() as session:
+                current_time = datetime.now()
+                week_later = current_time + timedelta(days=7)
 
-                # 배송 데이터 조회
-                logger.info("Querying delivery data...")
-                deliveries = session.query(Delivery).filter(
-                    Delivery.eta >= today,
-                    Delivery.eta <= seven_days_later
-                ).all()
-                logger.info(f"Found {len(deliveries)} deliveries to process")
+                delivery_data = (
+                    session.query(
+                        Delivery,
+                        PostalCode.district,
+                        PostalCode.duration_time,
+                        Driver.driver_name,
+                        Driver.driver_contact
+                    )
+                    .outerjoin(PostalCode, Delivery.postal_code == PostalCode.postal_code)
+                    .outerjoin(Driver, Delivery.driver == Driver.driver)
+                    .filter(Delivery.eta.between(current_time, week_later))
+                    .all()
+                )
 
-                for delivery in deliveries:
-                    try:
-                        logger.debug(f"Processing delivery {delivery.dps}")
+                return_data = (
+                    session.query(
+                        Return,
+                        PostalCode.district,
+                        PostalCode.duration_time,
+                        Driver.driver_name,
+                        Driver.driver_contact
+                    )
+                    .outerjoin(PostalCode, Return.postal_code == PostalCode.postal_code)
+                    .outerjoin(Driver, Return.driver == Driver.driver)
+                    .filter(Return.eta.between(current_time, week_later))
+                    .all()
+                )
 
-                        # dps로 기존 데이터 조회
-                        existing_dashboard = session.query(Dashboard).filter(
-                            Dashboard.dps == delivery.dps
-                        ).first()
+                dashboard_records = []
 
-                        if existing_dashboard:
-                            # 기존 데이터 업데이트
-                            logger.debug(f"Updating existing dashboard for delivery {delivery.dps}")
-                            existing_dashboard.type = 'delivery'
-                            existing_dashboard.dps = delivery.dps
-                            existing_dashboard.status = delivery.status or '대기'
-                            existing_dashboard.driver = delivery.driver
-                            existing_dashboard.postal_code = delivery.postal_code
-                            existing_dashboard.address = delivery.address
-                            existing_dashboard.customer = delivery.customer
-                            existing_dashboard.contact = delivery.contact
-                            existing_dashboard.remark = delivery.remark
-                            existing_dashboard.eta = delivery.eta
-                            existing_dashboard.depart_time = delivery.depart_time
-                            existing_dashboard.completed_time = delivery.completed_time
-                            existing_dashboard.department = delivery.department
-                            existing_dashboard.warehouse = delivery.warehouse
-                            existing_dashboard.sla = delivery.sla
+                for delivery, district, duration_time, driver_name, driver_contact in delivery_data:
+                    dashboard_records.append({
+                        'type': 'delivery',
+                        'dps': delivery.dps,
+                        'status': delivery.status,
+                        'department': delivery.department,
+                        'postal_code': delivery.postal_code,
+                        'district': district,
+                        'duration_time': duration_time,
+                        'address': delivery.address,
+                        'customer': delivery.customer,
+                        'contact': delivery.contact,
+                        'remark': delivery.remark,
+                        'eta': delivery.eta,
+                        'warehouse': delivery.warehouse,
+                        'sla': delivery.sla,
+                        'driver_id': delivery.driver,
+                        'driver_name': driver_name,
+                        'driver_contact': driver_contact
+                    })
 
-                            # delivery의 dashboard_id 업데이트
-                            delivery.dashboard_id = existing_dashboard.id
-                        else:
-                            # 새로운 데이터 생성
-                            logger.debug(f"Creating new dashboard for delivery {delivery.dps}")
-                            dashboard = Dashboard(
-                                type='delivery',
-                                dps=delivery.dps,
-                                status=delivery.status or '대기',
-                                driver=delivery.driver,
-                                postal_code=delivery.postal_code,
-                                address=delivery.address,
-                                customer=delivery.customer,
-                                contact=delivery.contact,
-                                remark=delivery.remark,
-                                eta=delivery.eta,
-                                depart_time=delivery.depart_time,
-                                completed_time=delivery.completed_time,
-                                department=delivery.department,
-                                warehouse=delivery.warehouse,
-                                sla=delivery.sla
-                            )
-                            session.add(dashboard)
-                            session.flush()  # id 생성을 위한 flush
+                for return_item, district, duration_time, driver_name, driver_contact in return_data:
+                    dashboard_records.append({
+                        'type': 'return',
+                        'dps': return_item.dps,
+                        'status': return_item.status,
+                        'department': return_item.department,
+                        'postal_code': return_item.postal_code,
+                        'district': district,
+                        'duration_time': duration_time,
+                        'address': return_item.address,
+                        'customer': return_item.customer,
+                        'contact': return_item.contact,
+                        'remark': return_item.remark,
+                        'eta': return_item.eta,
+                        'driver_id': return_item.driver,
+                        'driver_name': driver_name,
+                        'driver_contact': driver_contact
+                    })
 
-                            # delivery의 dashboard_id 업데이트
-                            delivery.dashboard_id = dashboard.id
+                if dashboard_records:
+                    session.query(Dashboard).delete()
+                    session.bulk_insert_mappings(Dashboard, dashboard_records)
+                    session.commit()
 
-                    except Exception as item_error:
-                        logger.error(f"Error processing delivery {delivery.dps}: {str(item_error)}")
-                        continue
-
-                # Return 데이터도 동일한 방식으로 처리
-                returns = session.query(Return).filter(
-                    Return.eta >= today,
-                    Return.eta <= seven_days_later
-                ).all()
-                logger.info(f"Found {len(returns)} returns to process")
-
-                for return_item in returns:
-                    try:
-                        logger.debug(f"Processing return {return_item.dps}")
-
-                        # dps로 기존 데이터 조회
-                        existing_dashboard = session.query(Dashboard).filter(
-                            Dashboard.dps == return_item.dps
-                        ).first()
-
-                        if existing_dashboard:
-                            # 기존 데이터 업데이트
-                            logger.debug(f"Updating existing dashboard for return {return_item.dps}")
-                            existing_dashboard.type = 'return'
-                            existing_dashboard.dps = return_item.dps
-                            existing_dashboard.status = return_item.status or '대기'
-                            existing_dashboard.driver = return_item.driver
-                            existing_dashboard.postal_code = return_item.postal_code
-                            existing_dashboard.address = return_item.address
-                            existing_dashboard.customer = return_item.customer
-                            existing_dashboard.contact = return_item.contact
-                            existing_dashboard.remark = return_item.remark
-                            existing_dashboard.eta = return_item.eta
-                            existing_dashboard.depart_time = None
-                            existing_dashboard.completed_time = None
-                            existing_dashboard.department = return_item.department
-                            existing_dashboard.package_type = return_item.package_type
-                            existing_dashboard.qty = return_item.qty
-
-                            # return의 dashboard_id 업데이트
-                            return_item.dashboard_id = existing_dashboard.id
-                        else:
-                            # 새로운 데이터 생성
-                            logger.debug(f"Creating new dashboard for return {return_item.dps}")
-                            dashboard = Dashboard(
-                                type='return',
-                                dps=return_item.dps,
-                                status=return_item.status or '대기',
-                                driver=return_item.driver,
-                                postal_code=return_item.postal_code,
-                                address=return_item.address,
-                                customer=return_item.customer,
-                                contact=return_item.contact,
-                                remark=return_item.remark,
-                                eta=return_item.eta,
-                                depart_time=None,
-                                completed_time=None,
-                                department=return_item.department,
-                                package_type=return_item.package_type,
-                                qty=return_item.qty
-                            )
-                            session.add(dashboard)
-                            session.flush()  # id 생성을 위한 flush
-
-                            # return의 dashboard_id 업데이트
-                            return_item.dashboard_id = dashboard.id
-
-                    except Exception as item_error:
-                        logger.error(f"Error processing return {return_item.dps}: {str(item_error)}")
-                        continue
-
-                logger.info("Committing transaction...")
-                session.commit()
-                logger.info("Dashboard data update completed successfully")
                 return True
 
-            except Exception as e:
-                logger.error(f"Error syncing dashboard data: {str(e)}")
-                if session.is_active:
-                    session.rollback()
-                raise
-    def get_dashboard_items(self, skip: int, limit: int, filters: dict = None):
-        """Dashboard 데이터 조회"""
-        with self.get_session() as session:
-            try:
+        except SQLAlchemyError as e:
+            logger.error(f"Database error during dashboard sync: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Error syncing dashboard data: {e}")
+            raise
+
+    def get_dashboard_items(
+            self,
+            skip: int,
+            limit: int,
+            filters: Dict
+    ) -> Tuple[List[Dashboard], int]:
+        """대시보드 데이터 조회"""
+        try:
+            with self.get_session() as session:
                 query = session.query(Dashboard)
 
                 if filters:
@@ -202,71 +151,127 @@ class MySQLRepository:
                     if status := filters.get('status'):
                         query = query.filter(Dashboard.status == status)
                     if driver := filters.get('driver'):
-                        query = query.filter(Dashboard.driver == driver)
+                        query = query.filter(Dashboard.driver_id == driver)
                     if search := filters.get('search'):
                         search_pattern = f"%{search}%"
-                        query = query.filter(
-                            Dashboard.dps.like(search_pattern) |
-                            Dashboard.customer.like(search_pattern)
-                        )
+                        query = query.filter(or_(
+                            Dashboard.dps.like(search_pattern),
+                            Dashboard.customer.like(search_pattern),
+                            Dashboard.address.like(search_pattern)
+                        ))
 
                 total = query.count()
-                items = query.offset(skip).limit(limit).all()
+                items = query.order_by(Dashboard.eta).offset(skip).limit(limit).all()
 
                 return items, total
 
-            except Exception as e:
-                logger.error(f"Error fetching dashboard items: {e}")
-                raise
+        except SQLAlchemyError as e:
+            logger.error(f"Database error during dashboard items retrieval: {e}")
+            raise
 
-    def update_status(self, delivery_id: str, new_status: str, current_status: str):
-        """상태 업데이트 및 시간 기록"""
-        with self.get_session() as session:
-            try:
+    def get_dashboard_item(self, dps: str) -> Optional[Dashboard]:
+        """개별 대시보드 아이템 조회"""
+        try:
+            with self.get_session() as session:
+                return session.query(Dashboard).filter(Dashboard.dps == dps).first()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error during dashboard item retrieval: {e}")
+            raise
+
+    def update_status(
+            self,
+            delivery_id: str,
+            new_status: str,
+            current_status: str
+    ) -> bool:
+        """상태 업데이트"""
+        try:
+            with self.get_session() as session:
                 now = datetime.now()
                 update_values = {'status': new_status}
 
-                # 대기 -> 진행: 출발 시간 기록
                 if current_status == '대기' and new_status == '진행':
                     update_values['depart_time'] = now
-
-                # 진행 -> 완료/이슈: 완료 시간 기록
                 elif current_status == '진행' and new_status in ['완료', '이슈']:
                     update_values['completed_time'] = now
 
-                # Dashboard, Delivery, Return 테이블 상태 업데이트
-                session.query(Dashboard).filter(Dashboard.dps == delivery_id).update(update_values)
-                session.query(Delivery).filter(Delivery.dps == delivery_id).update(update_values)
-                session.query(Return).filter(Return.dps == delivery_id).update({'status': new_status})
+                session.query(Dashboard).filter(
+                    Dashboard.dps == delivery_id
+                ).update(update_values)
 
-                session.commit()
                 return True
 
-            except Exception as e:
-                logger.error(f"Error updating status: {e}")
-                session.rollback()
-                return False
+        except SQLAlchemyError as e:
+            logger.error(f"Database error during status update: {e}")
+            raise
 
-    def assign_driver(self, delivery_ids: list, driver_id: str):
+    def assign_driver(self, delivery_ids: List[str], driver_id: int) -> bool:
         """기사 할당"""
-        with self.get_session() as session:
-            try:
-                session.query(Dashboard).filter(Dashboard.dps.in_(delivery_ids)).update({'driver': driver_id})
-                session.query(Delivery).filter(Delivery.dps.in_(delivery_ids)).update({'driver': driver_id})
-                session.query(Return).filter(Return.dps.in_(delivery_ids)).update({'driver': driver_id})
+        try:
+            with self.get_session() as session:
+                # 1. 기사 정보 조회
+                driver = session.query(Driver).filter(Driver.driver == driver_id).first()
+                if not driver:
+                    logger.error(f"No driver found with ID: {driver_id}")
+                    return False
 
-                session.commit()
-                return True
+                # 2. 대시보드 업데이트
+                affected = session.query(Dashboard).filter(
+                    Dashboard.dps.in_(delivery_ids)
+                ).update({
+                    'driver_id': driver_id,
+                    'driver_name': driver.driver_name,
+                    'driver_contact': driver.driver_contact,
+                    'status': '대기'  # 기사 할당 시 상태 초기화
+                }, synchronize_session=False)
 
-            except Exception as e:
-                logger.error(f"Error assigning driver: {e}")
+                if affected > 0:
+                    logger.info(f"Assigned driver {driver_id} to {affected} dashboard items")
+                    return True
                 return False
 
-    def get_drivers(self):
+        except SQLAlchemyError as e:
+            logger.error(f"Database error during driver assignment: {e}")
+            raise
+
+
+    def get_drivers(self) -> List[Driver]:
         """기사 목록 조회"""
-        with self.get_session() as session:
-            try:
+        try:
+            with self.get_session() as session:
                 return session.query(Driver).all()
-            except Exception as e:
-                logger.error(f"Error fetching drivers: {e}")
-                raise
+        except SQLAlchemyError as e:
+            logger.error(f"Database error during drivers retrieval: {e}")
+            raise
+
+    def get_dashboard_detail(self, dps: str) -> Optional[Dict]:
+        """상세 정보 조회"""
+        try:
+            with self.get_session() as session:
+                item = session.query(Dashboard).filter(Dashboard.dps == dps).first()
+                if not item:
+                    return None
+
+                return {
+                    'department': item.department,
+                    'type': item.type,
+                    'warehouse': item.warehouse,
+                    'driver_name': item.driver_name,
+                    'dps': item.dps,
+                    'sla': item.sla,
+                    'status': item.status,
+                    'eta': item.eta,
+                    'address': item.address,
+                    'customer': item.customer,
+                    'contact': item.contact,
+                    'remark': item.remark,
+                    'district': item.district,
+                    'duration_time': item.duration_time,
+                    'depart_time': item.depart_time,
+                    'completed_time': item.completed_time,
+                    'driver_contact': item.driver_contact
+                }
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error during detail retrieval: {e}")
+            raise
