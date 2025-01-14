@@ -1,0 +1,46 @@
+appengine 배포
+gcloud app deploy --service-account=appengine-user-managed@dashboard-440518.iam.gserviceaccount.com
+
+권한 부여 GCS
+gcloud projects add-iam-policy-binding dashboard-440518 --member="serviceAccount:appengine-user-managed@dashboard-440518.iam.gserviceaccount.com" --role="roles/storage.objectAdmin"
+
+권한 부여 appengine
+gcloud projects add-iam-policy-binding dashboard-440518 --member="serviceAccount:appengine-user-managed@dashboard-440518.iam.gserviceaccount.com" --role="roles/appengine.serviceAgent"
+
+gcloud projects add-iam-policy-binding dashboard-440518 --member="serviceAccount:appengine-user-managed@dashboard-440518.iam.gserviceaccount.com" --role="roles/appengine.appAdmin"
+
+gcloud projects add-iam-policy-binding dashboard-440518 --member="serviceAccount:appengine-user-managed@dashboard-440518.iam.gserviceaccount.com" --role="roles/iam.serviceAccountUser"
+
+gcloud projects add-iam-policy-binding dashboard-440518 --member="serviceAccount:appengine-user-managed@dashboard-440518.iam.gserviceaccount.com" --role="roles/cloudbuild.builds.editor"
+
+gcloud projects add-iam-policy-binding dashboard-440518 --member="serviceAccount:appengine-user-managed@dashboard-440518.iam.gserviceaccount.com" --role="roles/storage.admin"
+
+서비스 계정 로그인 (json 파일 사용한)
+gcloud auth activate-service-account --key-file=secret/pass.json
+
+
+서비스 권한 확인
+gcloud iam service-accounts get-iam-policy appengine-user-managed@dashboard-440518.iam.gserviceaccount.com
+
+
+gcloud config set account jonghp1357@gmail.com
+
+
+서비스 계정 생성
+gcloud iam service-accounts create appengine-user-managed --description="User-Managed Service Account for App Engine" --display-name="App Engine User Managed"
+
+
+권한 전체 리스트업
+gcloud projects get-iam-policy dashboard-440518
+
+
+
+gcloud storage buckets add-iam-policy-binding gs://staging.dashboard-440518.appspot.com  --member="serviceAccount:appengine-user-managed@dashboard-440518.iam.gserviceaccount.com"  --role="roles/storage.objectCreator"
+
+
+gcloud storage buckets get-iam-policy gs://teckwahkr-gcs.appspot.com
+
+
+
+
+1069664741745
