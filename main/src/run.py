@@ -22,45 +22,31 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 def create_app():
-    """Flask 애플리케이션 생성 및 설정"""
     try:
         server = Flask(__name__)
-
-        server.config['DEBUG'] = True
+        server.config['SERVER_NAME'] = '127.0.0.1:5000'
 
         # MySQL 초기화
-        logger.info("Initializing MySQL repository...")
         mysql_repository = MySQLRepository()
         verify_mysql_connection(mysql_repository)
 
         # Redis 초기화
-        logger.info("Initializing Redis repository...")
         redis_repository = RedisRepository()
 
         # 데이터베이스 초기화
         initialize_database(mysql_repository)
 
         # 서비스 초기화
-        logger.info("Initializing Dashboard service...")
-        service = DashboardService(
-            mysql_repo=mysql_repository,
-            redis_repo=redis_repository
-        )
+        service = DashboardService(mysql_repository, redis_repository)
 
         # API 라우트 등록
-        logger.info("Registering API routes...")
         api_routes = init_routes(service)
         server.register_blueprint(api_routes)
 
         # Dash 앱 초기화
-        logger.info("Initializing Dash app...")
         dash_app = init_dash(server)
-
-        # 등록된 라우트 확인
-        logger.info("Registered routes:")
-        for rule in server.url_map.iter_rules():
-            logger.info(f"  {rule.rule} [{', '.join(rule.methods)}]")
 
         return server
 
@@ -80,6 +66,7 @@ def initialize_database(repository):
         logger.error(f"Database initialization error: {e}")
         raise
 
+
 def verify_mysql_connection(repository):
     """MySQL 연결 확인"""
     try:
@@ -90,6 +77,7 @@ def verify_mysql_connection(repository):
         logger.error(f"MySQL connection failed: {e}")
         raise
 
+
 def main():
     """애플리케이션 실행"""
     try:
@@ -99,6 +87,7 @@ def main():
     except Exception as e:
         logger.error(f"Application startup failed: {e}")
         raise
+
 
 if __name__ == '__main__':
     main()

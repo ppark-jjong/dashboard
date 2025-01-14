@@ -1,26 +1,28 @@
 # src/dash_view/index.py
-from dash import Dash, html
+from dash import Dash
 import dash_bootstrap_components as dbc
 from flask import Flask
-from .main_navbar import create_navbar
 from .dashboard import layout as dashboard_layout
-from .callbacks import *  # 콜백 함수들 임포트
+from .main_navbar import create_navbar
+from .callbacks import dashboard_callbacks
 import os
 import logging
+from dash import html
 
 logger = logging.getLogger(__name__)
 
+def create_layout():
+    """전체 앱 레이아웃 생성"""
+    return html.Div([
+        create_navbar(),  # Navbar 추가
+        dashboard_layout()  # Dashboard 레이아웃 추가
+    ])
 
 def init_dash(server: Flask) -> Dash:
     """Dash 앱 초기화"""
-    logger.info("Initializing Dash app...")
-
     try:
-        # 애셋 경로 설정
         assets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
-        logger.info(f"Assets path: {assets_path}")
 
-        # Dash 앱 생성
         app = Dash(
             __name__,
             server=server,
@@ -34,17 +36,12 @@ def init_dash(server: Flask) -> Dash:
             suppress_callback_exceptions=True
         )
 
-        # 레이아웃 설정
-        app.layout = html.Div([
-            create_navbar(),
-            dbc.Container(
-                dashboard_layout(),
-                fluid=True,
-                className="dashboard-container py-4"
-            )
-        ], className="app-wrapper")
+        # 전체 레이아웃 설정
+        app.layout = create_layout()
 
-        logger.info("Dash app initialized successfully")
+        # 콜백 초기화
+        dashboard_callbacks.init_callbacks(app)
+
         return app
 
     except Exception as e:

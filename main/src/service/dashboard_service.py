@@ -57,29 +57,35 @@ class DashboardService:
                 filters=filters.dict(exclude_none=True)
             )
 
-            formatted_items = [{
-                'department': item.department,
-                'type': item.type,
-                'warehouse': item.warehouse or '-',
-                'driver_name': item.driver_name or '-',
-                'dps': item.dps,
-                'sla': item.sla or '-',
-                'eta': item.eta.strftime("%Y-%m-%d %H:%M") if item.eta else '-',
-                'status': item.status,
-                'district': item.district or '-',
-                'duration_time': f"{item.duration_time}분" if item.duration_time else '-'
-            } for item in items]
+            response_data = {
+                'data': [{
+                    'department': item.department,
+                    'type': item.type.value if hasattr(item.type, 'value') else item.type,
+                    'warehouse': item.warehouse or '-',
+                    'driver_name': item.driver_name or '-',
+                    'dps': item.dps,
+                    'sla': item.sla or '-',
+                    'eta': item.eta.strftime("%Y-%m-%d %H:%M") if item.eta else '-',
+                    'status': item.status,
+                    'district': item.district or '-',
+                    'duration_time': f"{item.duration_time}분" if item.duration_time else '-',
+                    'contact': item.contact or '-'
+                } for item in items],
+                'total_records': total,
+                'total_pages': (total + filters.page_size - 1) // filters.page_size,
+                'current_page': filters.page,
+                'page_size': filters.page_size,
+                'has_next': (filters.page * filters.page_size) < total,
+                'has_prev': filters.page > 1
+            }
 
-            response = DashboardDataResponse(
-                data=formatted_items,
-                total_records=total,
-                total_pages=(total + filters.page_size - 1) // filters.page_size,
-                current_page=filters.page,
-                page_size=filters.page_size
-            )
-
+            response = DashboardDataResponse(**response_data)
             self.redis_repo.set(cache_key, response.json())
             return response
+
+        except Exception as e:
+            logger.error(f"Error getting dashboard data: {e}")
+            raise
 
         except Exception as e:
             logger.error(f"Error getting dashboard data: {e}")

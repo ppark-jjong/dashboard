@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 def init_routes(service: DashboardService):
-    api_routes = Blueprint('api', __name__, url_prefix='/api')  # 기본 URL 접두사를 /api로 설정
+    api_routes = Blueprint('api', __name__, url_prefix='/api/dashboard')
 
-    @api_routes.route('/dashboard/refresh', methods=['POST'])
+    @api_routes.route('/refresh', methods=['POST'])
     def refresh_dashboard():
         """대시보드 데이터 새로고침"""
         try:
@@ -32,7 +32,7 @@ def init_routes(service: DashboardService):
                 'message': str(e)
             }), 500
 
-    @api_routes.route('/dashboard/data', methods=['GET'])
+    @api_routes.route('/data', methods=['GET'])
     def get_dashboard_data():
         """대시보드 데이터 조회"""
         try:
@@ -45,9 +45,17 @@ def init_routes(service: DashboardService):
                 page_size=int(request.args.get('page_size', 15))
             )
             response = service.get_dashboard_data(filters)
+
+            # 응답 형식 통일
             return jsonify({
                 'status': 'success',
-                'data': response.dict()
+                'data': {
+                    'data': response.data,
+                    'total_records': response.total_records,
+                    'total_pages': response.total_pages,
+                    'current_page': response.current_page,
+                    'page_size': response.page_size
+                }
             }), 200
         except Exception as e:
             logger.error(f"Error fetching dashboard data: {e}")
@@ -56,7 +64,7 @@ def init_routes(service: DashboardService):
                 'message': str(e)
             }), 500
 
-    @api_routes.route('/dashboard/status', methods=['PUT'])
+    @api_routes.route('/status', methods=['PUT'])
     def update_status():
         """상태 업데이트"""
         try:
@@ -84,7 +92,7 @@ def init_routes(service: DashboardService):
                 'message': str(e)
             }), 500
 
-    @api_routes.route('/dashboard/driver/assign', methods=['POST'])
+    @api_routes.route('/driver/assign', methods=['POST'])
     def assign_driver():
         """기사 할당"""
         try:
@@ -112,7 +120,7 @@ def init_routes(service: DashboardService):
                 'message': str(e)
             }), 500
 
-    @api_routes.route('/dashboard/detail/<dps>', methods=['GET'])
+    @api_routes.route('/detail/<dps>', methods=['GET'])
     def get_detail_data(dps):
         """상세 정보 조회"""
         try:
@@ -133,7 +141,7 @@ def init_routes(service: DashboardService):
                 'message': str(e)
             }), 500
 
-    @api_routes.route('/dashboard/drivers', methods=['GET'])
+    @api_routes.route('/drivers', methods=['GET'])
     def get_drivers():
         """기사 목록 조회"""
         try:

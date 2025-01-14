@@ -2,7 +2,6 @@
 from dash import html, dcc, dash_table
 import dash_bootstrap_components as dbc
 
-
 def create_data_table():
     """데이터 테이블 생성"""
     return dash_table.DataTable(
@@ -31,10 +30,8 @@ def create_data_table():
         page_count=1,
         row_selectable='multi',
         selected_rows=[],
-
         style_table={'width': '100%'},
         style_cell={'textAlign': 'left'},
-
         style_data_conditional=[
             {
                 'if': {'column_id': 'status', 'filter_query': '{status} eq "대기"'},
@@ -59,12 +56,10 @@ def create_data_table():
         ],
     )
 
-
 def create_filter_controls():
     """필터링 컨트롤 생성"""
     return html.Div([
         dbc.Row([
-            # 검색창
             dbc.Col(
                 dbc.Input(
                     id="search-input",
@@ -73,8 +68,6 @@ def create_filter_controls():
                 ),
                 width=3,
             ),
-
-            # 필터 셀렉트 박스들
             dbc.Col(
                 dbc.Select(
                     id="department-filter",
@@ -106,15 +99,13 @@ def create_filter_controls():
             dbc.Col(
                 dbc.Select(
                     id="driver-filter",
-                    options=[],  # 동적으로 로드됨
+                    options=[],
                     placeholder="기사 선택",
                     value="all",
                     className="form-select"
                 ),
                 width=2,
             ),
-
-            # 버튼 그룹
             dbc.Col(
                 html.Div([
                     dbc.Button(
@@ -134,7 +125,6 @@ def create_filter_controls():
             ),
         ], className="g-3 align-items-center"),
     ], className="filter-controls bg-white p-3 rounded shadow-sm mb-3")
-
 
 def create_detail_modal():
     """상세 정보 모달"""
@@ -165,31 +155,32 @@ def create_detail_modal():
                     )
                 ], width=6),
             ], className="mb-3"),
-            # 기타 상세 정보 필드들...
         ]),
         dbc.ModalFooter(
             dbc.Button("닫기", id="close-modal", className="ms-auto")
         )
     ], id="detail-modal")
 
-
 def layout():
     """대시보드 레이아웃"""
     return html.Div([
+        # Store 컴포넌트
         dcc.Store(id='table-data'),
 
+        # 제목
         html.H1("배송/회수 대시보드", className="mb-4"),
 
+        # 필터 컨트롤
         create_filter_controls(),
 
+        # 데이터 테이블
         dcc.Loading(
             id="loading-table",
-            children=[
-                create_data_table()
-            ],
+            children=[create_data_table()],
             type="circle",
         ),
 
+        # 모달
         create_detail_modal(),
 
         # 토스트 메시지
@@ -201,5 +192,4 @@ def layout():
             duration=4000,
             style={"position": "fixed", "top": 66, "right": 10, "width": 350},
         ),
-
     ], className="container-fluid py-4")

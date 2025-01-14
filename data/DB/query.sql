@@ -69,6 +69,8 @@ CREATE TABLE IF NOT EXISTS `delivery_system`.`dashboard` (
   `driver_contact` VARCHAR(20) NULL DEFAULT NULL,
   `sla` VARCHAR(20) NULL DEFAULT NULL,
   `warehouse` VARCHAR(45) NULL DEFAULT NULL,
+  `dps` VARCHAR(50) NULL DEFAULT NULL,
+  `city` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `unique_task` (`type` ASC) VISIBLE,
   INDEX `idx_status_driver` (`status` ASC, `driver_id` ASC) VISIBLE,
