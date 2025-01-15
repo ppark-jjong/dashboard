@@ -1,3 +1,0 @@
-dps	eta	PackageType	Qty	Address	customer	Contact	Remark
-
-warehouse	dps	eta	sla	address	postal_code	customer	contact	Remark

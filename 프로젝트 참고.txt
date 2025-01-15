@@ -184,8 +184,19 @@ spark-token-provider-kafka-0-10_2.12-3.4.1.jar
 ====================================================================================
 
 
-0 = new / allocated
-1 = dispatch
-2 = pod / received
-3 = cancel / unfulfilled
+목록 조회 (GET /api/dashboardData)
+
+필터/검색/페이지네이션을 쿼리 파라미터로 받고, JSON 형태로 대시보드 데이터를 반환한다.
+totalCount, data를 함께 주어야 프론트에서 페이지 정보 갱신 가능.
+드라이버 목록 조회 (GET /api/drivers)
+
+기사 드롭다운을 채울 수 있는 기본 정보(ID, 이름, 연락처 등) 반환.
+기사 할당 (POST /api/assignDriver)
+
+여러 “대기” 상태 배송을 한 번에 특정 기사에게 할당.
+성공 시 “진행” 상태로 바뀌며, depart_time이 기록될 수 있음.
+상태 변경 (PUT /api/dashboardData/:dps/status)
+
+상세 모달에서 라디오 버튼으로 상태 변경.
+“대기 → 진행” 시 depart_time, “진행 → 완료/이슈” 시 completed_time 등을 처리.
 
