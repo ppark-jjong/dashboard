@@ -6,6 +6,9 @@ python -m venv venv                       # 가상 환경 생성
 venv\Scripts\activate                     # 가상 환경 활성화
 deactivate                                # 가상 환경 비활성화
 
+C:\MyMain\config\Scripts\activate.ps1 #수동 활성화
+
+
 netstat -a -o                             # 네트워크 포트 확인
 taskkill /f /pid PID번호                  # 특정 PID 프로세스 종료
 
@@ -32,6 +35,10 @@ docker exec -it <container_name> /bin/bash            # 컨테이너 내부 접�
 docker cp test-kafka.py <container_name>:/path/to/new_directory/  # 컨테이너에 파일 복사
 
 
+docker-compose -f docker-compose-dev.yaml down
+docker-compose -f docker-compose-dev.yaml up --build
+
+docker exec -it <컨테이너_ID>
 
 
 ======================================================================================

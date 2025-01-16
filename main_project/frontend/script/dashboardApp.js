@@ -163,7 +163,7 @@ class DashboardApp {
     params.append("page", page);
     params.append("limit", limit);
 
-    fetch(`/api/dashboard?${params.toString()}`)
+    fetch(`http://localhost:8000/api/dashboard?${params.toString()}`)
       .then(res => res.json())
       .then(json => {
         // { totalCount, data }를 가정
@@ -388,7 +388,7 @@ class DashboardApp {
     // 예시로 id를 사용. 실제론 dps나 item.id 등 서버 스펙에 맞춰야 함
     const itemId = item.id; 
     try {
-      const res = await fetch(`/api/dashboard/${itemId}/status`, {
+      const res = await fetch(`http://localhost:8000/api/dashboard/${itemId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ new_status: newStatus }),
@@ -426,4 +426,6 @@ class DashboardApp {
     }, 3000);
   }
 }
+
+window.DashboardApp = DashboardApp;
 

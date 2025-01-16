@@ -305,3 +305,4 @@ class ModalManager {
     }
   }
 }
+window.ModalManager = ModalManager;
