@@ -378,8 +378,10 @@ class DashboardApp {
     const nextBtn = document.getElementById("next-page");
     const pageInfo = document.getElementById("page-info");
 
+    // 이전/다음 버튼 활성화/비활성화 처리
     if (prevBtn) prevBtn.disabled = this.currentPage === 0;
     if (nextBtn) nextBtn.disabled = this.currentPage >= totalPages - 1;
+    // 페이지 정보 표시 (예: "1 / 10")
     if (pageInfo) pageInfo.textContent = `${this.currentPage + 1} / ${totalPages}`;
   }
 

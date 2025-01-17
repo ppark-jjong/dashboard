@@ -1,4 +1,3 @@
-
 # backend/repository/load_mock_data.py
 import json
 import logging
@@ -7,13 +6,14 @@ from .redis_repository import RedisRepository
 
 logger = logging.getLogger(__name__)
 
+
 def load_mock_data_to_redis():
     """mock.json 파일을 읽어서 Redis에 저장"""
     repo = RedisRepository()
-    
+
     try:
         # mock.json 파일 경로 확인
-        mock_file = Path(__file__).parent / "./mock.json"  
+        mock_file = Path(__file__).parent / "./mock.json"
         logger.info(f"Looking for mock.json at: {mock_file.resolve()}")
 
         if not mock_file.exists():
@@ -35,7 +35,7 @@ def load_mock_data_to_redis():
         for idx, item in enumerate(data_list, start=1):
             key = f"dashboard:{idx}"  # id 값이 없으면 인덱스를 사용
             value = json.dumps(item, ensure_ascii=False)
-            
+
             if repo.set_data(key, value):
                 success_count += 1
                 logger.debug(f"Saved to Redis: {key}")
@@ -47,13 +47,13 @@ def load_mock_data_to_redis():
         logger.error(f"Error in load_mock_data_to_redis: {e}")
         return False
 
+
 if __name__ == "__main__":
     # 로깅 설정
     logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s - %(levelname)s - %(message)s"
+        level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
     )
-    
+
     # 데이터 로드 실행
     success = load_mock_data_to_redis()
     if success:

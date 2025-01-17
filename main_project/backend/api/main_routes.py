@@ -1,20 +1,25 @@
-# backend/api/main_routes.py
-from datetime import datetime
-
-from fastapi import APIRouter, Query
+# main_routes.py
+from fastapi import APIRouter, Query, HTTPException, Path
 from typing import Optional
 import json
 from repository.redis_repository import RedisRepository
+from schema.delivery import DeliveryListParams, DeliveryResponse
+from schema.driver import DriverAssignmentRequest, DriverAssignmentResponse
+from schema.status import StatusUpdateRequest, StatusUpdateResponse
 
 router = APIRouter()
 
-@router.get("/dashboard")
-def get_dashboard_list(
+
+@router.get("/dashboard", response_model=DeliveryResponse)
+async def get_dashboard_list(
     status: Optional[str] = Query(None, description="상태 필터"),
-    driver_id: Optional[int] = Query(None, description="기사 ID 필터")
+    driver_id: Optional[int] = Query(None, description="기사 ID 필터"),
+    search: Optional[str] = Query(None, description="검색어"),
+    page: int = Query(1, ge=1, description="페이지 번호"),
+    limit: int = Query(15, ge=1, le=100, description="페이지당 항목 수"),
 ):
     """
-    Redis에서 'dashboard:*' 키들을 전부 가져와, status/driver_id로 필터 후 반환.
+    Redis에서 'dashboard:*' 키들을 가져와 필터링 및 페이지네이션 처리
     """
     repo = RedisRepository()
     keys = repo.redis_client.keys("dashboard:*")
@@ -26,31 +31,44 @@ def get_dashboard_list(
             continue
         item = json.loads(item_str)
 
-        # 필터 적용 (status, driver_id)
+        # 필터 적용
         if status and item.get("status") != status:
             continue
         if driver_id and item.get("driver_id") != driver_id:
             continue
+        if search:
+            search_lower = search.lower()
+            # 검색어가 dps, 고객명, 주소, 연락처 등에 포함되어 있는지 확인
+            if not any(
+                search_lower in str(item.get(field, "")).lower()
+                for field in ["dps", "customer", "address", "contact"]
+            ):
+                continue
 
         data_list.append(item)
 
-    # totalCount, data 형식으로 반환
+    # 페이지네이션
+    total_count = len(data_list)
+    total_pages = (total_count + limit - 1) // limit
+    start_idx = (page - 1) * limit
+    end_idx = start_idx + limit
+
     return {
-        "totalCount": len(data_list),
-        "data": data_list
+        "totalCount": total_count,
+        "data": data_list[start_idx:end_idx],
+        "currentPage": page,
+        "totalPages": total_pages,
     }
 
+
 @router.get("/drivers")
-def get_drivers():
-    """
-    기사 목록만 따로 반환하는 예시.
-    실제로는 별도 키를 써서 관리하거나, 
-    dashboard:* 데이터에서 driver_id/driver_name만 중복없이 추출할 수도 있음.
-    """
+async def get_drivers():
+    """기사 목록 조회"""
     repo = RedisRepository()
-    # 간단 예: dashboard:*에서 driver_id와 driver_name을 추출
+    # 중복없는 driver_id, driver_name 추출
     keys = repo.redis_client.keys("dashboard:*")
-    driver_set = {}
+    driver_dict = {}
+
     for key in keys:
         item_str = repo.redis_client.get(key)
         if not item_str:
@@ -59,76 +77,88 @@ def get_drivers():
         d_id = item.get("driver_id")
         d_name = item.get("driver_name")
         if d_id and d_name:
-            driver_set[d_id] = d_name
+            driver_dict[d_id] = d_name
 
-    drivers = [{"id": k, "name": v} for k, v in driver_set.items()]
+    drivers = [{"id": k, "name": v} for k, v in driver_dict.items()]
     return {"drivers": drivers}
 
 
-@router.post("/assignDriver")
-def assign_driver(dpsList: list[str], driver_id: int):
-    """
-    선택된 여러건(dpsList)을 '대기' 상태에서 '진행'으로 변경 + 기사 정보 업데이트
-    예: body = { "driver_id": 101, "dpsList": ["9545123456", ...] }
-    """
+@router.post("/assignDriver", response_model=DriverAssignmentResponse)
+async def assign_driver(request: DriverAssignmentRequest):
+    """선택된 배송건들에 기사 할당"""
     repo = RedisRepository()
     assigned_count = 0
 
-    # Redis에서 dashboard:* 전부 뒤져서 dps가 매칭되는 아이템을 업데이트
-    keys = repo.redis_client.keys("dashboard:*")
+    # 기사 존재 여부 확인
+    driver_exists = False
+    drivers_response = await get_drivers()
+    for driver in drivers_response["drivers"]:
+        if driver["id"] == request.driver_id:
+            driver_exists = True
+            break
 
+    if not driver_exists:
+        raise HTTPException(status_code=404, detail="Driver not found")
+
+    keys = repo.redis_client.keys("dashboard:*")
     for key in keys:
         item_str = repo.redis_client.get(key)
         if not item_str:
             continue
         item = json.loads(item_str)
-        
-        if item.get("dps") in dpsList and item.get("status") == "대기":
-            # 기사 배정
-            item["driver_id"] = driver_id
-            # driver_name은 실제 driver 목록에서 찾아도 되고, 여기선 임시로
-            item["driver_name"] = f"기사{driver_id}"
-            item["status"] = "진행"
-            # depart_time 등도 업데이트 가능
-            item["depart_time"] = str("2025-01-15 10:00:00")
 
-            # Redis에 다시 저장
+        if item.get("dps") in request.dpsList and item.get("status") == "대기":
+            # 기사 할당 및 상태 업데이트
+            item["driver_id"] = request.driver_id
+            item["driver_name"] = (
+                f"기사{request.driver_id}"  # 실제로는 기사 정보 조회 필요
+            )
+            item["status"] = "진행"
+            item["depart_time"] = str(datetime.now())
+
             repo.redis_client.set(key, json.dumps(item, ensure_ascii=False))
             assigned_count += 1
 
+    if assigned_count == 0:
+        return {
+            "success": False,
+            "assignedCount": 0,
+            "message": "할당 가능한 배송건이 없습니다.",
+        }
+
     return {
-        "success": assigned_count > 0,
-        "assignedCount": assigned_count
+        "success": True,
+        "assignedCount": assigned_count,
+        "message": f"{assigned_count}건이 할당되었습니다.",
     }
 
 
-@router.put("/dashboard/{item_id}/status")
-def update_status(item_id: int, new_status: str):
-    """
-    /dashboard/1/status?new_status=완료 
-    또는 body JSON: { "new_status": "완료" }
-    
-    Redis에서 dashboard:<item_id>를 찾아 상태 변경
-    """
+@router.put("/dashboard/{item_id}/status", response_model=StatusUpdateResponse)
+async def update_status(
+    item_id: int = Path(..., description="배송건 ID"),
+    request: StatusUpdateRequest = None,
+):
+    """배송 상태 업데이트"""
+    if request.new_status not in ["대기", "진행", "완료", "이슈"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+
     repo = RedisRepository()
     key = f"dashboard:{item_id}"
     item_str = repo.redis_client.get(key)
+
     if not item_str:
-        return {"success": False, "message": "Item not found"}
+        raise HTTPException(status_code=404, detail="Item not found")
 
     item = json.loads(item_str)
     old_status = item.get("status")
 
-    # 상태에 따라 depart_time, completed_time 업데이트 가능
-    item["status"] = new_status
-    if new_status == "진행" and old_status == "대기":
+    # 상태 업데이트 및 시간 정보 갱신
+    item["status"] = request.new_status
+    if request.new_status == "진행" and old_status == "대기":
         item["depart_time"] = str(datetime.now())
-    elif new_status in ["완료", "이슈"] and old_status == "진행":
+    elif request.new_status in ["완료", "이슈"] and old_status == "진행":
         item["completed_time"] = str(datetime.now())
 
     repo.redis_client.set(key, json.dumps(item, ensure_ascii=False))
 
-    return {
-        "success": True,
-        "item": item
-    }
+    return {"success": True, "item": item, "message": "상태가 업데이트되었습니다."}
