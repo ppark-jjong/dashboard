@@ -138,7 +138,10 @@ async def init_redis():
     try:
         redis_pool = await main_config.redis.create_pool()
 
-        # 추가 로깅
+        if redis_pool is None:
+            logger.error("Redis 풀 초기화 실패: 반환된 풀이 None")
+            raise RuntimeError("Redis 풀 초기화 중 심각한 오류 발생")
+
         logger.info(f"Redis 풀 초기화 완료. 풀 객체: {redis_pool}")
         logger.info(f"Redis 풀 ID: {id(redis_pool)}")
 
@@ -146,7 +149,6 @@ async def init_redis():
     except Exception as e:
         logger.error(f"Redis 풀 초기화 실패: {e}")
         import traceback
-
         traceback.print_exc()
         raise
 

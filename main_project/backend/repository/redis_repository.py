@@ -10,6 +10,12 @@ logger = logging.getLogger(__name__)
 
 class RedisRepository:
     def __init__(self, redis):
+
+        if redis is None:
+            logger.error("RedisRepository에 None 객체가 전달되었습니다.")
+            raise ValueError("유효한 Redis 연결 객체가 필요합니다.")
+        
+        logger.info(f"RedisRepository 초기화. Redis 객체: {redis}")
         self.redis = redis
 
     def _serialize_datetime(self, data: dict) -> dict:
@@ -36,10 +42,12 @@ class RedisRepository:
         """DPS로 데이터 조회"""
         data = await self.redis.get(f"dashboard:{dps}")
         return json.loads(data) if data else None
-
     async def save_task(self, task_type: str, task: dict) -> bool:
-        """작업 데이터 Redis 저장"""
         try:
+            if self.redis is None:
+                logger.error("Redis 연결이 None입니다.")
+                return False
+
             # datetime 필드 직렬화
             data = self._serialize_datetime(task)
 
@@ -48,7 +56,7 @@ class RedisRepository:
 
             logger.info(f"Saving to Redis - Key: {key}")
 
-            # JSON으로 직렬화하여 저장 (날짜/시간 처리 포함)
+            # JSON으로 직렬화하여 저장
             await self.redis.set(key, json.dumps(data, default=str))
             return True
 

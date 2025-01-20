@@ -21,6 +21,11 @@ logger = logging.getLogger(__name__)
 class DashboardService:
     def __init__(self, db: Session, redis: aioredis.Redis):
         self.mysql_repo = MySQLRepository(db)
+        # Redis 객체가 None이 아닌지 확인
+        if redis is None:
+            logger.error("Redis 연결 객체가 None입니다.")
+            raise ValueError("유효한 Redis 연결 객체가 필요합니다.")
+        
         self.redis_repo = RedisRepository(redis)
         self.db = db
 
@@ -49,7 +54,7 @@ class DashboardService:
                 totalPages=total_pages,
             )
         except Exception as e:
-            print(f"Error in get_dashboard_items: {e}")
+            logger.error(f"대시보드 항목 조회 중 오류: {e}")
             raise
 
     def _filter_items(self, items, params: DashboardParams):

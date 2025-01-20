@@ -33,7 +33,7 @@ async def startup_event():
 
         # Redis 강제 초기화
         global redis_pool
-        redis_pool = await init_redis()
+        redis_pool = await init_redis()  # 명시적 호출
 
         # DB 세션 생성
         db = SessionLocal()
@@ -51,7 +51,6 @@ async def startup_event():
     except Exception as e:
         logger.error(f"애플리케이션 시작 실패: {e}")
         raise
-
 
 @app.on_event("shutdown")
 async def shutdown_event():
