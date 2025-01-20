@@ -162,14 +162,15 @@
       <div class="toast-body"></div>
     </div>
 
-    <!-- index.html 수정 -->
     <script src="/script/modalManager.js"></script>
-    <script src="/script/dashboardApp.js"></script>
+    <script src="/script/apiService.js" type="module"></script>
+    <script src="/script/dashboardController.js" type="module"></script>
+    <script src="/script/dashboardView.js" type="module"></script>
+    <script src="/script/dashboardApp.js" type="module"></script>
     <script src="/script/nav-active.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        window.dashboardApp = new DashboardApp();
-      });
+    <script type="module">
+      import DashboardApp from '/script/dashboardApp.js';
+      window.dashboardApp = new DashboardApp();
     </script>
   </body>
 </html>

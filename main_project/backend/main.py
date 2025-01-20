@@ -1,34 +1,60 @@
-# backend/main.py
+# main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+import logging
+from config.main_config import init_redis, redis_pool, SessionLocal
+from service.dashboard_service import DashboardService
 from api.main_routes import router as dashboard_router
-from repository.load_mock_data import load_mock_data_to_redis
 
+# 로깅 설정
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
-def create_app():
-    app = FastAPI()
-    app.include_router(dashboard_router, prefix="/", tags=["dashboard"])
+# FastAPI 앱 생성
+app = FastAPI()
 
-    @app.on_event("startup")
-    async def startup_event():
-        # 서버 시작 시 mock 데이터 로드
-        load_mock_data_to_redis()
-
-    return app
-
-
-app = create_app()
+# CORS 미들웨어 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # 프론트엔드 주소
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
-    allow_methods=["*"],  # 모든 HTTP 메서드 허용
-    allow_headers=["*"],  # 모든 HTTP 헤더 허용
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-if __name__ == "__main__":
-    import uvicorn
+# 라우터 추가
+app.include_router(dashboard_router, prefix="/api", tags=["dashboard"])
 
-    # uvicorn main:app --reload 로 실행 가능
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+@app.on_event("startup")
+async def startup_event():
+    try:
+        logger.info("애플리케이션 시작 중...")
+
+        # Redis 강제 초기화
+        global redis_pool
+        redis_pool = await init_redis()
+
+        # DB 세션 생성
+        db = SessionLocal()
+
+        # Redis 동기화 서비스 초기화
+        dashboard_service = DashboardService(db, redis_pool)
+
+        # 대기 상태 작업 동기화
+        await dashboard_service.sync_waiting_tasks()
+
+        # 세션 닫기
+        db.close()
+
+        logger.info("Redis 풀 초기화 완료")
+    except Exception as e:
+        logger.error(f"애플리케이션 시작 실패: {e}")
+        raise
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    from config.main_config import close_redis
+
+    await close_redis()

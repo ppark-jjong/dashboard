@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `delivery_system`.`dashboard` (
   
   -- 중복 저장: 작업 상태를 캐싱 (예: 대기, 완료)
   `status` VARCHAR(10) NOT NULL DEFAULT '대기' COMMENT '작업 상태 (delivery_system.delivery.status 또는 delivery_system.return.status와 동일)',
-  
+   x
   -- 중복 저장: driver 테이블의 driver 컬럼
   `driver_id` INT NOT NULL COMMENT '배정된 드라이버의 ID (delivery_system.driver.driver와 동일)',
   

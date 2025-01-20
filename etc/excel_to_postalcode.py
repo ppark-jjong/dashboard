@@ -2,14 +2,20 @@ import pandas as pd
 import mysql.connector
 
 # 엑셀 파일 경로
-file_path = "../../data/postal_code.xlsx"
+file_path = "../data/postal_code.xlsx"
 
 # 엑셀 데이터 읽기
 df = pd.read_excel(file_path)
+
+# SQL 테이블 컬럼 확인 후 데이터 매핑
+expected_columns = ['postal_code', 'duration_time', 'distance']
+df = df[expected_columns]  # 필요 컬럼만 유지
+
 # 데이터 타입 변환
-df['postal_code'] = df['postal_code'].astype(str)  # postal_code를 문자열로 변환
-df['duration_time'] = df['duration_time'].fillna(0).astype(int)  # Null 값을 0으로 대체 후 정수로 변환
-df['distance'] = df['distance'].fillna(0).astype(int)  # Null 값을 0으로 대체 후 정수로 변환
+df['postal_code'] = df['postal_code'].astype(str)
+df['duration_time'] = df['duration_time'].fillna(0).astype(int)
+df['distance'] = df['distance'].fillna(0).astype(int)
+
 # MySQL 연결 정보
 db_config = {
     'user': 'root',
@@ -18,12 +24,11 @@ db_config = {
     'database': 'delivery_system'
 }
 
-# 데이터베이스 연결
+# 데이터베이스 연결 및 삽입
 try:
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor()
 
-    # 데이터 삽입
     insert_query = """
         INSERT INTO postal_code (postal_code, duration_time, distance)
         VALUES (%s, %s, %s)
@@ -32,12 +37,11 @@ try:
             distance = VALUES(distance)
     """
 
-    # 데이터프레임의 각 행을 삽입
     for _, row in df.iterrows():
-        cursor.execute(insert_query, (row['postal_code'], row['duration_time'], row['distance']))
+        cursor.execute(insert_query, tuple(row))
 
     connection.commit()
-    print("데이터 삽입 완료!")
+    print(f"총 {len(df)}개의 행이 삽입되었습니다.")
 
 except mysql.connector.Error as err:
     print(f"에러: {err}")

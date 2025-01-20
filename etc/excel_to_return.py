@@ -3,7 +3,7 @@ import mysql.connector
 from mysql.connector import Error
 
 # 1. 엑셀 데이터 읽기
-file_path = "../../data/customer_kpi_unique_updated.xlsx"  # 엑셀 파일 경로
+file_path = "../data/return_mock_unique_updated.xlsx"  # 엑셀 파일 경로
 sheet_name = "report"
 data = pd.read_excel(file_path, sheet_name=sheet_name)
 
@@ -26,13 +26,13 @@ try:
 
         # 4. 데이터베이스 테이블의 컬럼 이름 가져오기
         cursor = connection.cursor()
-        table_name = "delivery"  # 삽입할 테이블 이름
+        table_name = "`return`"  # 테이블 이름을 역따옴표로 감싸기
 
         # SQL 쿼리로 테이블의 컬럼 이름 가져오기
         cursor.execute(f"""
             SELECT COLUMN_NAME 
             FROM INFORMATION_SCHEMA.COLUMNS 
-            WHERE TABLE_SCHEMA = '{database}' AND TABLE_NAME = '{table_name}';
+            WHERE TABLE_SCHEMA = '{database}' AND TABLE_NAME = 'return';
         """)
         db_columns = [column[0] for column in cursor.fetchall()]  # 데이터베이스 컬럼 리스트
         excel_columns = list(data.columns)  # 엑셀의 컬럼 리스트
@@ -45,10 +45,11 @@ try:
         if set(excel_columns) != set(db_columns):
             print("경고: 엑셀 컬럼과 데이터베이스 컬럼이 일치하지 않습니다.")
         else:
-            print("엑셀 컬럼과 데이터베이스 컬럼이 일치합니다.")
+            print("엑셀 컬럼과 데이터베이스 컬럼이 일치합니다.")   
 
         # 5. 데이터프레임을 MySQL 테이블로 삽입
-        columns = ", ".join(excel_columns)  # 엑셀 파일의 컬럼을 기반으로 테이블 컬럼 지정
+        # 컬럼 이름에 역따옴표 추가
+        columns = ", ".join([f"`{col}`" for col in excel_columns])
 
         # 데이터를 한 줄씩 삽입
         for _, row in data.iterrows():

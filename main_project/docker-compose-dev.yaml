@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   frontend:
     build:
@@ -7,10 +5,12 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./frontend:/usr/share/nginx/html
+      - ./frontend/livereload.js:/usr/share/nginx/html/livereload.js
+
     environment:
       - NODE_ENV=development
     ports:
-      - "3000:80"
+      - '3000:80'
 
   backend:
     build:
@@ -19,13 +19,36 @@ services:
     volumes:
       - ./backend:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    environment:
-      - ENVIRONMENT=development
-      - DEBUG=1
+    env_file:
+      - ./backend/.env
     ports:
-      - "8000:8000"
+      - '8000:8000'
+    depends_on:
+      - mysql
+      - redis
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=delivery_system
+    ports:
+      - '3307:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/init:/docker-entrypoint-initdb.d
+    restart: no
 
   redis:
     image: redis:alpine
-    ports:
-      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  mysql_data:
+  redis-data:

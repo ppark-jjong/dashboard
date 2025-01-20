@@ -30,13 +30,17 @@ docker-compose -f docker/docker-compose.yaml up -d    # 특정 compose 파일 �
 docker-compose ps                                     # 실행 상태 확인
 docker images                                         # 도커 이미지 목록 확인
 docker-compose logs -f                                # 실시간 로그 확인
-
+ 
 docker exec -it <container_name> /bin/bash            # 컨테이너 내부 접근
 docker cp test-kafka.py <container_name>:/path/to/new_directory/  # 컨테이너에 파일 복사
 
-
+# 컨테이너 다운 후 재빌드
 docker-compose -f docker-compose-dev.yaml down
 docker-compose -f docker-compose-dev.yaml up --build
+
+docker-compose -f docker-compose-dev.yaml up --build frontend #특정서비스만 재빌드
+
+
 
 docker exec -it <컨테이너_ID>
 
