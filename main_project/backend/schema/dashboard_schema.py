@@ -1,8 +1,6 @@
-# app/schemas/dashboard_schema.py
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
-
 
 # Request Schemas
 class DashboardParams(BaseModel):
@@ -12,17 +10,26 @@ class DashboardParams(BaseModel):
     page: int = Field(default=1, gt=0)
     limit: int = Field(default=15, gt=0, le=100)
 
-
 class DriverAssignRequest(BaseModel):
     driver_id: int
     dpsList: List[str]
 
-
 class StatusUpdateRequest(BaseModel):
     new_status: str
 
-
 # Response Schemas
+class DriverResponse(BaseModel):
+    driver: int
+    driver_name: str
+    driver_contact: str
+    driver_region: str
+
+    class Config:
+        from_attributes = True
+
+class DriversResponse(BaseModel):
+    drivers: List[DriverResponse]
+
 class DashboardItem(BaseModel):
     type: str
     status: str
@@ -44,13 +51,11 @@ class DashboardItem(BaseModel):
     warehouse: Optional[str] = None
     dps: str
 
-
 class DashboardResponse(BaseModel):
     totalCount: int
     data: List[DashboardItem]
     currentPage: int
     totalPages: int
-
 
 class DashboardDetail(BaseModel):
     type: str
@@ -73,20 +78,9 @@ class DashboardDetail(BaseModel):
     warehouse: Optional[str] = None
     dps: str
     dispatch_time: Optional[datetime] = None
-    package_type: Optional[str] = None  # return 타입일 때만
-    qty: Optional[int] = None  # return 타입일 때만
-    dispatch_date: Optional[datetime] = None  # return 타입일 때만
-
-
-class DriverResponse(BaseModel):
-    driver: int
-    driver_name: str
-    driver_contact: str
-    driver_region: str
-
-    class Config:
-        from_attributes = True
-
+    package_type: Optional[str] = None
+    qty: Optional[int] = None
+    dispatch_date: Optional[datetime] = None
 
 class BaseResponse(BaseModel):
     success: bool
