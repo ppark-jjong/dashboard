@@ -249,6 +249,25 @@ class ApiService {
     });
     return response.data;
   }
+  async createDashboard(data) {
+    const response = await this.requestWithRetry('/dashboard', {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: {
+        ...data,
+        status: '대기', // 상태는 자동으로 '대기'로 설정
+      },
+    });
+    return response.data;
+  }
+  async deleteDashboards(dpsList) {
+    const response = await this.requestWithRetry('/dashboard/delete', {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: { dpsList },
+    });
+    return response.data;
+  }
 }
 
 // Create and export API service instance

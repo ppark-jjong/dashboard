@@ -128,6 +128,121 @@
       </div>
     </div>
 
+    <div id="create-dashboard-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">대시보드 생성</h2>
+          <span class="close">&times;</span>
+        </div>
+        <form id="create-dashboard-form">
+          <div class="modal-body">
+            <div class="form-grid">
+              <!-- 기본 정보 섹션 -->
+              <h3 class="section-title">기본 정보</h3>
+              <div class="form-group">
+                <label for="dps">DPS 번호</label>
+                <input
+                  type="text"
+                  id="dps"
+                  name="dps"
+                  pattern="\d{10}"
+                  maxlength="10"
+                  required
+                />
+                <span class="input-hint">10자리 숫자를 입력하세요</span>
+              </div>
+
+              <div class="form-group">
+                <label for="type">유형</label>
+                <select id="type" name="type" required>
+                  <option value="">선택해주세요</option>
+                  <option value="배송">배송</option>
+                  <option value="회수">회수</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="department">부서</label>
+                <select id="department" name="department" required>
+                  <option value="">선택해주세요</option>
+                  <option value="CS">CS</option>
+                  <option value="HES">HES</option>
+                  <option value="Lenovo">Lenovo</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="warehouse">창고</label>
+                <select id="warehouse" name="warehouse" required>
+                  <option value="">선택해주세요</option>
+                  <option value="Seoul">Seoul</option>
+                  <option value="Daejeon">Daejeon</option>
+                  <option value="Gwangju">Gwangju</option>
+                  <option value="Busan">Busan</option>
+                </select>
+              </div>
+
+              <!-- 배송 정보 섹션 -->
+              <h3 class="section-title">배송 정보</h3>
+              <div class="form-group">
+                <label for="postal_code">우편번호</label>
+                <input
+                  type="text"
+                  id="postal_code"
+                  name="postal_code"
+                  required
+                />
+              </div>
+
+              <div class="form-group full-width">
+                <label for="address">주소</label>
+                <input type="text" id="address" name="address" required />
+              </div>
+
+              <div class="form-group">
+                <label for="eta">예상 도착 시간</label>
+                <input type="datetime-local" id="eta" name="eta" required />
+              </div>
+
+              <!-- 고객 정보 섹션 -->
+              <h3 class="section-title">고객 정보</h3>
+              <div class="form-group">
+                <label for="customer">고객명</label>
+                <input type="text" id="customer" name="customer" required />
+              </div>
+
+              <div class="form-group">
+                <label for="contact">연락처</label>
+                <input type="text" id="contact" name="contact" required />
+              </div>
+
+              <div class="form-group">
+                <label for="sla">SLA</label>
+                <input type="text" id="sla" name="sla" required />
+              </div>
+
+              <!-- 기타 정보 섹션 -->
+              <h3 class="section-title">기타 정보</h3>
+              <div class="form-group full-width">
+                <label for="remark">특이사항</label>
+                <textarea
+                  id="remark"
+                  name="remark"
+                  rows="3"
+                  required
+                ></textarea>
+              </div>
+            </div>
+            <div id="create-error-message" class="error-message"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn-primary">생성</button>
+            <button type="button" class="btn-secondary">취소</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- 기사 할당 모달 -->
     <div id="driver-assign-modal" class="modal">
       <div class="modal-content">
