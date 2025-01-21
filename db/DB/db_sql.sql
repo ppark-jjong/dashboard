@@ -187,3 +187,11 @@ CREATE TABLE IF NOT EXISTS `delivery_system`.`return` (
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `delivery_system`.`user` (
+  `user_id` VARCHAR(45) NOT NULL,
+  `user_password` VARCHAR(45) NOT NULL,
+  `authority` INT NOT NULL,
+  PRIMARY KEY (`user_id`))
+ENGINE = InnoDB;
+

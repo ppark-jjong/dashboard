@@ -1,177 +1,184 @@
 <!DOCTYPE html>
 <html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>배송 대시보드</title>
+    <!-- 폰트어썸, 스타일 시트 로드 (변동 없음) -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" type="text/css" href="/style/variables.css" />
+    <link rel="stylesheet" type="text/css" href="/style/navbar.css" />
+    <link rel="stylesheet" type="text/css" href="/style/index.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>배송 대시보드</title>
-  <!-- 폰트어썸, 스타일 시트 로드 (변동 없음) -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
-  <link rel="stylesheet" type="text/css" href="/style/variables.css" />
-  <link rel="stylesheet" type="text/css" href="/style/navbar.css" />
-  <link rel="stylesheet" type="text/css" href="/style/index.css" />
-</head>
-
-<body>
-  <!-- 상단 네비게이션 바 -->
-  <nav class="navbar navbar-dark">
-    <div class="container">
-      <div class="navbar-brand">배송 대시보드</div>
-      <div class="nav-links">
-        <a href="index.html" class="nav-link">대시보드</a>
-        <a href="visualization.html" class="nav-link">시각화</a>
+  <body>
+    <!-- 상단 네비게이션 바 -->
+    <nav class="navbar navbar-dark">
+      <div class="container">
+        <div class="navbar-brand">배송 대시보드</div>
+        <div class="nav-links">
+          <a href="index.html" class="nav-link">대시보드</a>
+          <a href="visualization.html" class="nav-link">시각화</a>
+          <!-- user-info는 navbar.js에 의해 동적으로 추가됨 -->
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <div class="dashboard">
-    <div class="px-4 pt-4">
-      <h1 class="mb-4">대시보드</h1>
+    <div class="dashboard">
+      <div class="px-4 pt-4">
+        <h1 class="mb-4">대시보드</h1>
 
-      <!-- Filter Controls -->
-      <div class="filter-controls card mb-4">
-        <div class="card-body">
-          <div class="filter-row">
-            <!-- 검색어 필터 (원하면 유지) -->
-            <div class="filter-col">
-              <input type="text" id="search-input" class="search-input" placeholder="검색어를 입력하세요" />
-            </div>
-            <!-- 부서 필터는 사용 안 한다면 숨기거나 제거
+        <!-- Filter Controls -->
+        <div class="filter-controls card mb-4">
+          <div class="card-body">
+            <div class="filter-row">
+              <!-- 검색어 필터 (원하면 유지) -->
+              <div class="filter-col">
+                <input
+                  type="text"
+                  id="search-input"
+                  class="search-input"
+                  placeholder="검색어를 입력하세요"
+                />
+              </div>
+              <!-- 부서 필터는 사용 안 한다면 숨기거나 제거
                    여기선 숨긴다고 가정 (display:none 등)
                    <div class="filter-col" style="display: none"> ...</div> -->
 
-            <!-- 상태 필터 -->
-            <div class="filter-col">
-              <select id="status-filter" class="filter-select">
-                <option value="all">전체 상태</option>
-                <option value="대기">대기</option>
-                <option value="진행">진행</option>
-                <option value="완료">완료</option>
-                <option value="이슈">이슈</option>
-              </select>
-            </div>
+              <!-- 상태 필터 -->
+              <div class="filter-col">
+                <select id="status-filter" class="filter-select">
+                  <option value="all">전체 상태</option>
+                  <option value="대기">대기</option>
+                  <option value="진행">진행</option>
+                  <option value="완료">완료</option>
+                  <option value="이슈">이슈</option>
+                </select>
+              </div>
 
-            <!-- 기사 필터 -->
-            <div class="filter-col">
-              <select id="driver-select" class="filter-select">
-                <option value="all">전체 기사</option>
-              </select>
-            </div>
+              <!-- 기사 필터 -->
+              <div class="filter-col">
+                <select id="driver-select" class="filter-select">
+                  <option value="all">전체 기사</option>
+                </select>
+              </div>
 
-            <div class="filter-col buttons">
-              <button id="refresh-btn" class="btn-refresh">
-                <i class="fas fa-sync-alt"></i> 새로고침
-              </button>
-              <button id="assign-btn" class="btn-assign" disabled>
-                <i class="fas fa-user"></i> 기사 할당
-              </button>
+              <div class="filter-col buttons">
+                <button id="refresh-btn" class="btn-refresh">
+                  <i class="fas fa-sync-alt"></i> 새로고침
+                </button>
+                <button id="assign-btn" class="btn-assign" disabled>
+                  <i class="fas fa-user"></i> 기사 할당
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Data Table -->
-      <div class="table-container">
-        <div class="loading-overlay">
-          <div class="loading-spinner"></div>
-        </div>
-        <table id="data-table" class="data-table">
-          <thead>
-            <tr>
-              <th class="col-checkbox">
-                <label class="custom-checkbox">
-                  <input type="checkbox" id="select-all" />
-                  <span class="checkbox-mark"></span>
-                </label>
-              </th>
-              <th class="col-department">부서</th>
-              <th class="col-type">유형</th>
-              <th class="col-warehouse">창고</th>
-              <th class="col-driver">기사</th>
-              <th class="col-dps">DPS</th>
-              <th class="col-sla">SLA</th>
-              <th class="col-eta">ETA</th>
-              <th class="col-status">상태</th>
-              <th class="col-location">도착지역</th>
-              <th class="col-customer">고객명</th>
-              <th class="col-contact">연락처</th>
-            </tr>
-          </thead>
-          <tbody id="table-body"></tbody>
-        </table>
-        <div class="pagination">
-          <button id="prev-page" class="page-btn">이전</button>
-          <span id="page-info">1 / 1</span>
-          <button id="next-page" class="page-btn">다음</button>
+        <!-- Data Table -->
+        <div class="table-container">
+          <div class="loading-overlay">
+            <div class="loading-spinner"></div>
+          </div>
+          <table id="data-table" class="data-table">
+            <thead>
+              <tr>
+                <th class="col-checkbox">
+                  <label class="custom-checkbox">
+                    <input type="checkbox" id="select-all" />
+                    <span class="checkbox-mark"></span>
+                  </label>
+                </th>
+                <th class="col-department">부서</th>
+                <th class="col-type">유형</th>
+                <th class="col-warehouse">창고</th>
+                <th class="col-driver">기사</th>
+                <th class="col-dps">DPS</th>
+                <th class="col-sla">SLA</th>
+                <th class="col-eta">ETA</th>
+                <th class="col-status">상태</th>
+                <th class="col-location">도착지역</th>
+                <th class="col-customer">고객명</th>
+                <th class="col-contact">연락처</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+          <div class="pagination">
+            <button id="prev-page" class="page-btn">이전</button>
+            <span id="page-info">1 / 1</span>
+            <button id="next-page" class="page-btn">다음</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- 상세 모달 -->
-  <div id="detail-modal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <div id="detail-modal-content"></div>
-      <div class="modal-footer">
-        <button id="save-status" class="btn-primary">저장</button>
-        <button class="btn-secondary">닫기</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 기사 할당 모달 -->
-  <div id="driver-assign-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">기사 할당</h2>
+    <!-- 상세 모달 -->
+    <div id="detail-modal" class="modal">
+      <div class="modal-content">
         <span class="close">&times;</span>
-      </div>
-
-      <div class="modal-body">
-        <div class="selected-dps-section">
-          <h3>선택된 배송건 (<span id="selected-dps-count">0</span>건)</h3>
-          <div id="selected-dps-list" class="dps-list"></div>
+        <div id="detail-modal-content"></div>
+        <div class="modal-footer">
+          <button id="save-status" class="btn-primary">저장</button>
+          <button class="btn-secondary">닫기</button>
         </div>
-
-        <div class="driver-select-section">
-          <h3>기사 선택</h3>
-          <select id="driver-assign-dropdown" class="filter-select">
-            <option value="">기사를 선택하세요</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button id="confirm-driver-assign" class="btn-primary">할당</button>
-        <button id="cancel-driver-assign" class="btn-secondary">취소</button>
       </div>
     </div>
-  </div>
-  <script type="module" src="/script/modalManager.js"></script>
-  <script type="module" src="/script/apiService.js"></script>
-  <script type="module" src="/script/dashboardView.js"></script>
-  <script type="module" src="/script/dashboardController.js"></script>
-  <script type="module" src="/script/dashboardApp.js"></script>
-  <script src="/script/nav-active.js"></script>
 
-  <script type="module">
-    import DashboardApp from '/script/dashboardApp.js';
+    <!-- 기사 할당 모달 -->
+    <div id="driver-assign-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">기사 할당</h2>
+          <span class="close">&times;</span>
+        </div>
 
-    document.addEventListener('DOMContentLoaded', () => {
-      try {
-        window.dashboardApp = new DashboardApp();
-      } catch (error) {
-        console.error('Dashboard initialization failed:', error);
-      }
-    });
-  </script>
+        <div class="modal-body">
+          <div class="selected-dps-section">
+            <h3>선택된 배송건 (<span id="selected-dps-count">0</span>건)</h3>
+            <div id="selected-dps-list" class="dps-list"></div>
+          </div>
 
-  <!-- Toast Notification 템플릿 -->
-  <div id="notification-toast" class="toast">
-    <div class="toast-header"></div>
-    <div class="toast-body"></div>
-  </div>
-</body>
+          <div class="driver-select-section">
+            <h3>기사 선택</h3>
+            <select id="driver-assign-dropdown" class="filter-select">
+              <option value="">기사를 선택하세요</option>
+            </select>
+          </div>
+        </div>
 
+        <div class="modal-footer">
+          <button id="confirm-driver-assign" class="btn-primary">할당</button>
+          <button id="cancel-driver-assign" class="btn-secondary">취소</button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/script/modalManager.js"></script>
+    <script type="module" src="/script/apiService.js"></script>
+    <script type="module" src="/script/dashboardView.js"></script>
+    <script type="module" src="/script/dashboardController.js"></script>
+    <script type="module" src="/script/dashboardApp.js"></script>
+    <script type="module" src="/script/navbar.js"></script>
+
+    <script type="module">
+      import DashboardApp from '/script/dashboardApp.js';
+
+      document.addEventListener('DOMContentLoaded', () => {
+        try {
+          window.dashboardApp = new DashboardApp();
+        } catch (error) {
+          console.error('Dashboard initialization failed:', error);
+        }
+      });
+    </script>
+
+    <!-- Toast Notification 템플릿 -->
+    <div id="notification-toast" class="toast">
+      <div class="toast-header"></div>
+      <div class="toast-body"></div>
+    </div>
+  </body>
 </html>

@@ -14,7 +14,7 @@ class RedisRepository:
         if redis is None:
             logger.error("RedisRepository에 None 객체가 전달되었습니다.")
             raise ValueError("유효한 Redis 연결 객체가 필요합니다.")
-        
+
         logger.info(f"RedisRepository 초기화. Redis 객체: {redis}")
         self.redis = redis
 
@@ -42,6 +42,7 @@ class RedisRepository:
         """DPS로 데이터 조회"""
         data = await self.redis.get(f"dashboard:{dps}")
         return json.loads(data) if data else None
+
     async def save_task(self, task_type: str, task: dict) -> bool:
         try:
             if self.redis is None:
@@ -86,3 +87,22 @@ class RedisRepository:
         except Exception as e:
             print(f"Error clearing Redis data: {e}")
             return False
+
+    def get_dashboard(self, dashboard_id):
+        # Redis에서 대시보드 데이터를 조회합니다
+        try:
+            data = self.redis_client.get(f"dashboard:{dashboard_id}")
+            if data:
+                return json.loads(data)
+            return None
+        except Exception as e:
+            # Redis 조회 실패 로그
+            print(f"Redis 조회 실패: {e}")
+            return None
+
+    def cache_dashboard(self, dashboard_id, data):
+        """Redis에 대시보드 데이터를 캐싱합니다."""
+        try:
+            self.redis_client.set(f"dashboard:{dashboard_id}", json.dumps(data))
+        except Exception as e:
+            print(f"Redis 캐싱 실패: {e}")

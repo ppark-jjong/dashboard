@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>로그인 - 배송 대시보드</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" type="text/css" href="/style/variables.css" />
+    <link rel="stylesheet" type="text/css" href="/style/login.css" />
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="login-box">
+        <h1 class="login-title">
+          <i class="fas fa-truck"></i>
+          배송 대시보드
+        </h1>
+        <form id="login-form" class="login-form">
+          <div class="form-group">
+            <label for="user-id">아이디</label>
+            <input type="text" id="user-id" name="userId" required />
+          </div>
+          <div class="form-group">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" name="password" required />
+          </div>
+          <button type="submit" class="login-button">로그인</button>
+        </form>
+        <div id="error-message" class="error-message"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { apiService } from '/script/apiService.js';
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        // 이미 로그인되어 있는지 확인
+        const isAuthenticated = await apiService.checkAuth();
+        if (isAuthenticated) {
+          window.location.href = '/index.html';
+          return;
+        }
+
+        const loginForm = document.getElementById('login-form');
+        const errorMessage = document.getElementById('error-message');
+
+        loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          errorMessage.textContent = '';
+
+          const userId = document.getElementById('user-id').value;
+          const password = document.getElementById('password').value;
+
+          try {
+            const response = await apiService.login(userId, password);
+            if (response.success) {
+              window.location.href = '/index.html';
+            } else {
+              errorMessage.textContent =
+                response.data.message || '로그인에 실패했습니다.';
+            }
+          } catch (error) {
+            errorMessage.textContent =
+              error.message || '로그인 중 오류가 발생했습니다.';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

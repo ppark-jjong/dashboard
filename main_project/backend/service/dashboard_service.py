@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 from typing import Optional, List
-from model.main_model import Delivery, Return
+from backend.model.board_model import Delivery, Return
 from sqlalchemy.orm import Session
 import aioredis
 
@@ -11,7 +11,7 @@ from schema.dashboard_schema import (
     DashboardDetail,
     DashboardItem,
 )
-from repository.mysql_repository import MySQLRepository
+from backend.repository.board_repository import MySQLRepository
 from repository.redis_repository import RedisRepository
 import logging
 
@@ -25,7 +25,7 @@ class DashboardService:
         if redis is None:
             logger.error("Redis 연결 객체가 None입니다.")
             raise ValueError("유효한 Redis 연결 객체가 필요합니다.")
-        
+
         self.redis_repo = RedisRepository(redis)
         self.db = db
 

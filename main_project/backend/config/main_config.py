@@ -1,3 +1,4 @@
+# backend/config/main_config.py
 from dataclasses import dataclass
 import os
 from typing import Any, Optional
@@ -149,6 +150,7 @@ async def init_redis():
     except Exception as e:
         logger.error(f"Redis 풀 초기화 실패: {e}")
         import traceback
+
         traceback.print_exc()
         raise
 

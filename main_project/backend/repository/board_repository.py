@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 import json
 
-from model.main_model import Driver, Delivery, Return, PostalCode
+from backend.model.board_model import Driver, Delivery, Return, PostalCode
 import logging
 
 logger = logging.getLogger(__name__)
